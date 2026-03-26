@@ -22,21 +22,11 @@
         }
 
         /* CINEMATIC BACKGROUND */
-        /* BACKGROUND ORBS */
-        .background-orbs-container {
-            position: fixed;
-            inset: 0;
-            z-index: 1;
-            pointer-events: none;
+        .lounge-wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex; flex: 1;
         }
-        .bg-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.5;
-            animation: float-orb 20s infinite alternate ease-in-out;
-        }
-        @keyframes float-orb { 0% { transform: translate(0,0); } 100% { transform: translate(60px, -40px); } }
 
         /* INTERNAL ORBS */
         .card-orbs {
@@ -235,7 +225,7 @@
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
     </style>
 </head>
-<body>
+<body class="dark-factory">
 
     <div class="background-orbs-container">
         <div class="bg-orb" style="width:120px;height:120px;top:5%;left:15%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
@@ -250,7 +240,33 @@
         <p>COLLABORATIVE AGENCY V10.1</p>
     </header>
 
-    <a href="index.html" class="back-hub"><i class="ph ph-house"></i> HUB STRATEGICA</a>
+    <div class="background-orbs-container">
+        <!-- Cluster 1: Gold & Warm -->
+        <div class="bg-orb" style="width:120px;height:120px;top:10%;left:15%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:80px;height:80px;top:25%;left:20%;background:radial-gradient(circle,rgba(255,165,0,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:40px;height:40px;top:15%;left:30%;background:radial-gradient(circle,rgba(255,255,255,0.4) 0%,transparent 70%);"></div>
+        <!-- Cluster 2: Pink & Vibrant -->
+        <div class="bg-orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(255,20,147,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:90px;height:90px;top:45%;right:15%;background:radial-gradient(circle,rgba(255,105,180,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:150px;height:150px;bottom:10%;left:10%;background:radial-gradient(circle,rgba(255,20,147,0.2) 0%,transparent 70%);"></div>
+        <!-- Cluster 3: Green & Fresh -->
+        <div class="bg-orb" style="width:110px;height:110px;top:60%;right:40%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:130px;height:130px;bottom:20%;left:45%;background:radial-gradient(circle,rgba(184,212,168,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:70px;height:70px;top:80%;right:20%;background:radial-gradient(circle,rgba(0,255,0,0.2) 0%,transparent 70%);"></div>
+        <!-- Cluster 4: Blue & Tech -->
+        <div class="bg-orb" style="width:100px;height:100px;top:50%;left:70%;background:radial-gradient(circle,rgba(0,191,255,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:140px;height:140px;bottom:5%;right:5%;background:radial-gradient(circle,rgba(30,144,255,0.35) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:60px;height:60px;top:5%;right:45%;background:radial-gradient(circle,rgba(65,105,225,0.3) 0%,transparent 70%);"></div>
+        <!-- Extra Highlights -->
+        <div class="bg-orb" style="width:40px;height:40px;top:25%;left:40%;background:radial-gradient(circle,rgba(255,255,255,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:50px;height:50px;bottom:30%;right:15%;background:radial-gradient(circle,rgba(255,255,255,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:120px;height:120px;bottom:50%;right:5%;background:radial-gradient(circle,rgba(0,255,127,0.2) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:60px;height:60px;top:10%;left:80%;background:radial-gradient(circle,rgba(168,212,209,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:130px;height:130px;top:60%;left:45%;background:radial-gradient(circle,rgba(255,235,59,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:100px;height:100px;top:40%;left:70%;background:radial-gradient(circle,rgba(255,215,0,0.25) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:150px;height:150px;top:5%;right:5%;background:radial-gradient(circle,rgba(255,20,147,0.3) 0%,transparent 70%);"></div>
+    </div>
 
     <main>
         <div class="agent-grid" id="agent-grid">

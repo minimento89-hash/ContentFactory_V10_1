@@ -41,10 +41,11 @@ body {
 
 /* THEMES */
 body.dark-factory {
-  --bg: #0a0a0a;
+  --bg: #050505; /* Deep Base */
   --text: #ffffff;
   --text-dim: #888888;
   --glass-border: rgba(255, 255, 255, 0.1);
+  background-color: var(--bg);
 }
 
 .frosted-glass-dark {
@@ -69,27 +70,34 @@ body.dark-factory {
   transform: translateY(-5px) scale(1.02);
 }
 
+/* LINE CLAMP (V10.1 Polish) */
+.line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* GLOBAL ORB SYSTEM */
 .background-orbs-container {
   position: fixed;
   inset: 0;
-  z-index: -1; 
+  z-index: 1; /* Above base background, below relative content */
   overflow: hidden;
   pointer-events: none;
-  background: #050505;
+  background: transparent;
 }
 
-/* MICRO ORBS ANIMATIONS - BRIGHTER */
-@keyframes float-slow {
-  0%   { transform: translate(0, 0) scale(1); opacity: 0.4; }
-  33%  { transform: translate(15vw, 10vh) scale(1.2); opacity: 0.7; }
-  66%  { transform: translate(-10vw, 20vh) scale(0.8); opacity: 0.5; }
-  100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.5;
+  animation: float-orb 20s infinite alternate ease-in-out;
 }
 
-@keyframes float-medium {
-  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
-  50%  { transform: translate(-20vw, -15vh) rotate(180deg); opacity: 0.8; }
-  100% { transform: translate(0, 0) rotate(360deg); opacity: 0.5; }
+@keyframes float-orb { 0% { transform: translate(0,0); } 100% { transform: translate(60px, -40px); } }
+
+.app-container, .roadmap-main-container, .calendar-container, .feed-container, .canvas-container, .viewport {
+  position: relative;
+  z-index: 10;
 }
 
 /* SIDEBAR MOCKUP STYLE */
