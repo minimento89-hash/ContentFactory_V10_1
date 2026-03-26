@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="css/soft-corporate.css?v=123">
 
     <script src="js/core/layout-engine.js"></script>
+    <script src="js/core/sync-engine.js"></script>
+    <script src="js/core/agent-core.js"></script>
     <script>
         // Content Factory V10.1 — Rigid Gatekeeper
         // Se non autenticato (sessione o persistente), forza il login immediato
@@ -73,8 +75,9 @@
         }
 
         .hub-card {
-            background: #fff;
-            border: 1px solid var(--glass-border);
+            background: rgba(15, 15, 15, 0.4);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: var(--radius);
             padding: 32px;
             display: flex;
@@ -125,17 +128,34 @@
             margin-bottom: 20px;
         }
 
-        .hub-footer {
-            margin-top: auto;
-            opacity: 0.2;
-            transition: 0.3s;
-            font-size: 1.2rem;
-            width: 100%;
-            display: flex;
-            justify-content: flex-end;
+        .hub-card:hover .hub-footer { opacity: 1; color: var(--accent); }
+
+        /* INTERNAL CARD ORBS (V10.1 Cinematic Enhancement) */
+        .card-orbs {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            border-radius: inherit;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+            transition: 0.5s;
+        }
+        .hub-card:hover .card-orbs { opacity: 0.6; }
+        
+        .c-orb {
+            position: absolute;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: card-orb-float 10s infinite alternate;
+        }
+        @keyframes card-orb-float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 20px); }
         }
 
-        .hub-card:hover .hub-footer { opacity: 1; color: var(--accent); }
+        .hub-card .ci { position: relative; z-index: 10; width: 100%; height: 100%; display: flex; flex-direction: column; }
 
         .strategic-header {
             position: fixed;
@@ -207,6 +227,38 @@
             background: #10b981;
             box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
             animation: pulse-green 2s infinite ease-in-out;
+        }
+
+        .pulse-yellow {
+            background: #f59e0b;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+            animation: pulse-green 1s infinite ease-in-out;
+        }
+
+        .pulse-red {
+            background: #ef4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.7);
+            animation: pulse-green 0.5s infinite ease-in-out;
+        }
+
+        /* OLIVIA DESIGNER STYLES */
+        .design-node:hover {
+            background: rgba(236, 72, 153, 0.05) !important;
+            border-color: rgba(236, 72, 153, 0.4) !important;
+            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.2) !important;
+        }
+
+        .designer-pulse {
+            background: linear-gradient(135deg, #ec4899, #8b5cf6) !important;
+            color: #fff !important;
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.5);
+            animation: pulse-designer 4s infinite ease-in-out;
+        }
+
+        @keyframes pulse-designer {
+            0% { transform: scale(1); box-shadow: 0 0 5px rgba(236, 72, 153, 0.3); }
+            50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(236, 72, 153, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 0 5px rgba(236, 72, 153, 0.3); }
         }
 
         @keyframes pulse-green {
@@ -313,32 +365,28 @@
             <div class="node-txt">Il Capo <span>Owner</span></div>
         </div>
 
+        <!-- NEW: Olivia Designer Node -->
+        <a href="olivia.html" class="header-node profile design-node" id="olivia-node" style="text-decoration:none; color:inherit;">
+            <div class="avatar-mini designer-pulse">OL</div>
+            <div class="node-txt"><span id="olivia-name-display">Olivia</span> <span>Designer Agent</span></div>
+        </a>
+
         <!-- 2. Active Agents Node -->
         <div class="header-node agents" id="agents-node">
-            <div class="status-dot pulse-green"></div>
-            <div class="node-txt">3 Agenti <span>Monitoraggio</span></div>
+            <div class="status-dot pulse-green" id="agent-pulse"></div>
+            <div class="node-txt" id="agent-summary"><span id="agent-count-total">4</span> Agenti <span>Monitoraggio</span></div>
             
             <!-- Popover -->
             <div class="agents-popover" id="agents-popover">
-                <div class="popover-title">Agenti Attivi <span style="background: #10b981; width:6px; height:6px; border-radius:50%;"></span></div>
+                <div class="popover-title">Agenti Attivi <span id="agent-popover-dot" style="background: #10b981; width:6px; height:6px; border-radius:50%;"></span></div>
                 
-                <div class="agent-status-row active">
-                    <i class="ph-fill ph-shield-check" style="color: #ffd700;"></i>
-                    <div class="st-label">Cybersecurity <span>Ciclo Protetto</span></div>
-                    <div class="st-tag">ACTIVE</div>
-                </div>
-                
-                <div class="agent-status-row active">
-                    <i class="ph-fill ph-bug-beetle" style="color: #a855f7;"></i>
-                    <div class="st-label">Bug Hunter <span>Scansione...</span></div>
-                    <div class="st-tag">SCANNING</div>
+                <div id="agent-list-container">
+                    <!-- Dynamic Rows -->
                 </div>
 
-                <div class="agent-status-row">
-                    <i class="ph-fill ph-wrench" style="color: #3b82f6;"></i>
-                    <div class="st-label">Fixer <span>Standby</span></div>
-                    <div class="st-tag">READY</div>
-                </div>
+                <button class="reset-session-btn" style="width:100%; margin-top:15px; border-color:rgba(255,255,255,0.1); font-size:0.6rem;" onclick="AgentCore.getReport(); alert('Report Diagnostico copiato negli appunti per Antigravity.')">
+                    <i class="ph ph-file-text"></i> Report per Antigravity
+                </button>
             </div>
         </div>
 
@@ -391,6 +439,9 @@
         
         <!-- 1. STUDIO -->
         <a href="studio/index.html" class="hub-card frosted-glass-dark" id="hub-studio">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:-20px; left:-20px; background: rgba(255,215,0,0.2);"></div>
+            </div>
             <div class="ci">
                 <div class="hub-icon" style="color: #fff; background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.3);"><i class="ph-fill ph-squares-four"></i></div>
                 <h2 class="hub-title text-yellow-glow">Studio</h2>
@@ -401,6 +452,9 @@
 
         <!-- 2. AGENT LOUNGE -->
         <a href="agent-lounge.html" class="hub-card frosted-glass-dark" id="hub-agents">
+            <div class="card-orbs">
+                <div class="c-orb" style="bottom:-30px; right:-20px; background: rgba(184,212,168,0.2);"></div>
+            </div>
             <div class="ci">
                 <div class="hub-icon" style="color: #fff; background: rgba(184,212,168,0.1); border: 1px solid rgba(184,212,168,0.2);"><i class="ph-fill ph-users-four"></i></div>
                 <h2 class="hub-title text-yellow-glow">Agent Lounge</h2>
@@ -411,6 +465,9 @@
 
         <!-- 3. BRAINSTORMING -->
         <a href="brainstorming.html" class="hub-card frosted-glass-dark" id="hub-brainstorm">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:50%; left:50%; background: rgba(168,212,209,0.2);"></div>
+            </div>
             <div class="ci">
                 <div class="hub-icon" style="color: #fff; background: rgba(168,212,209,0.1); border: 1px solid rgba(168,212,209,0.2);"><i class="ph-fill ph-lightbulb-filament"></i></div>
                 <h2 class="hub-title text-yellow-glow">Brainstorming</h2>
@@ -419,8 +476,37 @@
             </div>
         </a>
 
+        <!-- Social Loop -->
+        <a href="social-loop.html" class="hub-card frosted-glass-dark" id="card-social">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:-10px; right:-10px; background: rgba(236,72,153,0.2);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #fff; background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.2);"><i class="ph-fill ph-arrows-clockwise"></i></div>
+                <h2 class="hub-title" style="color: #fff;">Social Loop</h2>
+                <p class="hub-desc" style="color: #888;">Engagement cross-platform e monitoraggio hype in tempo reale.</p>
+                <div class="hub-footer"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
+        <!-- Agente Calendario -->
+        <a href="calendar.html" class="hub-card frosted-glass-dark" id="hub-calendar">
+            <div class="card-orbs">
+                <div class="c-orb" style="bottom:-20px; left:-10px; background: rgba(244,63,94,0.2);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #fff; background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.2);"><i class="ph-fill ph-calendar"></i></div>
+                <h2 class="hub-title" style="color: #fff;">Agente Calendario</h2>
+                <p class="hub-desc" style="color: #888;">Pianificazione editoriale e gestione scadenze autonoma.</p>
+                <div class="hub-footer"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
         <!-- 4. ANALYTICS -->
-        <a href="analytics.html" class="hub-card frosted-glass-dark" id="hub-analytics">
+        <a href="#" class="hub-card frosted-glass-dark" id="hub-analytics">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:20px; left:20px; background: rgba(162,196,221,0.2);"></div>
+            </div>
             <div class="ci">
                 <div class="hub-icon" style="color: #fff; background: rgba(162,196,221,0.15); border: 1px solid rgba(162,196,221,0.2);"><i class="ph-fill ph-chart-bar"></i></div>
                 <h2 class="hub-title text-yellow-glow">Analytics</h2>
@@ -431,6 +517,9 @@
 
         <!-- 5. LOGIC FLOWS -->
         <a href="logic-flows.html" class="hub-card frosted-glass-dark" id="hub-flows">
+            <div class="card-orbs">
+                <div class="c-orb" style="bottom:-10px; right:-10px; background: rgba(255,255,255,0.1);"></div>
+            </div>
             <div class="ci">
                 <div class="hub-icon" style="color: #fff; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);"><i class="ph-fill ph-graph"></i></div>
                 <h2 class="hub-title text-yellow-glow">Logic Flows</h2>
@@ -441,10 +530,26 @@
 
         <!-- 6. ROADMAP -->
         <a href="roadmap.html" class="hub-card frosted-glass-dark" id="hub-roadmap">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:-30px; left:-30px; background: rgba(255,105,180,0.2);"></div>
+            </div>
             <div class="ci">
                 <div class="hub-icon" style="color: #fff; background: rgba(255,105,180,0.1); border: 1px solid rgba(255,105,180,0.2);"><i class="ph-fill ph-map-trifold"></i></div>
                 <h2 class="hub-title" style="color: #fff;">Roadmap</h2>
                 <p class="hub-desc" style="color: #888;">Visione strategica e prossimi obiettivi.</p>
+                <div class="hub-footer"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
+        <!-- 7. MAPPA NEURALE -->
+        <a href="neural-map.html" class="hub-card frosted-glass-dark" id="hub-neural-map">
+            <div class="card-orbs">
+                <div class="c-orb" style="bottom:10px; right:10px; background: rgba(139, 92, 246, 0.2);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #fff; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3);"><i class="ph-fill ph-atom"></i></div>
+                <h2 class="hub-title" style="color: #fff;">Mappa Neurale</h2>
+                <p class="hub-desc" style="color: #888;">Monitoraggio dinamico del nucleo operativo e degli agenti.</p>
                 <div class="hub-footer"><i class="ph-bold ph-arrow-right"></i></div>
             </div>
         </a>
@@ -454,6 +559,54 @@
 
 
     <script>
+        // Agent Intelligence Logic
+        function updateAgentUI() {
+            const state = AgentCore.state;
+            const list = document.getElementById('agent-list-container');
+            const pulse = document.getElementById('agent-pulse');
+            const popoverDot = document.getElementById('agent-popover-dot');
+            const summaryBody = document.getElementById('agent-summary');
+            const oliviaName = document.getElementById('olivia-name-display');
+
+            // Update Olivia's specific node name
+            if (oliviaName && state.agents.olivia) {
+                oliviaName.innerText = state.agents.olivia.name;
+            }
+
+            // Update Pulse & Summary
+            const agentCount = Object.keys(state.agents).length;
+            if (state.health < 100) {
+                pulse.className = 'status-dot pulse-yellow';
+                popoverDot.style.background = '#f59e0b';
+                summaryBody.innerHTML = `Criticità! <span>${state.health}% Health</span>`;
+            } else {
+                pulse.className = 'status-dot pulse-green';
+                popoverDot.style.background = '#10b981';
+                summaryBody.innerHTML = `${agentCount} Agenti <span>Monitoraggio</span>`;
+            }
+
+            // Render List
+            list.innerHTML = Object.entries(state.agents).map(([id, agent]) => `
+                <div class="agent-status-row ${agent.tag !== 'READY' && agent.tag !== 'CREATIVE' && agent.tag !== 'SECURE' ? 'active' : ''}">
+                    <i class="ph-fill ${agent.icon || 'ph-cpu'}" style="color: ${agent.color};"></i>
+                    <div class="st-label">${agent.name} <span>${agent.status}</span></div>
+                    <div class="st-tag">${agent.tag}</div>
+                </div>
+            `).join('');
+        }
+
+        // Listen for updates
+        AgentCore.listen('stateUpdate', updateAgentUI);
+        AgentCore.listen('agentRenamed', updateAgentUI);
+        AgentCore.listen('bugFound', (data) => {
+            updateAgentUI();
+            console.warn("BUG FOUND:", data.message);
+        });
+        AgentCore.listen('fixComplete', updateAgentUI);
+
+        // Initial UI Render
+        updateAgentUI();
+
         // Toggle Agents Popover
         const agentsNode = document.getElementById('agents-node');
         const agentsPopover = document.getElementById('agents-popover');

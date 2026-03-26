@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Factory V10.1 — Social Loop</title>
+    <link rel="stylesheet" href="css/soft-corporate.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <script src="js/core/sync-engine.js"></script>
+    <script src="js/core/agent-core.js"></script>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* CENTERED HEADER (V10.1 Standard) */
+        .module-header {
+            padding: 60px 20px 40px;
+            text-align: center;
+            z-index: 100;
+            position: relative;
+        }
+
+        .module-header h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(3rem, 10vw, 4.5rem);
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, #555);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .module-header p {
+            color: #444;
+            font-size: 0.65rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            margin-top: 15px;
+            font-weight: 800;
+        }
+
+        .back-hub {
+            position: fixed;
+            top: 40px; left: 40px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 12px 24px;
+            border-radius: 50px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 800;
+            z-index: 1000;
+            transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .back-hub:hover { background: #fff; color: #000; border-color: #fff; }
+
+        /* SOCIAL FEED FEED */
+        .feed-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding-bottom: 40px;
+            overflow-y: auto;
+            perspective: 1000px;
+            -ms-overflow-style: none; scrollbar-width: none;
+        }
+        .feed-container::-webkit-scrollbar { display: none; }
+
+        .feed-list {
+            width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .social-card {
+            background: rgba(20, 20, 20, 0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .social-card:hover { 
+            transform: scale(1.02); 
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        }
+
+        .card-media {
+            width: 100%;
+            height: 480px;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .card-media img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent 40%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 25px;
+        }
+
+        .card-info h3 { margin: 0; font-size: 1rem; font-weight: 700; color: #fff; }
+        .card-info p { margin: 5px 0 0; font-size: 0.8rem; color: #888; line-height: 1.4; }
+
+        /* INTERNAL ORBS */
+        .card-orbs {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+        }
+        .c-orb {
+            position: absolute;
+            width: 150px; height: 150px;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: card-orb-float 15s infinite alternate;
+        }
+        @keyframes card-orb-float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 30px); }
+        }
+
+        .feed-container {
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            overflow-y: scroll;
+            padding: 0 20px 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .feed-container::-webkit-scrollbar { display: none; }
+
+        .card-stats {
+            position: absolute;
+            right: 15px;
+            bottom: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .stat-item:hover { color: #ffd700; transform: scale(1.1); }
+        .stat-item i { font-size: 1.5rem; }
+        .stat-item span { font-size: 0.65rem; font-weight: 800; }
+
+        /* HYPE BADGE */
+        .hype-badge {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            backdrop-filter: blur(10px);
+        }
+
+        /* BACKGROUND ORBS */
+        .background-orbs-container {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: float-orb 20s infinite alternate ease-in-out;
+        }
+        @keyframes float-orb { 0% { transform: translate(0,0); } 100% { transform: translate(60px, -40px); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="background-orbs-container">
+        <div class="bg-orb" style="width:120px;height:120px;top:5%;left:15%;background:radial-gradient(circle,rgba(255,20,147,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:130px;height:130px;top:60%;left:45%;background:radial-gradient(circle,rgba(255,235,59,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:150px;height:150px;top:80%;left:5%;background:radial-gradient(circle,rgba(255,20,147,0.2) 0%,transparent 70%);"></div>
+    </div>
+
+    <a href="index.html" class="back-hub"><i class="ph ph-house"></i> HUB STRATEGICA</a>
+
+    <header class="module-header">
+        <h1>Social Loop</h1>
+        <p>CROSS-PLATFORM OVERSIGHT V10.1</p>
+    </header>
+
+    <main class="feed-container">
+        <div class="feed-list" id="feed-list">
+            <!-- Mock Social Content -->
+            <div class="social-card">
+                <div class="hype-badge">HYPE: 98%</div>
+                <div class="card-media">
+                    <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=380&h=480" alt="TikTok Mock">
+                    <div class="card-overlay">
+                        <div class="card-info">
+                            <h3>Neural Branding Concept</h3>
+                            <p>Exploring the intersection of AI design and kinetic typography. #ContentFactory #V10</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-stats">
+                    <div class="stat-item" onclick="AgentCore.broadcast('statClick', { type: 'like' })">
+                        <i class="ph-fill ph-heart"></i>
+                        <span>12.4K</span>
+                    </div>
+                    <div class="stat-item" onclick="AgentCore.broadcast('statClick', { type: 'share' })">
+                        <i class="ph-fill ph-paper-plane-tilt"></i>
+                        <span>2.8K</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="ph-fill ph-chat-circle"></i>
+                        <span>452</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="social-card">
+                <div class="hype-badge">HYPE: 84%</div>
+                <div class="card-media">
+                    <img src="https://images.unsplash.com/photo-1611605698335-8b1569810432?auto=format&fit=crop&q=80&w=380&h=480" alt="Instagram Mock">
+                    <div class="card-overlay">
+                        <div class="card-info">
+                            <h3>Aura's Workspace Reveal</h3>
+                            <p>Inside the creative hive of our leading AI Architect. #AIArchitecture #StudioV10</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <i class="ph-fill ph-heart"></i>
+                        <span>8.1K</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="ph-fill ph-paper-plane-tilt"></i>
+                        <span>1.1K</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="ph-fill ph-chat-circle"></i>
+                        <span>198</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Listen for sync events to update hype scores real-time
+        AgentCore.listen('statClick', (data) => {
+            console.log(`[SocialLoop] User interaction: ${data.type}`);
+            // Simulate dynamic feedback
+        });
+    </script>
+</body>
+</html>

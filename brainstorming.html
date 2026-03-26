@@ -3,173 +3,331 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V10.1 — Brainstorming</title>
-    
-    <!-- Icons & Fonts -->
+    <title>Content Factory V10.1 — Brainstorming Lab</title>
+    <link rel="stylesheet" href="css/soft-corporate.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-    
-    <!-- Design System -->
-    <link rel="stylesheet" href="css/design-system.css">
-    
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <script src="js/core/sync-engine.js"></script>
+    <script src="js/core/agent-core.js"></script>
     <style>
-        .brainstorm-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-            padding: 20px 40px 100px 40px;
-            overflow-y: auto;
-            max-height: calc(100vh - var(--header-height));
-        }
-
-        .brain-card {
-            background: var(--glass-heavy);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius);
-            padding: 30px;
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            transition: all 0.3s;
         }
 
-        .brain-card:hover { border-color: var(--accent); transform: translateY(-5px); }
-
-        .brain-icon {
-            font-size: 1.5rem;
-            color: var(--accent);
-            margin-bottom: 5px;
+        /* CENTERED HEADER (V10.1 Standard) */
+        .module-header {
+            padding: 60px 20px 40px;
+            text-align: center;
+            z-index: 100;
+            position: relative;
         }
 
-        .brain-content h3 { font-family: 'Instrument Serif', serif; font-size: 1.8rem; margin-bottom: 5px; }
-        .brain-content p { color: var(--text-dim); font-size: 0.9rem; line-height: 1.5; }
+        .module-header h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(3rem, 10vw, 4.5rem);
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, #555);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
 
-        .thread-input {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 15px;
-            color: white;
-            font-family: inherit;
-            resize: none;
-            height: 100px;
-            outline: none;
+        .module-header p {
+            color: #444;
+            font-size: 0.65rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            margin-top: 15px;
+            font-weight: 800;
+        }
+
+        .back-hub {
+            position: fixed;
+            top: 40px; left: 40px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 12px 24px;
+            border-radius: 50px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 800;
+            z-index: 1000;
             transition: 0.3s;
-            font-size: 0.9rem;
+            display: flex; align-items: center; gap: 8px;
         }
-        .thread-input:focus { border-color: var(--accent); }
+        .back-hub:hover { background: #fff; color: #000; border-color: #fff; }
 
-        .action-bar {
+        /* BRAINSTORMING CANVAS */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-top: 5px;
+            justify-content: center;
         }
 
-        .btn-brain {
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: none;
-            background: var(--accent);
-            color: black;
+        #constellation-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* INTERNAL ORBS */
+        .card-orbs {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+        }
+        .c-orb {
+            position: absolute;
+            width: 150px; height: 150px;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: card-orb-float 15s infinite alternate;
+        }
+        @keyframes card-orb-float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 30px); }
+        }
+
+        /* BACKGROUND ORBS */
+        .background-orbs-container {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.5;
+            animation: float-orb 20s infinite alternate ease-in-out;
+        }
+        @keyframes float-orb { 0% { transform: translate(0,0); } 100% { transform: translate(60px, -40px); } }
+        .idea-node {
+            position: absolute;
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            z-index: 10;
+            transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: nodePop 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes nodePop { from { opacity:0; transform: scale(0.8); } to { opacity:1; transform: scale(1); } }
+
+        .idea-node:hover {
+            border-color: #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .idea-node.central {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1.5px solid #ffd70044;
+            padding: 20px 40px;
+            font-size: 1.2rem;
             font-weight: 700;
+        }
+
+        .idea-icon {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* INPUT BAR */
+        .input-hub {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+            background: rgba(15,15,15,0.8);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 40px;
+            padding: 10px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .input-hub input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 0.9rem;
+            padding: 10px 0;
+            outline: none;
+        }
+
+        .input-hub button {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
             cursor: pointer;
             transition: 0.3s;
-            font-size: 0.8rem;
-            text-transform: uppercase;
         }
-        .btn-brain:hover { opacity: 0.9; transform: scale(1.05); }
+        .input-hub button:hover { transform: scale(1.05); background: #ffd700; }
 
-        .page-header-info {
-            padding: 20px 40px 0 40px;
-        }
-        .page-header-info p { color: var(--text-dim); font-size: 0.9rem; opacity: 0.8; }
+        @keyframes float-orb { 0% { transform: translate(0,0); } 100% { transform: translate(60px, -40px); } }
+
     </style>
 </head>
-<body class="theme-flux">
+<body>
 
-    <div class="studio-layout">
-        
-        <!-- SIDEBAR / COMMAND RIBBON -->
-        <aside class="command-ribbon">
-            <a href="studio/index.html" class="ribbon-item"><i class="ph ph-squares-four"></i></a>
-            <a href="agent-lounge.html" class="ribbon-item"><i class="ph ph-users-four"></i></a>
-            <a href="logic-flows.html" class="ribbon-item active"><i class="ph ph-lightbulb-filament"></i></a>
-            <div class="ribbon-spacer"></div>
-            <div class="ribbon-item"><i class="ph ph-gear"></i></div>
-        </aside>
-
-        <!-- MAIN AREA -->
-        <main class="main-stage">
-            <header class="app-header">
-                <div class="header-content">
-                    <h1>Brainstorming</h1>
-                    <div style="display: flex; gap: 20px; align-items:center;">
-                        <a href="index.html" class="back-nav" style="color: var(--text-dim); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
-                            <i class="ph ph-house-line"></i> Hub
-                        </a>
-                        <div class="user-pill">
-                            <i class="ph-fill ph-user-circle"></i>
-                            <span>Il Capo</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div class="page-header-info">
-                <p>Genera idee multithread alimentate dai tuoi agenti AI per dominare i social.</p>
-            </div>
-
-            <div class="brainstorm-grid" id="brainstorm-grid">
-                <!-- Card: Thread 1 -->
-                <div class="brain-card" id="br-thread-1">
-                    <div class="brain-icon"><i class="ph-fill ph-lightbulb"></i></div>
-                    <div class="brain-content">
-                        <h3>Nuovo Concetto Post</h3>
-                        <p>Inserisci un tema e lascia che Radar e Gemini lavorino alla struttura.</p>
-                    </div>
-                    <textarea class="thread-input" placeholder="Di cosa vogliamo parlare oggi?"></textarea>
-                    <div class="action-bar">
-                        <span style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Agent: Gemini Studio</span>
-                        <button class="btn-brain">Avvia Thread</button>
-                    </div>
-                </div>
-
-                <!-- Card: Thread 2 -->
-                <div class="brain-card" id="br-thread-2">
-                    <div class="brain-icon"><i class="ph-fill ph-video"></i></div>
-                    <div class="brain-content">
-                        <h3>Script Video Veloce</h3>
-                        <p>Genera script per TikTok/Reels basati sui trend estratti da Radar.</p>
-                    </div>
-                    <textarea class="thread-input" placeholder="Descrivi il video che hai in mente..."></textarea>
-                    <div class="action-bar">
-                        <span style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Agent: Agent Radar</span>
-                        <button class="btn-brain">Analizza Trend</button>
-                    </div>
-                </div>
-
-                <!-- Card: Thread 3 -->
-                <div class="brain-card" id="br-thread-3">
-                    <div class="brain-icon"><i class="ph-fill ph-article"></i></div>
-                    <div class="brain-content">
-                        <h3>Articolo di Blog</h3>
-                        <p>Espandi un'idea in un contenuto lungo e SEO-friendly.</p>
-                    </div>
-                    <textarea class="thread-input" placeholder="Titolo o argomento dell'articolo..."></textarea>
-                    <div class="action-bar">
-                        <span style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Agent: Writer AI</span>
-                        <button class="btn-brain">Genera Bozza</button>
-                    </div>
-                </div>
-            </div>
-        </main>
-
+    <div class="background-orbs-container">
+        <div class="bg-orb" style="width:120px;height:120px;top:5%;left:15%;background:radial-gradient(circle,rgba(255,20,147,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:130px;height:130px;top:60%;left:45%;background:radial-gradient(circle,rgba(255,235,59,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:150px;height:150px;top:80%;left:5%;background:radial-gradient(circle,rgba(255,20,147,0.2) 0%,transparent 70%);"></div>
     </div>
 
-    <!-- Layout Engine Core -->
-    <script src="js/core/layout-engine.js"></script>
+    <a href="index.html" class="back-hub"><i class="ph ph-house"></i> HUB STRATEGICA</a>
 
+    <header class="module-header">
+        <h1>Brainstorming</h1>
+        <p>AI-POWERED IDEATION SPACE V10.1</p>
+    </header>
+
+    <main class="canvas-container" id="canvas">
+        <div class="card-orbs">
+            <div class="c-orb" style="top:10%; left:10%; background: rgba(255,215,0,0.15);"></div>
+            <div class="c-orb" style="bottom:10%; right:10%; background: rgba(16,185,129,0.15);"></div>
+        </div>
+        <svg id="constellation-svg"></svg>
+        
+        <div id="ideas-layer">
+            <div class="idea-node central" id="central-idea" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <div class="idea-icon" style="color: #ffd700;"><i class="ph ph-sparkle"></i></div>
+                <span>Digit Topic to Start</span>
+            </div>
+        </div>
+
+        <div class="input-hub">
+            <i class="ph-bold ph-magnifying-glass" style="color: #444;"></i>
+            <input type="text" id="topic-input" placeholder="Di cosa vuoi parlare? (es: Content Strategy 2026)">
+            <button onclick="generateIdeas()">GENERA</button>
+        </div>
+    </main>
+
+    <script>
+        const ideasLayer = document.getElementById('ideas-layer');
+        const svg = document.getElementById('constellation-svg');
+        const input = document.getElementById('topic-input');
+        const centralNode = document.getElementById('central-idea');
+
+        let childNodes = [];
+
+        function generateIdeas() {
+            const topic = input.value;
+            if(!topic) return;
+
+            // Clear old ideas
+            childNodes.forEach(node => node.remove());
+            childNodes = [];
+            svg.innerHTML = '';
+
+            // Update Central
+            centralNode.querySelector('span').innerText = topic.toUpperCase();
+
+            // Mock AI Suggestions from Aura
+            const suggestions = [
+                { txt: "Viral Aesthetics", icon: "ph-camera", color: "#ec4899" },
+                { txt: "Interactive Reels", icon: "ph-play-circle", color: "#3b82f6" },
+                { txt: "Neural Branding", icon: "ph-brain", color: "#10b981" },
+                { txt: "Minimalist UX", icon: "ph-layout", color: "#ffd700" },
+                { txt: "Social Loops", icon: "ph-arrows-clockwise", color: "#a855f7" }
+            ];
+
+            suggestions.forEach((item, index) => {
+                const angle = (index / suggestions.length) * Math.PI * 2;
+                const radius = 250;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+
+                createIdeaNode(item, x, y);
+            });
+
+            setTimeout(drawConnections, 100);
+        }
+
+        function createIdeaNode(data, x, y) {
+            const node = document.createElement('div');
+            node.className = 'idea-node';
+            node.style.left = `calc(50% + ${x}px)`;
+            node.style.top = `calc(50% + ${y}px)`;
+            node.style.transform = 'translate(-50%, -50%)';
+
+            node.innerHTML = `
+                <div class="idea-icon" style="background:${data.color}20; color:${data.color}; border:1px solid ${data.color}30;">
+                    <i class="ph ${data.icon}"></i>
+                </div>
+                <span>${data.txt}</span>
+            `;
+
+            ideasLayer.appendChild(node);
+            childNodes.push(node);
+        }
+
+        function drawConnections() {
+            svg.innerHTML = '';
+            const cRect = centralNode.getBoundingClientRect();
+            const cx = cRect.left + cRect.width/2;
+            const cy = cRect.top + cRect.height/2;
+
+            childNodes.forEach(child => {
+                const r = child.getBoundingClientRect();
+                const x2 = r.left + r.width/2;
+                const y2 = r.top + r.height/2;
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", cx);
+                line.setAttribute("y1", cy);
+                line.setAttribute("x2", x2);
+                line.setAttribute("y2", y2);
+                line.setAttribute("stroke", "rgba(255,255,255,0.1)");
+                line.setAttribute("stroke-width", "1");
+                line.setAttribute("stroke-dasharray", "4 4");
+                svg.appendChild(line);
+            });
+        }
+
+        window.addEventListener('resize', drawConnections);
+    </script>
 </body>
 </html>

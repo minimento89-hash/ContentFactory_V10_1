@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olivia's Studio — Neural Architect</title>
+    <link rel="stylesheet" href="css/soft-corporate.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <script src="js/core/agent-core.js"></script>
+    <style>
+        :root {
+            --accent-pink: #ec4899;
+            --accent-purple: #8b5cf6;
+            --olivia-gradient: linear-gradient(135deg, #ec4899, #8b5cf6);
+            --code-bg: rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            background: #020202;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* THE CODING OVERLAY */
+        #neural-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .construction-hub {
+            text-align: center;
+            width: 80%;
+            max-width: 900px;
+        }
+
+        #code-streamer {
+            height: 300px;
+            background: var(--code-bg);
+            border: 1px solid rgba(236, 72, 153, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: #ec4899;
+            overflow-y: hidden;
+            text-align: left;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .code-line { margin: 2px 0; opacity: 0.8; }
+        .code-cursor { display: inline-block; width: 5px; height: 12px; background: #ec4899; animation: blink 0.8s infinite; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* THE STUDIO */
+        #studio-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: 2s;
+        }
+
+        /* HOLOGRAPHIC GRID */
+        .hologrid {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(236, 72, 153, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(236, 72, 153, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* HUB RETURN */
+        .hub-return {
+            position: fixed;
+            top: 30px; left: 30px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 24px;
+            border-radius: 40px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 800;
+            z-index: 1000;
+            transition: 0.4s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hub-return:hover { background: var(--olivia-gradient); color: #fff; border-color: transparent; }
+
+        /* CANVAS */
+        .neural-canvas {
+            flex: 1;
+            padding: 60px;
+            position: relative;
+            z-index: 1;
+            overflow-y: auto;
+        }
+
+        .avatar-node {
+            width: 80px; height: 80px;
+            background: var(--olivia-gradient);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.8rem;
+            box-shadow: 0 0 50px rgba(236, 72, 153, 0.4);
+            animation: float 4s infinite ease-in-out;
+            position: relative;
+        }
+
+        .v-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        /* PROJECT CARDS */
+        .p-card {
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 40px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(50px) scale(0.9);
+            transition: 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+        }
+
+        .p-card.visible { opacity: 1; transform: translateY(0) scale(1); }
+        .p-card:hover { transform: translateY(-10px); border-color: var(--accent-pink); background: rgba(236, 72, 153, 0.05); }
+
+        .img-vault {
+            height: 200px;
+            border-radius: 25px;
+            background: #111;
+            margin-bottom: 25px;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        /* PROJECT DETAIL MODAL */
+        .project-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(40px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 6000;
+            animation: fadeIn 0.4s;
+        }
+
+        /* NEURAL CONSOLE */
+        .neural-console {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(236, 72, 153, 0.1);
+            border-radius: 20px;
+            padding: 15px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            color: #ec4899;
+            height: 120px;
+            overflow-y: hidden;
+            margin-bottom: 20px;
+        }
+
+        .console-line { margin: 2px 0; opacity: 0.7; }
+
+        .modal-inner {
+            width: 90%;
+            max-width: 1000px;
+            display: flex;
+            gap: 40px;
+            padding: 40px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 50px;
+            box-shadow: 0 50px 100px rgba(0,0,0,1);
+        }
+
+        .modal-visual { flex: 1; }
+        .modal-info { flex: 1.2; display: flex; flex-direction: column; gap: 20px; }
+
+        .img-detail {
+            width: 100%;
+            height: 500px;
+            border-radius: 30px;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-apply {
+            background: var(--olivia-gradient);
+            color: #fff;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: auto;
+        }
+        .btn-apply:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(236, 72, 153, 0.5); }
+
+        /* CHAT */
+        .neon-sidebar {
+            width: 450px;
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(60px);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .chat-stream { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 35px; }
+        .msg-bubble { padding: 20px 25px; border-radius: 28px; font-size: 1rem; line-height: 1.6; }
+        .msg-bubble.olivia { background: rgba(255,255,255,0.04); color: #ccc; border-bottom-left-radius: 4px; }
+        .msg-bubble.user { background: var(--olivia-gradient); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="neural-overlay">
+        <div class="construction-hub">
+            <h2 style="font-family:'Instrument Serif', serif; font-size: 3rem; margin: 0 0 10px;">Olivia is Writing Core...</h2>
+            <div id="code-streamer">
+                <div id="code-lines"></div>
+                <div class="code-cursor"></div>
+            </div>
+            <div style="font-size: 0.7rem; color: #444; letter-spacing: 0.4em; font-weight: 800;">GENERATING AUTONOMOUS INTERFACE</div>
+        </div>
+    </div>
+
+    <div class="project-modal" id="p-modal">
+        <div class="modal-inner">
+            <div class="modal-visual">
+                <div class="img-detail" id="modal-img"></div>
+            </div>
+            <div class="modal-info">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div>
+                        <span id="modal-tag" style="background:rgba(236, 72, 153, 0.1); color:var(--accent-pink); padding:5px 12px; border-radius:10px; font-size:0.7rem; font-weight:800; text-transform:uppercase;">ARCHETYPE V1</span>
+                        <h2 id="modal-title" style="font-family:'Instrument Serif', serif; font-size:3rem; margin:10px 0 0;">Project Name</h2>
+                    </div>
+                    <button onclick="closeModal()" style="background:none; border:none; color:#555; font-size:1.5rem; cursor:pointer;"><i class="ph ph-x-circle"></i></button>
+                </div>
+                <p id="modal-desc" style="color:#888; font-size:1.1rem; line-height:1.6;"></p>
+                
+                <div style="background:rgba(255,255,255,0.03); padding:25px; border-radius:25px; border:1px solid rgba(255,255,255,0.05);">
+                    <h4 style="margin:0 0 10px; color:var(--accent-pink); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em;">Olivia's Strategic Rationale</h4>
+                    <p id="modal-rationale" style="margin:0; font-size:0.9rem; color:#aaa; line-height:1.5;"></p>
+                </div>
+
+                <div style="display:flex; gap:15px; margin-top:10px;">
+                    <div style="flex:1; background:rgba(255,255,255,0.02); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.05);">
+                        <span style="font-size:0.6rem; color:#555; display:block; margin-bottom:5px;">PALETTE</span>
+                        <div style="display:flex; gap:8px;" id="modal-palette"></div>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:15px; margin-top:20px;">
+                    <button class="btn-apply" onclick="enterEnvironment()" style="flex:1; background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2);">
+                        <i class="ph-bold ph-eye"></i> Entra nell'Ambiente
+                    </button>
+                    <button class="btn-apply" onclick="applyProject()" style="flex:1.5;">
+                        <i class="ph-bold ph-lightning"></i> Applica Design
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="index.html" class="hub-return">
+        <i class="ph ph-shield-star"></i> Hub Strategica
+    </a>
+
+    <div id="studio-container">
+        <div class="hologrid"></div>
+        <div class="neural-canvas">
+            <div style="display:flex; align-items:center; gap:30px; margin-bottom: 60px;">
+                <div class="avatar-node" id="ol-avatar">OL</div>
+                <div>
+                    <span style="font-size:0.75rem; color:var(--accent-pink); letter-spacing:0.3em; font-weight:900;">ARCHITECT CORE V10.1</span>
+                    <h1 id="ol-name" style="font-family:'Instrument Serif', serif; font-size:3.5rem; margin:0; line-height:1;">Olivia's Studio</h1>
+                </div>
+            </div>
+
+            <div class="v-grid" id="v-grid"></div>
+
+            <div class="status-float">
+                <div class="chip-live"><div style="width:6px; height:6px; background:#10b981; border-radius:50%;"></div> THOUGHTS SYNCHRONIZED</div>
+                <div class="chip-live"><div style="width:6px; height:6px; background:#10b981; border-radius:50%;"></div> GITHUB REPO LIVE</div>
+                <div class="chip-live"><i class="ph-fill ph-globe"></i> GLOBAL TRENDS: 2026 ACTIVE</div>
+            </div>
+        </div>
+
+        <div class="neon-sidebar">
+            <div class="chat-stream" id="chat-stream">
+                <div class="neural-console" id="n-console">
+                    <div class="console-line">> Neural Core initializing Agency logs...</div>
+                </div>
+                <div class="msg-bubble olivia">
+                    <span style="color:var(--accent-pink); font-size:0.7rem; font-weight:900; display:block; margin-bottom:5px;">ARCHITECT LOG</span>
+                    Ambiente materializzato. I tuoi progetti sono pronti nel Vault. Clicca su uno per esplorare la struttura neurale.
+                </div>
+            </div>
+            <div class="chat-input-hub">
+                <div class="composer-box">
+                    <input type="text" id="user-in" placeholder="Invia prompt alla Neural Core...">
+                    <button onclick="sendMsg()" style="background:var(--accent-pink); border:none; width:40px; height:40px; border-radius:50%; color:#fff; cursor:pointer;"><i class="ph-fill ph-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SNIPPETS = [
+            "# Olivia Studio Core initialization...",
+            "const layout_engine = new ArchitectEngine();",
+            "applyStyles({ glass: true, blur: '60px', accent: '#ec4899' });",
+            "fetching(TrendAPI.2026).then(dna => dna.injectToVault());",
+            "Olivia.status = 'READY_TO_CREATE';",
+            "> Materializing Interface..."
+        ];
+
+        async function bootStudio() {
+            const codeLines = document.getElementById('code-lines');
+            for(let snip of SNIPPETS) {
+                const div = document.createElement('div');
+                div.className = 'code-line';
+                div.innerText = snip;
+                codeLines.appendChild(div);
+                await new Promise(r => setTimeout(r, 400));
+            }
+            setTimeout(() => {
+                document.getElementById('neural-overlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('neural-overlay').style.display = 'none';
+                    document.getElementById('studio-container').style.opacity = '1';
+                    materializeProjects();
+                    syncIdentity();
+                }, 1000);
+            }, 500);
+        }
+
+        const PROTO_DESIGN = [
+            { 
+                title: "Quantum Glass V5", 
+                desc: "Studio sulla rifrazione caotica dei pixel e trasparenze orbitanti.", 
+                img: "photo-1620641788421-7a1c342ea42e",
+                rationale: "Ho scelto questo stile per massimizzare la profondità senza appesantire il DOM. Ideale per dashboard ad alta densità di dati.",
+                colors: ["#ec4899", "#8b5cf6", "#06b6d4"]
+            },
+            { 
+                title: "Neural Dashboard", 
+                desc: "Layout predittivo basato su decisioni agenti in tempo reale.", 
+                img: "photo-1550751827-4bd374c3f58b",
+                rationale: "La struttura a nodi permette una scalabilità infinita. Ogni modulo comunica lo stato di salute degli agenti tramite feedback aptici.",
+                colors: ["#10b981", "#3b82f6", "#000000"]
+            },
+            { 
+                title: "Gold Midnight", 
+                desc: "L'estetica 'Original Gold' portata all'estremo del premium.", 
+                img: "photo-1510070112810-d4e9a46d9e91",
+                rationale: "Un ritorno alle origini del progetto, ma con un tocco ultra-scuro. Massimizza l'esclusività del Content Factory V10.1.",
+                colors: ["#d4af37", "#1a1a1a", "#ffffff"]
+            }
+        ];
+
+        let activeProject = null;
+
+        function materializeProjects() {
+            const grid = document.getElementById('v-grid');
+            PROTO_DESIGN.forEach((p, i) => {
+                setTimeout(() => {
+                    const card = document.createElement('div');
+                    card.className = 'p-card';
+                    card.onclick = () => openModal(i);
+                    card.innerHTML = `
+                        <div class="img-vault" style="background-image: url('https://images.unsplash.com/${p.img}?auto=format&fit=crop&w=600&q=80')"></div>
+                        <h3 style="font-family:'Instrument Serif', serif; font-size:1.8rem; margin:0;">${p.title}</h3>
+                        <p style="font-size:0.9rem; color:#666; margin:10px 0;">${p.desc}</p>
+                    `;
+                    grid.appendChild(card);
+                    setTimeout(() => card.classList.add('visible'), 50);
+                }, i * 300);
+            });
+        }
+
+        function openModal(index) {
+            activeProject = PROTO_DESIGN[index];
+            document.getElementById('modal-title').innerText = activeProject.title;
+            document.getElementById('modal-desc').innerText = activeProject.desc;
+            document.getElementById('modal-rationale').innerText = activeProject.rationale;
+            document.getElementById('modal-img').style.backgroundImage = `url('https://images.unsplash.com/${activeProject.img}?auto=format&fit=crop&w=1000&q=80')`;
+            
+            const palette = document.getElementById('modal-palette');
+            palette.innerHTML = '';
+            activeProject.colors.forEach(c => {
+                palette.innerHTML += `<div style="width:20px; height:20px; border-radius:50%; background:${c}; border:1px solid rgba(255,255,255,0.1);"></div>`;
+            });
+
+            document.getElementById('p-modal').style.display = 'flex';
+
+            // Olivia explains in chat
+            const stream = document.getElementById('chat-stream');
+            const oBub = document.createElement('div');
+            oBub.className = 'msg-bubble olivia';
+            oBub.innerHTML = `<span style="color:var(--accent-pink); font-size:0.7rem; font-weight:900; display:block; margin-bottom:5px;">INTERACTIVE LOG</span>
+            Ottima scelta! Il progetto **${activeProject.title}** è uno dei miei preferiti. Vuoi esplorare l'ambiente live?`;
+            stream.appendChild(oBub);
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        function closeModal() { document.getElementById('p-modal').style.display = 'none'; }
+
+        function enterEnvironment() {
+            window.location.href = `olivia-preview.html?design=${encodeURIComponent(activeProject.title)}`;
+        }
+
+        function applyProject() {
+            AgentCore.provisionStudio(activeProject.title);
+            closeModal();
+            alert("Provisioning avviato: " + activeProject.title);
+        }
+
+        const AGENCY_LOGS = [
+            "POST https://api.openai.com/v1/chat/completions ... 200 OK",
+            "SYNC agents/olivia/state ... Updated",
+            "GET https://api.midjourney.com/v1/jobs/active ... 0 Jobs",
+            "NEURAL_LINK stability: 98.4%",
+            "DALL-E-3 image_gen request ... Pending",
+            "POST webhooks/discord/alert ... Sent"
+        ];
+
+        function startAgencySimulation() {
+            const console = document.getElementById('n-console');
+            setInterval(() => {
+                const log = AGENCY_LOGS[Math.floor(Math.random() * AGENCY_LOGS.length)];
+                const line = document.createElement('div');
+                line.className = 'console-line';
+                line.innerText = `[${new Date().toLocaleTimeString()}] ${log}`;
+                console.appendChild(line);
+                console.scrollTop = console.scrollHeight;
+                if(console.childNodes.length > 8) console.removeChild(console.firstChild);
+            }, 3000);
+        }
+
+        function sendMsg() {
+            const input = document.getElementById('user-in');
+            const stream = document.getElementById('chat-stream');
+            if(!input.value) return;
+            const uBub = document.createElement('div');
+            uBub.className = 'msg-bubble user';
+            uBub.innerText = input.value;
+            stream.appendChild(uBub);
+            input.value = '';
+            stream.scrollTop = stream.scrollHeight;
+            setTimeout(() => {
+                const oBub = document.createElement('div');
+                oBub.className = 'msg-bubble olivia';
+                oBub.innerText = "Recepito. Sto processando i dati tramite la mia Neural Core.";
+                stream.appendChild(oBub);
+                stream.scrollTop = stream.scrollHeight;
+            }, 1000);
+        }
+
+        function syncIdentity() {
+            const agent = AgentCore.state.agents.olivia;
+            document.getElementById('ol-name').innerText = agent.name + "'s Studio";
+            document.getElementById('ol-avatar').innerText = agent.name.substring(0,2).toUpperCase();
+            startAgencySimulation();
+        }
+
+        window.addEventListener('load', bootStudio);
+    </script>
+</body>
+</html>

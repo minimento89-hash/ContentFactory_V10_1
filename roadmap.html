@@ -154,20 +154,53 @@
             padding: 24px;
             border-radius: 16px;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(15, 15, 15, 0.4);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 30px;
             cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
-            background: rgba(20,20,20,0.4);
-            backdrop-filter: blur(20px);
-            z-index: 10;
-            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .rm-item:hover {
-            transform: translateY(-8px);
-            border-color: rgba(255,215,0,0.4);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 20px rgba(255,215,0,0.05);
-            z-index: 20;
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(20, 20, 20, 0.6);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+
+        /* INTERNAL CARD ORBS */
+        .card-orbs {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.2;
+            transition: 0.5s;
+        }
+        .rm-item:hover .card-orbs { opacity: 0.5; }
+        .c-orb {
+            position: absolute;
+            width: 70px; height: 70px;
+            border-radius: 50%;
+            filter: blur(35px);
+            animation: card-orb-float 12s infinite alternate;
+        }
+        @keyframes card-orb-float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(25px, 15px); }
+        }
+
+        .rm-item .rm-icon, .rm-item .rm-title, .rm-item .rm-desc, .rm-item .rm-footer {
+            position: relative;
+            z-index: 10;
         }
 
         .rm-icon { font-size: 1.6rem; margin-bottom: 18px; }
@@ -220,6 +253,9 @@
     </style>
 </head>
 <body class="dark-factory">
+
+    <!-- MODAL OVERLAY (REQUIRED FOR SCRIPT) -->
+    <div class="rm-modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
 
     <!-- Background Orbs: 20 Micro Orbs (Synced with Hub) -->
     <div class="background-orbs-container" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;">
@@ -302,6 +338,7 @@
             <div class="phase-label">Phase 01 — Foundation & Protection</div>
             <div class="rm-grid">
                 <div class="rm-item" onclick="openModal('modal-arc')">
+                    <div class="card-orbs"><div class="c-orb" style="top:-10px; left:-10px; background: rgba(16,185,129,0.2);"></div></div>
                     <div class="rm-icon" style="color: #10b981;"><i class="ph ph-check-circle"></i></div>
                     <h3 class="rm-title">Arch. Refactor</h3>
                     <p class="rm-desc">Standardizzazione Meta-App e protezione viewport-safe globale.</p>
@@ -311,6 +348,7 @@
                     </div>
                 </div>
                 <div class="rm-item" onclick="openModal('modal-auth')">
+                    <div class="card-orbs"><div class="c-orb" style="bottom:-20px; right:-10px; background: rgba(255,215,0,0.2);"></div></div>
                     <div class="rm-icon" style="color: #10b981;"><i class="ph ph-fingerprint"></i></div>
                     <h3 class="rm-title">Gold Auth</h3>
                     <p class="rm-desc">Gatekeeper a PIN con estetica "Original Gold" e crittografia.</p>
@@ -321,6 +359,7 @@
                 </div>
                 <!-- MOVED FROM SCREENSHOT -->
                 <div class="rm-item" onclick="openModal('modal-agenti')">
+                    <div class="card-orbs"><div class="c-orb" style="top:20px; right:10px; background: rgba(16,185,129,0.2);"></div></div>
                     <div class="rm-icon" style="color: #10b981;"><i class="ph ph-brain"></i></div>
                     <h3 class="rm-title">Sistema Agenti V9</h3>
                     <p class="rm-desc">Architettura multi-thread e gestione identità neurale.</p>
@@ -356,6 +395,15 @@
                         <span class="rm-percent">100%</span>
                     </div>
                 </div>
+                <div class="rm-item" onclick="openModal('modal-cyber')">
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph-fill ph-shield-check"></i></div>
+                    <h3 class="rm-title">Cybersecurity</h3>
+                    <p class="rm-desc">Gatekeeper neurale e gestione accessi a 4 livelli.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -364,6 +412,7 @@
             <div class="phase-label" style="color: #0ea5e9;">Phase 02 — Intelligence & Persistence</div>
             <div class="rm-grid">
                 <div class="rm-item" onclick="openModal('modal-fire')">
+                    <div class="card-orbs"><div class="c-orb" style="top:20%; right:10%; background: rgba(14,165,233,0.2);"></div></div>
                     <div class="rm-icon" style="color: #0ea5e9;"><i class="ph ph-arrows-clockwise spin"></i></div>
                     <h3 class="rm-title">Firebase Sync</h3>
                     <p class="rm-desc">Persistenza cloud realtime e ripristino automatico del layout.</p>
@@ -373,6 +422,7 @@
                     </div>
                 </div>
                 <div class="rm-item" onclick="openModal('modal-critique')">
+                    <div class="card-orbs"><div class="c-orb" style="bottom:-10px; left:50%; background: rgba(16,185,129,0.2);"></div></div>
                     <div class="rm-icon" style="color: #10b981;"><i class="ph ph-mask-happy"></i></div>
                     <h3 class="rm-title">Critique Ecosystem</h3>
                     <p class="rm-desc">Beta Reader AI e feedback oggettivo sulle creatività.</p>
@@ -382,6 +432,7 @@
                     </div>
                 </div>
                 <div class="rm-item" onclick="openModal('modal-analytics')">
+                    <div class="card-orbs"><div class="c-orb" style="top:-20px; right:20px; background: rgba(16,185,129,0.2);"></div></div>
                     <div class="rm-icon" style="color: #10b981;"><i class="ph ph-chart-bar"></i></div>
                     <h3 class="rm-title">Live Analytics V10</h3>
                     <p class="rm-desc">Grafici SVG per performance e hype score in tempo reale.</p>
@@ -391,12 +442,23 @@
                     </div>
                 </div>
                 <div class="rm-item" onclick="openModal('modal-loop')">
+                    <div class="card-orbs"><div class="c-orb" style="top:50%; left:50%; background: rgba(236,72,153,0.2);"></div></div>
                     <div class="rm-icon" style="color: #fff;"><i class="ph ph-calendar-blank"></i></div>
                     <h3 class="rm-title">Social Loop</h3>
                     <p class="rm-desc">Widget interattivi cross-platform per Instagram e TikTok.</p>
                     <div class="rm-footer">
                         <span class="rm-status" style="color: #888;">PIANIFICATO</span>
                         <span class="rm-percent">0%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-brainstorm')">
+                    <div class="card-orbs"><div class="c-orb" style="bottom:10px; right:-10px; background: rgba(16,185,129,0.2);"></div></div>
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph ph-lightbulb"></i></div>
+                    <h3 class="rm-title">Brainstorming</h3>
+                    <p class="rm-desc">Ideazione multithread alimentata dall'AI (Aura Core).</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
                     </div>
                 </div>
             </div>
@@ -407,20 +469,40 @@
             <div class="phase-label" style="color: #a855f7;">Phase 03 — Gemini Core Expansion</div>
             <div class="rm-grid">
                 <div class="rm-item" onclick="openModal('modal-gem')">
-                    <div class="rm-icon" style="color: #3b82f6;"><i class="ph ph-circle-notch spin"></i></div>
+                    <div class="card-orbs"><div class="c-orb" style="top:0; left:50%; background: rgba(14,165,233,0.2);"></div></div>
+                    <div class="rm-icon" style="color: #0ea5e9;"><i class="ph ph-arrows-clockwise spin"></i></div>
                     <h3 class="rm-title">Gemini Core</h3>
                     <p class="rm-desc">Orchestrazione cognitiva multi-agente e Chief Editor AI.</p>
                     <div class="rm-footer">
-                        <span class="rm-status" style="color: #3b82f6;">REVISIONE</span>
-                        <span class="rm-percent">0%</span>
+                        <span class="rm-status" style="color: #0ea5e9;">IN CORSO</span>
+                        <span class="rm-percent">30%</span>
                     </div>
                 </div>
                 <div class="rm-item" onclick="openModal('modal-logic')">
-                    <div class="rm-icon" style="color: #a855f7;"><i class="ph ph-circle-notch spin"></i></div>
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph ph-check-circle"></i></div>
                     <h3 class="rm-title">Logic Flows</h3>
                     <p class="rm-desc">Diagrammi a nodi dell'automazione studio intelligente.</p>
                     <div class="rm-footer">
-                        <span class="rm-status" style="color: #a855f7;">FUTURO</span>
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-lounge')">
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph-fill ph-coffee"></i></div>
+                    <h3 class="rm-title">Agent Lounge</h3>
+                    <p class="rm-desc">Spazio di coordinamento e dialogo tra specialisti AI.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-calendar')">
+                    <div class="card-orbs"><div class="c-orb" style="bottom:-10px; right:-10px; background: rgba(244,63,94,0.2);"></div></div>
+                    <div class="rm-icon" style="color: #f43f5e;"><i class="ph ph-calendar"></i></div>
+                    <h3 class="rm-title">Agente Calendario</h3>
+                    <p class="rm-desc">Orchestratore di scadenze e pianificazione editoriale AI.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #f43f5e;">PIANIFICATO</span>
                         <span class="rm-percent">0%</span>
                     </div>
                 </div>
@@ -538,12 +620,23 @@
 
     <div class="rm-modal-card" id="modal-logic">
         <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
-        <div class="rm-icon" style="color: #a855f7;"><i class="ph ph-circle-notch spin"></i></div>
+        <div class="rm-icon" style="color: #10b981;"><i class="ph ph-check-circle"></i></div>
         <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Logic Flows</h2>
-        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Automazione intelligente tramite flussi a nodi visivi.</p>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Automazione intelligente tramite flussi a nodi visivi interattivi.</p>
         <div class="modal-task-list">
-            <div class="task-row"><div class="task-check"></div> Node Editor Foundation</div>
-            <div class="task-row"><div class="task-check"></div> Trigger System</div>
+            <div class="task-row"><div class="task-check done"></div> Node Editor Foundation</div>
+            <div class="task-row"><div class="task-check done"></div> Dynamic SVG Connectors</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-lounge">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #10b981;"><i class="ph-fill ph-coffee"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Agent Lounge</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Spazio collaborativo per il coordinamento multi-agente.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> Agent Heartbeats V3</div>
+            <div class="task-row"><div class="task-check done"></div> Automated Dialogue Thread</div>
         </div>
     </div>
 
@@ -555,6 +648,37 @@
         <div class="modal-task-list">
             <div class="task-row"><div class="task-check"></div> Cross-Platform Hub</div>
             <div class="task-row"><div class="task-check"></div> Instant Sync API</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-cyber">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #10b981;"><i class="ph ph-shield-check"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Cybersecurity Module</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Protezione neurale avanzata con gestione accessi granulare.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> Role-Based Access V2</div>
+            <div class="task-row"><div class="task-check done"></div> Guest Code System</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-brainstorm">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #10b981;"><i class="ph ph-lightbulb"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Brainstorming Lab</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Spazio creativo multithread per l'espansione dei concept AI.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> Idea Constellation UI</div>
+            <div class="task-row"><div class="task-check done"></div> Aura Integration</div>
+        </div>
+    <div class="rm-modal-card" id="modal-calendar">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #f43f5e;"><i class="ph ph-calendar"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Agente Calendario</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Gestione autonoma del piano editoriale e sincronizzazione scadenze.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check"></div> Calendar Sync API</div>
+            <div class="task-row"><div class="task-check"></div> Smart Deadline Estimator</div>
         </div>
     </div>
 

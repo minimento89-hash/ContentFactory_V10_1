@@ -3,156 +3,373 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V10.1 — Logic Flows</title>
-    
-    <!-- Icons & Fonts -->
+    <title>Content Factory V10.1 — Logic Flows</title>
+    <link rel="stylesheet" href="css/soft-corporate.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-    
-    <!-- Design System -->
-    <link rel="stylesheet" href="css/design-system.css">
-    
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <script src="js/core/sync-engine.js"></script>
+    <script src="js/core/agent-core.js"></script>
     <style>
-        .flows-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-            padding: 20px 40px 100px 40px;
-            overflow-y: auto;
-            max-height: calc(100vh - var(--header-height));
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
         }
 
+        /* SIDEBAR PALETTE */
+        .sidebar {
+            width: 320px;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(40px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            z-index: 100;
+        }
+
+        .sidebar h2 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 2rem;
+            margin-bottom: 5px;
+            background: linear-gradient(to bottom, #fff, #555);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar p {
+            font-size: 0.65rem;
+            color: #444;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 40px;
+        }
+
+        .palette-group { margin-bottom: 30px; }
+        .palette-group h5 { font-size: 0.7rem; color: #666; text-transform: uppercase; margin-bottom: 15px; }
+
+        .palette-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: grab;
+            transition: 0.3s;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        .palette-item:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.2); color: #fff; }
+        .palette-item i { font-size: 1.2rem; }
+
+        /* CANVAS AREA */
         .canvas-area {
-            background: var(--glass-heavy);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius);
-            height: 500px;
+            flex: 1;
             position: relative;
+            background: radial-gradient(circle at center, #050505 0%, #000 100%);
             overflow: hidden;
-            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .canvas-placeholder {
-            text-align: center;
-            color: var(--text-dim);
-        }
-        .canvas-placeholder i { font-size: 3rem; margin-bottom: 15px; color: var(--accent); opacity: 0.5; }
-        .canvas-placeholder h3 { font-family: 'Instrument Serif', serif; font-size: 2rem; margin-bottom: 5px; }
-
-        .sidebar-tools {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
         }
 
-        .tool-card {
-            background: var(--glass-heavy);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
+        #flow-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* NODES */
+        .flow-node {
+            position: absolute;
+            min-width: 180px;
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 16px;
             cursor: grab;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .tool-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.05); }
-        .tool-icon { color: var(--accent); font-size: 1.2rem; }
+        .flow-node:active { cursor: grabbing; border-color: #ffd700; }
 
-        .page-header-info {
-            padding: 20px 40px 0 40px;
+        .node-header {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+            font-size: 0.8rem; font-weight: 700; color: #fff; text-transform: uppercase;
         }
-        .page-header-info p { color: var(--text-dim); font-size: 0.9rem; opacity: 0.8; }
+        .node-header i { font-size: 1.1rem; }
+
+        .node-content { font-size: 0.75rem; color: #777; line-height: 1.4; }
+
+        /* ACTIONS */
+        .flow-node.action { background: rgba(139, 92, 246, 0.05); border-color: rgba(139, 92, 246, 0.2); }
+        .flow-node.trigger { border-radius: 4px; border-left: 4px solid #ffd700; }
+
+        /* BACKGROUND ORBS */
+        .background-orbs-container {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.5;
+            animation: float-orb 20s infinite alternate ease-in-out;
+        }
+        @keyframes float-orb { 0% { transform: translate(0,0); } 100% { transform: translate(60px, -40px); } }
+
+        /* INTERNAL ORBS */
+        .card-orbs {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+        }
+        .c-orb {
+            position: absolute;
+            width: 150px; height: 150px;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: card-orb-float 15s infinite alternate;
+        }
+        @keyframes card-orb-float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 30px); }
+        }
+
+        /* HEADER CONTROLS */
+        .top-controls {
+            position: absolute;
+            top: 40px; right: 40px;
+            display: flex; gap: 15px;
+            z-index: 1000;
+        }
+
+        .btn-ui {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 800;
+            transition: 0.3s;
+        }
+        .btn-ui:hover { background: #fff; color: #000; }
+
+        /* CENTERED HEADER (NEW STANDARD) */
+        .module-header {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            padding: 40px 20px;
+            text-align: center;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .module-header h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(2.5rem, 8vw, 3.5rem);
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, #555);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            letter-spacing: -0.01em;
+            pointer-events: auto;
+        }
+
+        .module-header p {
+            color: #444;
+            font-size: 0.6rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            margin-top: 10px;
+            font-weight: 800;
+        }
+
+        .back-hub {
+            position: fixed;
+            top: 40px; left: 40px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 12px 24px;
+            border-radius: 50px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 800;
+            z-index: 2000;
+            transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .back-hub:hover { background: #fff; color: #000; border-color: #fff; }
+
     </style>
 </head>
-<body class="theme-flux">
+<body>
 
-    <div class="studio-layout">
+    <div class="sidebar">
+        <p style="margin-top:60px;">Palette Operativa</p>
+
+        <div class="palette-group">
+            <h5>Triggers</h5>
+            <div class="palette-item" draggable="true" data-type="trigger" data-title="Bug Found" data-color="#f59e0b">
+                <i class="ph-bold ph-bug"></i> Bug Found
+            </div>
+            <div class="palette-item" draggable="true" data-type="trigger" data-title="Trend Peak" data-color="#ec4899">
+                <i class="ph-bold ph-chart-line-up"></i> Trend Peak
+            </div>
+            <div class="palette-item" draggable="true" data-type="trigger" data-title="Approved" data-color="#10b981">
+                <i class="ph-bold ph-check-square"></i> Approved
+            </div>
+        </div>
+
+        <div class="palette-group">
+            <h5>Actions</h5>
+            <div class="palette-item" draggable="true" data-type="action" data-title="Notify Boss" data-color="#fff">
+                <i class="ph-bold ph-bell"></i> Notify Boss
+            </div>
+            <div class="palette-item" draggable="true" data-type="action" data-title="Deploy Patch" data-color="#3b82f6">
+                <i class="ph-bold ph-wrench"></i> Deploy Patch
+            </div>
+            <div class="palette-item" draggable="true" data-type="action" data-title="Gen Archetype" data-color="#8b5cf6">
+                <i class="ph-bold ph-magic-wand"></i> Gen Archetype
+            </div>
+        </div>
         
-        <!-- SIDEBAR / COMMAND RIBBON -->
-        <aside class="command-ribbon">
-            <a href="studio/index.html" class="ribbon-item"><i class="ph ph-squares-four"></i></a>
-            <a href="agent-lounge.html" class="ribbon-item"><i class="ph ph-users-four"></i></a>
-            <div class="ribbon-item active"><i class="ph ph-graph"></i></div>
-            <div class="ribbon-spacer"></div>
-            <div class="ribbon-item"><i class="ph ph-gear"></i></div>
-        </aside>
-
-        <!-- MAIN AREA -->
-        <main class="main-stage">
-            <header class="app-header">
-                <div class="header-content">
-                    <h1>Logic Flows Studio</h1>
-                    <div style="display: flex; gap: 20px; align-items:center;">
-                        <a href="index.html" class="back-nav" style="color: var(--text-dim); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
-                            <i class="ph ph-house-line"></i> Hub
-                        </a>
-                        <div class="user-pill">
-                            <i class="ph-fill ph-user-circle"></i>
-                            <span>Il Capo</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div class="page-header-info">
-                <p>Disegna i tuoi flussi di automazione tra agenti e piattaforme in tempo reale.</p>
-            </div>
-
-            <div class="flows-grid" id="flows-grid">
-                <!-- Area Canvas Principale -->
-                <div class="canvas-area" id="flow-canvas">
-                    <div class="canvas-placeholder">
-                        <i class="ph ph-graph"></i>
-                        <h3>Editor Visuale a Nodi</h3>
-                        <p>Ospiterà il motore grafico per i collegamenti logici (Phase 9)</p>
-                    </div>
-                </div>
-
-                <!-- Tools Sidebar -->
-                <div class="sidebar-tools">
-                    <div class="tool-card" id="tool-trigger">
-                        <div class="tool-icon"><i class="ph ph-lightning"></i></div>
-                        <div>
-                            <strong style="font-size: 0.9rem;">Trigger</strong>
-                            <div style="font-size: 0.75rem; color: var(--text-dim)">Evento avvio</div>
-                        </div>
-                    </div>
-                    <div class="tool-card" id="tool-gemini">
-                        <div class="tool-icon"><i class="ph ph-sparkle"></i></div>
-                        <div>
-                            <strong style="font-size: 0.9rem;">Gemini Task</strong>
-                            <div style="font-size: 0.75rem; color: var(--text-dim)">Elaborazione AI</div>
-                        </div>
-                    </div>
-                    <div class="tool-card" id="tool-radar">
-                        <div class="tool-icon"><i class="ph ph-broadcast"></i></div>
-                        <div>
-                            <strong style="font-size: 0.9rem;">Radar Feed</strong>
-                            <div style="font-size: 0.75rem; color: var(--text-dim)">Input esterno</div>
-                        </div>
-                    </div>
-                    <div class="tool-card" id="tool-end">
-                        <div class="tool-icon"><i class="ph ph-check-circle"></i></div>
-                        <div>
-                            <strong style="font-size: 0.9rem;">Output</strong>
-                            <div style="font-size: 0.75rem; color: var(--text-dim)">Fine flusso</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
+        <div style="margin-top:auto;">
+            <button class="btn-ui" style="width:100%; border-color: #ffd70030; color:#ffd700;" onclick="alert('Salvataggio flusso...')">Salva Automazione</button>
+        </div>
     </div>
 
-    <!-- Layout Engine Core -->
-    <script src="js/core/layout-engine.js"></script>
+    <main class="canvas-area" id="canvas">
+        <div class="grid-bg"></div>
+        <svg id="flow-svg"></svg>
 
+        <div class="background-orbs-container">
+            <div class="bg-orb" style="width:120px;height:120px;top:5%;left:15%;background:radial-gradient(circle,rgba(255,20,147,0.4) 0%,transparent 70%);"></div>
+            <div class="bg-orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);"></div>
+            <div class="bg-orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
+            <div class="bg-orb" style="width:130px;height:130px;top:60%;left:45%;background:radial-gradient(circle,rgba(255,235,59,0.3) 0%,transparent 70%);"></div>
+            <div class="bg-orb" style="width:150px;height:150px;top:80%;left:5%;background:radial-gradient(circle,rgba(255,20,147,0.2) 0%,transparent 70%);"></div>
+        </div>
+
+        <div class="card-orbs">
+            <div class="c-orb" style="top:20%; left:30%; background: rgba(59, 130, 246, 0.15);"></div>
+            <div class="c-orb" style="bottom:20%; right:30%; background: rgba(139, 92, 246, 0.15);"></div>
+        </div>
+
+        <div class="module-header">
+            <h1>Logic Flows</h1>
+            <p>AUTOMATION DESIGNER V10.1</p>
+        </div>
+
+        <a href="index.html" class="back-hub"><i class="ph ph-house"></i> HUB STRATEGICA</a>
+
+        <!-- Initial Nodes -->
+        <div class="flow-node trigger" id="node-start" style="top: 300px; left: 100px;">
+            <div class="node-header"><i class="ph ph-lightning" style="color:#ffd700;"></i> Event: Startup</div>
+            <div class="node-content">Invia segnale di heartbeat a tutti gli agenti attivi.</div>
+        </div>
+
+        <div class="flow-node action" id="node-end" style="top: 450px; left: 500px;">
+            <div class="node-header"><i class="ph ph-code" style="color:#8b5cf6;"></i> Script: Audit</div>
+            <div class="node-content">Esegue scansione DOM proattiva di BUG HUNTER.</div>
+        </div>
+    </main>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const svg = document.getElementById('flow-svg');
+        const nodes = document.querySelectorAll('.flow-node');
+
+        let draggedNode = null;
+        let offset = { x: 0, y: 0 };
+
+        function initNodes() {
+            document.querySelectorAll('.flow-node').forEach(node => {
+                node.addEventListener('mousedown', (e) => {
+                    draggedNode = node;
+                    const rect = node.getBoundingClientRect();
+                    offset.x = e.clientX - rect.left;
+                    offset.y = e.clientY - rect.top;
+                    node.style.zIndex = 1000;
+                });
+            });
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (!draggedNode) return;
+            draggedNode.style.left = (e.clientX - offset.x - canvas.getBoundingClientRect().left) + 'px';
+            draggedNode.style.top = (e.clientY - offset.y) + 'px';
+            drawConnections();
+        });
+
+        window.addEventListener('mouseup', () => {
+            if(draggedNode) draggedNode.style.zIndex = 10;
+            draggedNode = null;
+        });
+
+        function drawConnections() {
+            svg.innerHTML = '';
+            const nodeStart = document.getElementById('node-start');
+            const nodeEnd = document.getElementById('node-end');
+
+            if (nodeStart && nodeEnd) {
+                const r1 = nodeStart.getBoundingClientRect();
+                const r2 = nodeEnd.getBoundingClientRect();
+                const cRect = canvas.getBoundingClientRect();
+
+                const x1 = r1.left + r1.width - cRect.left;
+                const y1 = r1.top + r1.height/2 - cRect.top;
+                const x2 = r2.left - cRect.left;
+                const y2 = r2.top + r2.height/2 - cRect.top;
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                const cp1x = x1 + (x2 - x1) / 2;
+                const d = `M ${x1} ${y1} C ${cp1x} ${y1}, ${cp1x} ${y2}, ${x2} ${y2}`;
+                path.setAttribute("d", d);
+                path.setAttribute("stroke", "rgba(255,255,255,0.1)");
+                path.setAttribute("stroke-width", "2");
+                path.setAttribute("fill", "none");
+                svg.appendChild(path);
+            }
+        }
+
+        initNodes();
+        window.addEventListener('load', drawConnections);
+
+    </script>
 </body>
 </html>

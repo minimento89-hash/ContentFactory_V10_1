@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Factory V10.1 — Mappa Neurale V3</title>
+    <link rel="stylesheet" href="css/soft-corporate.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <script src="js/core/sync-engine.js"></script>
+    <script src="js/core/agent-core.js"></script>
+    <style>
+        :root {
+            --online-glow: rgba(16, 185, 129, 0.4);
+            --ready-glow: rgba(245, 158, 11, 0.4);
+            --offline-glow: rgba(100, 116, 139, 0.4);
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER (PIN STYLE) */
+        .map-header {
+            padding: 60px 20px 40px;
+            text-align: center;
+            z-index: 100;
+            position: relative;
+        }
+
+        .map-header h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(3rem, 10vw, 4.5rem);
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, #666);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .map-header p {
+            color: #444;
+            font-size: 0.65rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            margin-top: 15px;
+            font-weight: 800;
+        }
+
+        .back-hub {
+            position: fixed;
+            top: 40px; left: 40px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 12px 24px;
+            border-radius: 50px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 800;
+            z-index: 1000;
+            transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .back-hub:hover { background: #fff; color: #000; border-color: #fff; }
+
+        /* VIEWPORT */
+        .viewport {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, rgba(236, 72, 153, 0.02) 0%, transparent 80%);
+        }
+
+        /* BACKGROUND ORBS */
+        .background-orbs-container {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.5;
+            animation: float-orb 20s infinite alternate ease-in-out;
+        }
+        @keyframes float-orb { 0% { transform: translate(0,0); } 100% { transform: translate(60px, -40px); } }
+
+        /* INTERNAL ORBS */
+        .card-orbs {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+        }
+        .c-orb {
+            position: absolute;
+            width: 150px; height: 150px;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: card-orb-float 15s infinite alternate;
+        }
+        @keyframes card-orb-float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 30px); }
+        }
+
+        /* CENTRAL CORE */
+        .central-core {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px; height: 120px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50;
+            box-shadow: 0 0 60px rgba(255,255,255,0.05);
+        }
+
+        .core-pulse {
+            position: absolute;
+            width: 100%; height: 100%;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            animation: core-ripple 4s infinite ease-out;
+        }
+
+        @keyframes core-ripple { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(3.5); opacity: 0; } }
+
+        /* AGENT NODE V3 */
+        .agent-node {
+            position: absolute;
+            width: 240px;
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(30px);
+            border: 1.5px solid rgba(255, 255, 255, 0.05);
+            border-radius: 28px;
+            padding: 20px;
+            cursor: grab;
+            z-index: 100;
+            user-select: none;
+            display: flex; flex-direction: column; gap: 14px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .agent-node:active { cursor: grabbing; border-color: rgba(255,255,255,0.3); }
+
+        .node-top { display: flex; align-items: center; gap: 12px; }
+
+        .n-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            position: relative;
+        }
+
+        .n-info h4 { margin: 0; font-size: 0.95rem; font-weight: 700; color: #fff; }
+        .n-info span { font-size: 0.55rem; color: #555; text-transform: uppercase; font-weight: 800; }
+
+        /* PROJECT LIST & PLUS */
+        .node-projects { display: flex; flex-wrap: wrap; gap: 6px; }
+        .p-chip {
+            background: rgba(255,255,255,0.03);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.6rem;
+            color: #fff;
+            font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .p-plus {
+            width: 26px; height: 26px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #666;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.8rem;
+        }
+        .p-plus:hover { background: #fff; color: #000; border-color: #fff; }
+
+        /* DYNAMIC CONNECTORS */
+        #connector-svg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .neural-link {
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 8, 4;
+            animation: linkFlow 15s linear infinite;
+            filter: drop-shadow(0 0 5px currentColor);
+        }
+
+        @keyframes linkFlow { to { stroke-dashoffset: -100; } }
+
+        /* CATEGORIZED TERMINAL */
+        .terminal-toggle {
+            position: fixed;
+            bottom: 30px; right: 30px;
+            width: 54px; height: 54px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            z-index: 2000;
+        }
+
+        .terminal-panel {
+            position: fixed;
+            bottom: -100%; left: 0; width: 100%; height: 500px;
+            background: rgba(5, 5, 5, 0.95);
+            backdrop-filter: blur(50px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 1500;
+            transition: bottom 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column;
+        }
+        
+        .terminal-panel.active { bottom: 0; }
+
+        .term-header { padding: 30px 60px 10px; display: flex; justify-content: space-between; align-items: center; }
+        .term-header h2 { font-family: 'Instrument Serif', serif; font-size: 1.8rem; margin: 0; }
+
+        .term-body { flex: 1; padding: 20px 60px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; overflow-y: auto; }
+
+        .term-cat h3 { font-size: 0.65rem; color: #444; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+
+        .agent-row-compact {
+            display: flex; align-items: center; gap: 15px;
+            padding: 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+            transition: 0.3s;
+        }
+        .agent-row-compact:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); }
+
+        .a-status-dot { width: 8px; height: 8px; border-radius: 50%; margin-left: auto; }
+        .dot-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .dot-ready { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+        .dot-offline { background: #64748b; }
+
+        .prompt-txt { font-size: 0.6rem; color: #555; font-family: 'Fira Code', monospace; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    </style>
+</head>
+<body>
+
+    <svg id="connector-svg"></svg>
+
+    <div class="background-orbs-container">
+        <!-- Sync with Hub/Roadmap Orb System -->
+        <div class="bg-orb" style="width:120px;height:120px;top:5%;left:15%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:130px;height:130px;top:60%;left:45%;background:radial-gradient(circle,rgba(255,235,59,0.3) 0%,transparent 70%);"></div>
+        <div class="bg-orb" style="width:150px;height:150px;top:80%;left:5%;background:radial-gradient(circle,rgba(255,20,147,0.2) 0%,transparent 70%);"></div>
+    </div>
+
+    <a href="index.html" class="back-hub"><i class="ph ph-house"></i> HUB STRATEGICA</a>
+
+    <header class="map-header">
+        <h1>Mappa Neurale</h1>
+        <p>Dynamic Multi-Agent Orchestrator — V10.1</p>
+    </header>
+
+    <main class="viewport" id="viewport">
+        <div class="card-orbs">
+            <div class="c-orb" style="top:30%; left:20%; background: rgba(139, 92, 246, 0.15);"></div>
+            <div class="c-orb" style="bottom:30%; right:20%; background: rgba(59, 130, 246, 0.15);"></div>
+        </div>
+        <div class="central-core" id="core">
+            <div class="core-pulse"></div>
+            <i class="ph-fill ph-brain" style="font-size:3rem; color:#fff;"></i>
+        </div>
+
+        <div id="agent-layer"></div>
+    </main>
+
+    <div class="terminal-panel" id="terminal">
+        <div class="term-header">
+            <h2>Registry Neurale</h2>
+            <button onclick="toggleTerminal()" style="background:none; border:none; color:#666; cursor:pointer; font-size:1.5rem;"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="term-body">
+            <div class="term-cat">
+                <h3>Online (Attivi)</h3>
+                <div id="list-online"></div>
+            </div>
+            <div class="term-cat">
+                <h3>Pronti all'uso</h3>
+                <div id="list-ready"></div>
+            </div>
+            <div class="term-cat">
+                <h3>Offline</h3>
+                <div id="list-offline"></div>
+            </div>
+        </div>
+    </div>
+
+    <button class="terminal-toggle" onclick="toggleTerminal()"><i class="ph ph-terminal-window"></i></button>
+
+    <script>
+        const agentLayer = document.getElementById('agent-layer');
+        const svg = document.getElementById('connector-svg');
+        const core = document.getElementById('core');
+
+        let draggedNode = null;
+        let startX, startY, nodeX, nodeY;
+
+        const NODE_DATA = {
+            cipher: { x: 250, y: 200 },
+            bug_hunter: { x: 1450, y: 200 },
+            fixer: { x: 1450, y: 650 },
+            olivia: { x: 250, y: 650 }
+        };
+
+        function renderMap() {
+            const agents = AgentCore.state.agents;
+            agentLayer.innerHTML = '';
+            
+            Object.entries(agents).forEach(([id, agent]) => {
+                const pos = NODE_DATA[id] || { x: Math.random() * 1000 + 200, y: Math.random() * 500 + 200 };
+                const node = document.createElement('div');
+                node.className = 'agent-node';
+                node.id = `agent-${id}`;
+                node.style.left = pos.x + 'px';
+                node.style.top = pos.y + 'px';
+                
+                // Ensure operationalState exists
+                const st = agent.operationalState || 'READY';
+                
+                node.innerHTML = `
+                    <div class="node-top">
+                        <div class="n-icon" style="background:${agent.color}20; color:${agent.color}; border:1px solid ${agent.color}40;">
+                            <i class="ph-fill ${agent.icon || 'ph-cpu'}"></i>
+                        </div>
+                        <div class="n-info">
+                            <h4>${agent.name}</h4>
+                            <span>${st}</span>
+                        </div>
+                    </div>
+                    <div class="node-projects">
+                        ${(agent.projects || []).map(p => `
+                            <div class="p-chip">
+                                <i class="ph ph-activity" style="color:${agent.color};"></i>
+                                ${p}
+                            </div>
+                        `).join('')}
+                        <div class="p-plus" onclick="alert('Associazione nuovo progetto per ${agent.name}...')"><i class="ph ph-plus"></i></div>
+                    </div>
+                `;
+
+                node.addEventListener('mousedown', (e) => startDrag(e, node, id));
+                agentLayer.appendChild(node);
+            });
+
+            drawConnections();
+            renderTerminal();
+        }
+
+        function startDrag(e, node, id) {
+            draggedNode = node;
+            startX = e.clientX;
+            startY = e.clientY;
+            nodeX = parseInt(node.style.left);
+            nodeY = parseInt(node.style.top);
+            node.style.zIndex = 1000;
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (!draggedNode) return;
+            
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            
+            let targetX = nodeX + dx;
+            let targetY = nodeY + dy;
+
+            // Boundary clamping
+            const rect = draggedNode.getBoundingClientRect();
+            targetX = Math.max(10, Math.min(window.innerWidth - rect.width - 10, targetX));
+            targetY = Math.max(150, Math.min(window.innerHeight - rect.height - 10, targetY));
+
+            draggedNode.style.left = targetX + 'px';
+            draggedNode.style.top = targetY + 'px';
+            
+            // Sync internal data for redraws
+            const id = draggedNode.id.split('-')[1];
+            NODE_DATA[id] = { x: targetX, y: targetY };
+
+            drawConnections();
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (draggedNode) draggedNode.style.zIndex = 100;
+            draggedNode = null;
+        });
+
+        function drawConnections() {
+            svg.innerHTML = '';
+            const corePos = core.getBoundingClientRect();
+            const cx = corePos.left + corePos.width / 2;
+            const cy = corePos.top + corePos.height / 2;
+
+            Object.keys(AgentCore.state.agents).forEach(id => {
+                const node = document.getElementById(`agent-${id}`);
+                if (!node) return;
+                
+                const agent = AgentCore.state.agents[id];
+                const rect = node.getBoundingClientRect();
+                const nx = rect.left + rect.width / 2;
+                const ny = rect.top + rect.height / 2;
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                const d = `M ${cx} ${cy} L ${nx} ${ny}`;
+                path.setAttribute("d", d);
+                path.setAttribute("class", "neural-link");
+                path.setAttribute("style", `stroke: ${agent.color}; color: ${agent.color};`);
+                svg.appendChild(path);
+            });
+        }
+
+        function renderTerminal() {
+            const sections = {
+                ONLINE: document.getElementById('list-online'),
+                READY: document.getElementById('list-ready'),
+                OFFLINE: document.getElementById('list-offline')
+            };
+
+            Object.values(sections).forEach(s => s.innerHTML = '');
+
+            Object.entries(AgentCore.state.agents).forEach(([id, agent]) => {
+                const row = document.createElement('div');
+                row.className = 'agent-row-compact';
+                row.innerHTML = `
+                    <div class="n-icon" style="background:${agent.color}15; color:${agent.color}; width:32px; height:32px; font-size:1rem;">
+                        <i class="ph-fill ${agent.icon || 'ph-cpu'}"></i>
+                    </div>
+                    <div>
+                        <strong style="font-size:0.8rem;">${agent.name}</strong>
+                        <div class="prompt-txt">${agent.systemPrompt}</div>
+                    </div>
+                    <div class="a-status-dot dot-${agent.operationalState.toLowerCase()}"></div>
+                `;
+                
+                const cat = agent.operationalState.toUpperCase();
+                if (sections[cat]) sections[cat].appendChild(row);
+            });
+        }
+
+        function toggleTerminal() {
+            document.getElementById('terminal').classList.toggle('active');
+        }
+
+        // Init
+        window.addEventListener('load', renderMap);
+        window.addEventListener('resize', drawConnections);
+    </script>
+</body>
+</html>

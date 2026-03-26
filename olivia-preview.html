@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olivia — Live Playground</title>
+    <link rel="stylesheet" href="css/soft-corporate.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <script src="js/core/agent-core.js"></script>
+    <style>
+        body {
+            background: #020202;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        /* MATERIALIZATION OVERLAY */
+        #mat-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .mat-log { font-family: 'Fira Code', monospace; color: #ec4899; font-size: 0.8rem; margin: 10px 0; }
+
+        /* PLAYGROUND */
+        #live-playground {
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: 2s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .nav-back {
+            position: absolute;
+            top: 30px; left: 30px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            padding: 12px 24px;
+            border-radius: 30px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 800;
+            z-index: 1000;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-back:hover { background: #fff; color: #000; }
+
+        /* THE LIVE PREVIEW */
+        .preview-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, rgba(236,72,153,0.05) 0%, transparent 80%);
+        }
+
+        .archetype-frame {
+            width: 80%;
+            height: 70%;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+        }
+
+        .frame-header {
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .interactive-btn {
+            background: #fff;
+            color: #000;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .interactive-btn:hover { background: #ec4899; color: #fff; transform: scale(1.05); }
+
+    </style>
+</head>
+<body>
+
+    <div id="mat-overlay">
+        <div class="mat-log">> Fetching Architect DNA...</div>
+        <div class="mat-log" id="l1">> Initializing Render Engine...</div>
+        <div class="mat-log" id="l2">> Materializing [Design Name]...</div>
+        <div style="width: 200px; height: 1px; background: rgba(255,255,255,0.1); margin-top: 20px;">
+            <div id="p-bar" style="height: 100%; width: 0%; background: #ec4899; transition: 3s linear;"></div>
+        </div>
+    </div>
+
+    <div id="live-playground">
+        <a href="olivia.html" class="nav-back"><i class="ph ph-arrow-left"></i> Studio di Olivia</a>
+        
+        <div class="preview-content">
+            <div class="archetype-frame" id="frame">
+                <div class="frame-header">
+                    <div style="display:flex; gap:10px;">
+                        <div style="width:12px; height:12px; border-radius:50%; background:#ff5f56;"></div>
+                        <div style="width:12px; height:12px; border-radius:50%; background:#ffbd2e;"></div>
+                        <div style="width:12px; height:12px; border-radius:50%; background:#27c93f;"></div>
+                    </div>
+                    <span style="font-size:0.65rem; color:#444; font-weight:900; letter-spacing:0.1em;">LIVE INTERACTIVE PREVIEW</span>
+                </div>
+                
+                <div id="render-zone" style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; text-align: center;">
+                    <!-- Content injected here -->
+                </div>
+            </div>
+        </div>
+
+        <div style="padding: 30px 60px; border-top: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center;">
+            <div style="display:flex; gap:20px;">
+                <div style="font-size:0.7rem; color:#444;"><span style="color:#ec4899;">●</span> INTERACTIVE MODE</div>
+                <div style="font-size:0.7rem; color:#444;"><span style="color:#ec4899;">●</span> ARCHITECT VERIFIED</div>
+            </div>
+            <button class="interactive-btn" onclick="alert('Design Confermato!')">Conferma & Salva Archetipo</button>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const archetype = params.get('design') || 'Quantum Glass V5';
+
+        async function startMaterialization() {
+            document.getElementById('l2').innerText = `> Materializing ${archetype}...`;
+            document.getElementById('p-bar').style.width = '100%';
+
+            await new Promise(r => setTimeout(r, 3000));
+            
+            document.getElementById('mat-overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('mat-overlay').style.display = 'none';
+                document.getElementById('live-playground').style.opacity = '1';
+                renderDesign();
+            }, 1000);
+        }
+
+        function renderDesign() {
+            const zone = document.getElementById('render-zone');
+            const frame = document.getElementById('frame');
+            
+            if(archetype === 'Quantum Glass V5') {
+                frame.style.background = 'rgba(236,72,153,0.05)';
+                zone.innerHTML = `
+                    <h1 style="font-family:'Instrument Serif', serif; font-size:4rem; margin:0;">Quantum Glass</h1>
+                    <p style="color:#888; max-width:500px; margin:20px 0 40px;">Un esperimento di profondità e rifrazione caotica. Prova a cliccare sugli elementi per testare il feedback vibrazionale.</p>
+                    <div style="display:flex; gap:20px;">
+                        <button class="interactive-btn" style="background:rgba(236,72,153,0.1); color:#ec4899; border:1px solid #ec4899;">Test Refraction</button>
+                        <button class="interactive-btn">Apply Symmetries</button>
+                    </div>
+                `;
+            } else if(archetype === 'Neural Dashboard') {
+                frame.style.background = 'rgba(10,10,10,0.8)';
+                zone.innerHTML = `
+                    <h1 style="font-family:'Instrument Serif', serif; font-size:4rem; margin:0;">Neural Core</h1>
+                    <p style="color:#888; max-width:500px; margin:20px 0 40px;">Layout predittivo a nodi. L'interfaccia si adatta alle intenzioni dell'utente tramite analisi oculare simulata.</p>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; width:100%; max-width:600px;">
+                        <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:20px;">Node Path A</div>
+                        <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:20px;">Node Path B</div>
+                    </div>
+                `;
+            } else {
+                frame.style.background = 'linear-gradient(to bottom, #1a1a1a, #000)';
+                zone.innerHTML = `
+                    <h1 style="font-family:'Instrument Serif', serif; font-size:4rem; margin:0; color:#d4af37;">Gold Midnight</h1>
+                    <p style="color:#666; max-width:500px; margin:20px 0 40px;">L'estetica definitiva. Contrasti estremi, tipografia scolpita e accenti in oro 24k cinematografico.</p>
+                    <button class="interactive-btn" style="background:#d4af37; color:#000; width:100%; max-width:300px;">Enter the Vault</button>
+                `;
+            }
+        }
+
+        window.addEventListener('load', startMaterialization);
+    </script>
+</body>
+</html>

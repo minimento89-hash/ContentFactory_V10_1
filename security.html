@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>V10.1 — Cybersecurity Dashboard</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="js/core/layout-engine.js"></script>
+    <script src="js/core/agent-core.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -216,10 +218,13 @@
             <div class="val" style="color: #10b981;">ATTIVA</div>
             <div class="sub">Tutti i sistemi ok</div>
         </div>
-        <div class="stat-card">
-            <div class="label"><i class="ph-fill ph-magnifying-glass"></i> Scansioni oggi</div>
-            <div class="val">47</div>
-            <div class="sub">ultima: 2 min fa</div>
+        <div class="stat-card frosted-glass-dark">
+            <div class="stat-val" id="system-health">100%</div>
+            <div class="stat-label">HEALTH SISTEMA</div>
+        </div>
+        <div class="stat-card frosted-glass-dark">
+            <div class="stat-val" id="active-alerts">0</div>
+            <div class="stat-label">ALERT ATTIVI</div>
         </div>
         <div class="stat-card">
             <div class="label"><i class="ph-fill ph-warning-diamond"></i> Minacce bloccate</div>
@@ -247,9 +252,7 @@
                     </div>
                 </div>
                 <div class="terminal-box">
-                    CIPHER DICE:<br>
-                    Scansione completata alle 12:23.<br>
-                    Nessuna minaccia rilevata. Il vault è integro. Stai lavorando in sicurezza.
+                    <div class="cipher-dice" id="cipher-terminal">> AGENT_CIPHER: MONITORING...</div>
                 </div>
                 <div class="p-btn">Apri Pannello</div>
             </div>
@@ -264,8 +267,7 @@
                     </div>
                 </div>
                 <div class="terminal-box" style="color: #ef4444; background: rgba(239,68,68,0.05);">
-                    HUNTER DICE:<br>
-                    ⚠ Errore API Key: Devi prima incollare la tua Google API Key nel pannello Impostazioni.
+                    <div class="hunter-dice" id="hunter-terminal">> BUG_HUNTER: SCANNING_CORE...</div>
                 </div>
                 <div class="p-btn" style="color: #ef4444; border-color: rgba(239,68,68,0.4);">Risolvi Ora</div>
             </div>
@@ -280,8 +282,7 @@
                     </div>
                 </div>
                 <div class="terminal-box">
-                    FIXER DICE:<br>
-                    Pronto all'azione. In attesa di input da Bug Hunter per patch automatiche.
+                    <div class="fixer-dice" id="fixer-terminal">> FIXER: STANDBY...</div>
                 </div>
                 <div class="p-btn" style="color: #3b82f6; border-color: rgba(59,130,246,0.4);">Configura Fix</div>
             </div>
@@ -293,6 +294,11 @@
             <div class="glass-switches">
                 <div class="sec-title"><i class="ph-fill ph-lock-key"></i> Protezioni attive</div>
                 
+                <div class="dice-footer">
+                    <span>SECURITY: ENABLED</span>
+                    <button class="fix-btn" id="fix-btn" style="display:none;" onclick="AgentCore.resolveBugs()">RISOLVI ORA</button>
+                    <button class="fix-btn" onclick="AgentCore.getReport(); alert('Report copiato.')">REPORT AI</button>
+                </div>
                 <div class="switch-row">
                     <div class="sw-info">
                         <h4>PIN a 6 cifre</h4>
@@ -460,5 +466,42 @@
         </div>
     </div>
 
+    <script>
+        function updateSecurityUI() {
+            const state = AgentCore.state;
+            
+            // Stats
+            document.getElementById('system-health').innerText = state.health + '%';
+            document.getElementById('active-alerts').innerText = state.isAwaitingFix ? '1' : '0';
+            
+            // Terminals
+            const cipherTerm = document.getElementById('cipher-terminal');
+            const hunterTerm = document.getElementById('hunter-terminal');
+            const fixerTerm = document.getElementById('fixer-terminal');
+            const fixBtn = document.getElementById('fix-btn');
+
+            if (state.isAwaitingFix) {
+                cipherTerm.innerHTML = `<span style="color:#f59e0b;">> ATTENZIONE: INTEGRITÀ COMPROMESSA</span>`;
+                hunterTerm.innerHTML = `<span style="color:#ef4444;">> BUG_DETECTED: MODULO_ANALYTICS</span>`;
+                fixBtn.style.display = 'block';
+            } else {
+                cipherTerm.innerText = `> AGENT_CIPHER: ${state.agents.cipher.status}`;
+                hunterTerm.innerText = `> BUG_HUNTER: ${state.agents.hunter.status}`;
+                fixerTerm.innerText = `> FIXER: ${state.agents.fixer.status}`;
+                fixBtn.style.display = 'none';
+            }
+        }
+
+        AgentCore.listen('agentUpdate', updateSecurityUI);
+        AgentCore.listen('bugFound', updateSecurityUI);
+        AgentCore.listen('fixComplete', () => {
+            updateSecurityUI();
+            const fixerTerm = document.getElementById('fixer-terminal');
+            fixerTerm.innerHTML = `<span style="color:#10b981;">> PATCH_APPLIED: SYSTEM_CLEAN</span>`;
+        });
+
+        // Initialize state
+        updateSecurityUI();
+    </script>
 </body>
 </html>
