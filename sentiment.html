@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V10.1 — Sentiment Analysis</title>
+    
+    <!-- Icons & Fonts -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="css/design-system.css">
+    
+    <style>
+        .sentiment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 20px;
+            padding: 20px 40px 100px 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - var(--header-height));
+        }
+
+        .widget-card {
+            background: var(--glass-heavy);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transition: 0.3s;
+        }
+        .widget-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .widget-title { font-weight: 700; font-size: 0.9rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .mood-display {
+            height: 180px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed var(--glass-border);
+        }
+
+        .mood-placeholder { text-align: center; opacity: 0.5; color: var(--text-dim); }
+        .mood-placeholder i { font-size: 2.5rem; margin-bottom: 10px; }
+        .mood-placeholder p { font-size: 0.8rem; }
+
+        .page-header-info {
+            padding: 20px 40px 0 40px;
+        }
+        .page-header-info p { color: var(--text-dim); font-size: 0.9rem; opacity: 0.8; }
+    </style>
+</head>
+<body class="theme-flux">
+
+    <div class="studio-layout">
+        
+        <!-- SIDEBAR / COMMAND RIBBON -->
+        <aside class="command-ribbon">
+            <a href="studio/index.html" class="ribbon-item"><i class="ph ph-squares-four"></i></a>
+            <a href="agent-lounge.html" class="ribbon-item"><i class="ph ph-users-four"></i></a>
+            <a href="logic-flows.html" class="ribbon-item"><i class="ph ph-graph"></i></a>
+            <div class="ribbon-spacer"></div>
+            <div class="ribbon-item active"><i class="ph ph-heartbeat"></i></div>
+            <div class="ribbon-item"><i class="ph ph-gear"></i></div>
+        </aside>
+
+        <!-- MAIN AREA -->
+        <main class="main-stage">
+            <header class="app-header">
+                <div class="header-content">
+                    <h1>Sentiment Evolution</h1>
+                    <div style="display: flex; gap: 20px; align-items:center;">
+                        <a href="index.html" class="back-nav" style="color: var(--text-dim); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="ph ph-house-line"></i> Hub
+                        </a>
+                        <div class="user-pill">
+                            <i class="ph-fill ph-user-circle"></i>
+                            <span>Il Capo</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-header-info">
+                <p>Monitora l'impatto emotivo dei tuoi contenuti sulla community in tempo reale.</p>
+            </div>
+
+            <div class="sentiment-grid" id="sentiment-grid">
+                <!-- Widget 1: General Mood -->
+                <div class="widget-card" id="sent-mood">
+                    <div class="widget-header">
+                        <span class="widget-title">Pulsazioni Community</span>
+                        <i class="ph ph-activity" style="color: var(--text-dim)"></i>
+                    </div>
+                    <div class="mood-display">
+                        <div class="mood-placeholder">
+                            <i class="ph ph-smiley"></i>
+                            <p>Analisi in tempo reale...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget 2: Comment Mapping -->
+                <div class="widget-card" id="sent-comments">
+                    <div class="widget-header">
+                        <span class="widget-title">Mappatura Commenti</span>
+                        <i class="ph ph-chat-circle-dots" style="color: var(--text-dim)"></i>
+                    </div>
+                    <div class="mood-display">
+                        <div class="mood-placeholder">
+                            <i class="ph ph-map-pin"></i>
+                            <p>In attesa di dati dal Social Loop</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget 3: Fan Growth -->
+                <div class="widget-card" id="sent-growth">
+                    <div class="widget-header">
+                        <span class="widget-title">Crescita Fan Base</span>
+                        <i class="ph ph-trend-up" style="color: var(--text-dim)"></i>
+                    </div>
+                    <div class="mood-display">
+                        <div class="mood-placeholder">
+                            <i class="ph ph-users"></i>
+                            <p>Proiezione algoritmica</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Layout Engine Core -->
+    <script src="js/core/layout-engine.js"></script>
+
+</body>
+</html>

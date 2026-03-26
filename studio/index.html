@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V10.1 — Studio</title>
+    
+    <!-- Icons & Fonts -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="../css/soft-corporate.css?v=777">
+    
+    <style>
+        .studio-layout {
+            display: flex;
+            background: var(--bg);
+            min-height: 100vh;
+        }
+
+        .studio-main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 340px; /* 3 Columns like mockup */
+            grid-template-rows: auto auto auto;
+            gap: 25px;
+            align-content: start;
+        }
+
+        .studio-header {
+            grid-column: 1 / span 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* Avatar Card */
+        .avatar-card {
+            grid-column: 1;
+            height: 480px;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            cursor: pointer;
+        }
+        .avatar-img {
+            flex: 1;
+            background: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800') center/cover;
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+        .avatar-info {
+            padding: 24px 30px;
+            background: linear-gradient(to bottom, #fff, #f9f9f9);
+            border-radius: 0 0 var(--radius) var(--radius);
+        }
+        .avatar-name { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
+        .avatar-title { font-size: 0.85rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Donut Card */
+        .donut-card { grid-column: 2; height: 480px; text-align: center; }
+        .donut-wrap { position: relative; width: 200px; height: 200px; margin: 40px auto; }
+        .donut-val { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; }
+
+        /* Tasks Card */
+        .tasks-card { grid-column: 3; grid-row: 1 / span 2; }
+        .task-item { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding: 10px; border-radius: 12px; transition: 0.2s; }
+        .task-item:hover { background: var(--bg); }
+        .task-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: transparent;}
+        .task-check.done { background: var(--text); border-color: var(--text); color: #fff; }
+        .task-desc { font-weight: 700; font-size: 0.85rem; }
+        .task-time { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+
+        /* Calendar Card (Wide) */
+        .calendar-card { grid-column: 1 / span 2; grid-row: 2; height: 220px; }
+
+        /* Bottom Stats */
+        .stat-card-small { height: 180px; display: flex; flex-direction: column; justify-content: center; }
+        .stat-label { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 20px; }
+        .stat-value-big { font-size: 2.2rem; font-weight: 700; }
+
+        /* Action Buttons Header */
+        .header-actions { display: flex; gap: 15px; }
+        .icon-btn { width: 44px; height: 44px; border-radius: 12px; background: #fff; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; transition: 0.2s; color: var(--text-dim); }
+        .icon-btn:hover { background: var(--bg); color: var(--text); }
+    </style>
+</head>
+<body>    <div class="studio-layout">
+        
+        <!-- SIDEBAR V4 -->
+        <aside class="sidebar" style="width: 200px; min-height: 100vh;">
+            <div class="sidebar-logo"><span>STUDIO</span><br><span style="color:#5a5850;font-size:11px">CONTENT FACTORY</span></div>
+            <div style="height:16px"></div>
+            <div class="nav-item"><i class="ph ph-squares-four"></i> Dashboard</div>
+            <div class="nav-item active"><i class="ph ph-article"></i> Contenuti</div>
+            <div class="nav-item"><i class="ph ph-users-three"></i> Agenti AI</div>
+            <div class="nav-item"><i class="ph ph-chart-line-up"></i> Analytics</div>
+            <div class="nav-item"><i class="ph ph-wallet"></i> Guadagni</div>
+            <div class="nav-item"><i class="ph ph-gear"></i> Impostazioni</div>
+            
+            <div class="sidebar-footer">
+                <div class="user-chip">
+                    <div class="avatar-mini">IC</div>
+                    <div><div class="user-name">Il Capo</div><div class="user-role">Director</div></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN V4 -->
+        <main class="main" style="flex: 1; min-height: 100vh;">
+            <div class="header">
+                <div>
+                    <div class="greeting">Ciao Il Capo 👋</div>
+                    <div class="greeting-sub">Studio Overview · Mercoledì 25 Marzo 2026</div>
+                    <a href="../index.html" class="breadcrumb-small" style="margin-top: 10px;">TORNA ALL'HUB <i class="ph ph-arrow-right"></i></a>
+                </div>
+                <div class="header-actions">
+                    <div class="icon-btn"><i class="ph ph-magnifying-glass"></i></div>
+                    <div class="icon-btn"><i class="ph ph-bell"></i></div>
+                </div>
+            </div>
+
+            <div class="grid-top" style="display: grid; grid-template-columns: 1fr 1.5fr 1.5fr; gap: 16px;">
+                
+                <!-- Profile Card NERA con Aurora -->
+                <div class="card-dark" style="display:flex;flex-direction:column;justify-content:flex-end;min-height:220px;">
+                    <div class="orb" style="width:200px;height:200px;top:-60px;left:-40px;background:radial-gradient(ellipse,rgba(200,170,80,0.6) 0%,rgba(160,130,50,0.25) 45%,transparent 70%);animation:orb1 8s ease-in-out infinite;"></div>
+                    <div class="orb" style="width:140px;height:140px;top:10px;right:-20px;background:radial-gradient(ellipse,rgba(184,200,144,0.4) 0%,transparent 70%);animation:orb3 11s ease-in-out infinite;"></div>
+                    <div class="star" style="top:16px;right:16px;">✦</div>
+                    <div style="position:absolute;top:16px;left:16px;background:rgba(184,200,144,0.2);color:#8aaa60;font-size:10px;font-weight:500;padding:4px 10px;border-radius:20px;z-index:2;">Director</div>
+                    <div class="ci">
+                        <div style="font-size:1.4rem;font-weight:700;color:#f0e8d8;" contenteditable="true">Il tuo Studio</div>
+                        <div style="font-size:0.8rem;color:#6a6460;margin-top:4px;">Content · AI · Strategic Operations</div>
+                    </div>
+                </div>
+
+                <!-- Agenti AI Card BIANCA con Aurora -->
+                <div class="card-white" style="min-height:220px;">
+                    <div class="orb" style="width:220px;height:220px;top:-90px;left:-70px;background:radial-gradient(ellipse,rgba(138,170,96,0.25) 0%,transparent 65%);animation:orb1 9s ease-in-out infinite;"></div>
+                    <div class="orb" style="width:160px;height:160px;bottom:-70px;right:-50px;background:radial-gradient(ellipse,rgba(200,168,100,0.2) 0%,transparent 65%);animation:orb2 12s ease-in-out infinite;"></div>
+                    <div class="ci">
+                        <div class="card-title-light">Stato Agenti AI</div>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-weight: 600; font-size: 0.9rem;">Gemini Core</span>
+                                <span style="font-size: 0.75rem; background: #e8f2dc; color: #4a7828; padding: 2px 8px; border-radius: 20px;">Attivo</span>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-weight: 600; font-size: 0.9rem;">Content Forge</span>
+                                <span style="font-size: 0.75rem; background: #e8f2dc; color: #4a7828; padding: 2px 8px; border-radius: 20px;">Attivo</span>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-weight: 600; font-size: 0.9rem;">Sentiment Eye</span>
+                                <span style="font-size: 0.75rem; background: #faf0d8; color: #8a6010; padding: 2px 8px; border-radius: 20px;">Idle</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #aaa; margin-bottom: 5px;"><span>Carico Sistema</span><span>75%</span></div>
+                            <div style="height: 6px; background: #eee; border-radius: 10px;"><div style="width: 75%; height: 100%; background: var(--accent); border-radius: 10px;"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Card BIANCA con Aurora -->
+                <div class="card-white" style="min-height:220px;">
+                    <div class="orb" style="width:190px;height:190px;top:-80px;right:-60px;background:radial-gradient(ellipse,rgba(200,168,100,0.25) 0%,transparent 65%);animation:orb2 10s ease-in-out infinite;"></div>
+                    <div class="orb" style="width:140px;height:140px;bottom:-60px;left:-40px;background:radial-gradient(ellipse,rgba(138,170,96,0.2) 0%,transparent 65%);animation:orb3 13s ease-in-out infinite;"></div>
+                    <div class="ci">
+                        <div class="card-title-light">Performance Rapida</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0;">
+                            <div style="background: var(--bg); padding: 12px; border-radius: 12px;">
+                                <div style="font-size: 1.5rem; font-weight: 700;">88%</div>
+                                <div style="font-size: 0.65rem; color: #aaa; text-transform: uppercase;">Sentiment</div>
+                            </div>
+                            <div style="background: var(--bg); padding: 12px; border-radius: 12px;">
+                                <div style="font-size: 1.5rem; font-weight: 700;">+24%</div>
+                                <div style="font-size: 0.65rem; color: #aaa; text-transform: uppercase;">Growth</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.75rem;"><span style="width: 60px;">YouTube</span><div style="flex: 1; height: 4px; background: #eee; border-radius: 2px;"><div style="width: 78%; height: 100%; background: #ff0000; border-radius: 2px;"></div></div></div>
+                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.75rem;"><span style="width: 60px;">Instagram</span><div style="flex: 1; height: 4px; background: #eee; border-radius: 2px;"><div style="width: 55%; height: 100%; background: #e1306c; border-radius: 2px;"></div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-bottom" style="display: grid; grid-template-columns: 1.5fr 1.5fr 1fr; gap: 16px;">
+                <!-- Contenuti Recenti -->
+                <div class="card-white">
+                    <div class="orb" style="width:170px;height:170px;top:-70px;right:-50px;background:radial-gradient(ellipse,rgba(138,170,96,0.2) 0%,transparent 65%);animation:orb3 9s ease-in-out infinite;"></div>
+                    <div class="ci">
+                        <div class="card-title-light">Lavorazioni Recenti</div>
+                        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">🎬</div>
+                                <div style="flex: 1;"><div style="font-size: 0.85rem; font-weight: 600;">Vision V10.1 Launch Video</div><div style="font-size: 0.7rem; color: #aaa;">In Rendering...</div></div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">📝</div>
+                                <div style="flex: 1;"><div style="font-size: 0.85rem; font-weight: 600;">Strategic Roadmap</div><div style="font-size: 0.7rem; color: #aaa;">Completato</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formato Contenuti (Donut V4 Inspired) -->
+                <div class="card-white">
+                    <div class="orb" style="width:180px;height:180px;bottom:-70px;left:-60px;background:radial-gradient(ellipse,rgba(200,168,100,0.2) 0%,transparent 65%);animation:orb1 11s ease-in-out infinite;"></div>
+                    <div class="ci">
+                        <div class="card-title-light">Distribuzione Formati</div>
+                        <div style="display: flex; align-items: center; gap: 20px; margin-top: 15px;">
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="35" fill="none" stroke="#eee" stroke-width="15"/>
+                                <circle cx="50" cy="50" r="35" fill="none" stroke="var(--accent)" stroke-width="15" stroke-dasharray="110 220" transform="rotate(-90 50 50)"/>
+                            </svg>
+                            <div style="font-size: 0.75rem; color: #6a6460;">
+                                <div><span style="color: var(--accent);">●</span> Video (50%)</div>
+                                <div><span style="color: var(--accent-yellow);">●</span> Short (30%)</div>
+                                <div><span style="color: #666;">●</span> Blog (20%)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Salary Card NERA con Aurora -->
+                <div class="card-dark" style="display:flex;flex-direction:column;justify-content:flex-end;min-height:180px;">
+                    <div class="orb" style="width:190px;height:190px;top:-60px;left:-50px;background:radial-gradient(ellipse,rgba(210,178,80,0.65) 0%,rgba(170,130,50,0.3) 45%,transparent 70%);animation:orb1 7s ease-in-out infinite;"></div>
+                    <div class="orb" style="width:130px;height:130px;top:10px;right:-20px;background:radial-gradient(ellipse,rgba(138,170,96,0.35) 0%,transparent 70%);animation:orb2 9s ease-in-out infinite;"></div>
+                    <div class="shimmer-premium-overlay"></div>
+                    <div class="star" style="top:16px;right:16px;">✦</div>
+                    <div class="ci">
+                        <div style="font-size:1.8rem;font-weight:700;color:#f0e8d8;">€ 12.450</div>
+                        <div style="font-size:0.75rem;color:#b8c890;margin-top:2px;">+12.5% vs mese precedente</div>
+                        <div style="font-size:0.65rem;color:#4a4840;margin-top:8px;text-transform:uppercase;letter-spacing:0.1em;">Guadagni Previsti</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden Grid for System Integration -->
+            <div id="studio-grid" style="display: none;"></div>
+        </main>
+    </div>
+ </div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../js/core/gemini-engine.js"></script>
+    <script src="../js/core/content-engine.js"></script>
+    <script src="../js/core/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../js/core/gemini-engine.js"></script>
+    <script src="../js/core/content-engine.js"></script>
+    <script src="../js/core/firebase.js"></script>
+    <script src="../js/core/layout-engine.js"></script>
+    <script src="js/studio.js"></script>
+</body>
+</html>

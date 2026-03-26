@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V10.1 — The Nexus</title>
+    
+    <!-- Icons & Fonts -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="css/design-system.css">
+    
+    <style>
+        .nexus-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 20px 40px 100px 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - var(--header-height));
+        }
+
+        .platform-card {
+            background: var(--glass-heavy);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .platform-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+
+        .platform-icon { font-size: 2.5rem; color: var(--accent); }
+        .platform-name { font-family: 'Instrument Serif', serif; font-size: 1.8rem; margin-bottom: 0; }
+        .platform-status { font-size: 0.7rem; color: #10b981; text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em; }
+
+        .btn-nexus {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .btn-nexus:hover { background: var(--accent); color: black; border-color: var(--accent); }
+
+        .page-header-info {
+            padding: 20px 40px 0 40px;
+        }
+        .page-header-info p { color: var(--text-dim); font-size: 0.9rem; opacity: 0.8; }
+    </style>
+</head>
+<body class="theme-flux">
+
+    <div class="studio-layout">
+        
+        <!-- SIDEBAR / COMMAND RIBBON -->
+        <aside class="command-ribbon">
+            <a href="studio/index.html" class="ribbon-item"><i class="ph ph-squares-four"></i></a>
+            <a href="agent-lounge.html" class="ribbon-item"><i class="ph ph-users-four"></i></a>
+            <a href="logic-flows.html" class="ribbon-item"><i class="ph ph-graph"></i></a>
+            <div class="ribbon-item active"><i class="ph ph-planet"></i></div>
+            <div class="ribbon-spacer"></div>
+            <div class="ribbon-item"><i class="ph ph-gear"></i></div>
+        </aside>
+
+        <!-- MAIN AREA -->
+        <main class="main-stage">
+            <header class="app-header">
+                <div class="header-content">
+                    <h1>The Nexus</h1>
+                    <div style="display: flex; gap: 20px; align-items:center;">
+                        <a href="index.html" class="back-nav" style="color: var(--text-dim); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="ph ph-house-line"></i> Hub
+                        </a>
+                        <div class="user-pill">
+                            <i class="ph-fill ph-user-circle"></i>
+                            <span>Il Capo</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-header-info">
+                <p>Distribuzione multi-piattaforma e archivio asset inter-studio.</p>
+            </div>
+
+            <div class="nexus-grid" id="nexus-grid">
+                <!-- Platform 1 -->
+                <div class="platform-card" id="nex-insta">
+                    <div class="platform-icon" style="color: #e4405f;"><i class="ph-fill ph-instagram-logo"></i></div>
+                    <div class="platform-name">Instagram</div>
+                    <div class="platform-status">Connesso</div>
+                    <a href="#" class="btn-nexus">Pubblica</a>
+                </div>
+
+                <!-- Platform 2 -->
+                <div class="platform-card" id="nex-tiktok">
+                    <div class="platform-icon" style="color: #00f2ea;"><i class="ph-fill ph-tiktok-logo"></i></div>
+                    <div class="platform-name">TikTok</div>
+                    <div class="platform-status">Connesso</div>
+                    <a href="#" class="btn-nexus">Pubblica</a>
+                </div>
+
+                <!-- Platform 3 -->
+                <div class="platform-card" id="nex-web">
+                    <div class="platform-icon" style="color: #6366f1;"><i class="ph-fill ph-globe"></i></div>
+                    <div class="platform-name">Web Hub</div>
+                    <div class="platform-status">In Sincronia</div>
+                    <a href="#" class="btn-nexus">Aggiorna Sito</a>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Layout Engine Core -->
+    <script src="js/core/layout-engine.js"></script>
+
+</body>
+</html>

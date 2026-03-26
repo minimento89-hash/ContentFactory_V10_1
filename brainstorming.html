@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V10.1 — Brainstorming</title>
+    
+    <!-- Icons & Fonts -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="css/design-system.css">
+    
+    <style>
+        .brainstorm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 20px 40px 100px 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - var(--header-height));
+        }
+
+        .brain-card {
+            background: var(--glass-heavy);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: all 0.3s;
+        }
+
+        .brain-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+
+        .brain-icon {
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .brain-content h3 { font-family: 'Instrument Serif', serif; font-size: 1.8rem; margin-bottom: 5px; }
+        .brain-content p { color: var(--text-dim); font-size: 0.9rem; line-height: 1.5; }
+
+        .thread-input {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-family: inherit;
+            resize: none;
+            height: 100px;
+            outline: none;
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+        .thread-input:focus { border-color: var(--accent); }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .btn-brain {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            background: var(--accent);
+            color: black;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .btn-brain:hover { opacity: 0.9; transform: scale(1.05); }
+
+        .page-header-info {
+            padding: 20px 40px 0 40px;
+        }
+        .page-header-info p { color: var(--text-dim); font-size: 0.9rem; opacity: 0.8; }
+    </style>
+</head>
+<body class="theme-flux">
+
+    <div class="studio-layout">
+        
+        <!-- SIDEBAR / COMMAND RIBBON -->
+        <aside class="command-ribbon">
+            <a href="studio/index.html" class="ribbon-item"><i class="ph ph-squares-four"></i></a>
+            <a href="agent-lounge.html" class="ribbon-item"><i class="ph ph-users-four"></i></a>
+            <a href="logic-flows.html" class="ribbon-item active"><i class="ph ph-lightbulb-filament"></i></a>
+            <div class="ribbon-spacer"></div>
+            <div class="ribbon-item"><i class="ph ph-gear"></i></div>
+        </aside>
+
+        <!-- MAIN AREA -->
+        <main class="main-stage">
+            <header class="app-header">
+                <div class="header-content">
+                    <h1>Brainstorming</h1>
+                    <div style="display: flex; gap: 20px; align-items:center;">
+                        <a href="index.html" class="back-nav" style="color: var(--text-dim); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="ph ph-house-line"></i> Hub
+                        </a>
+                        <div class="user-pill">
+                            <i class="ph-fill ph-user-circle"></i>
+                            <span>Il Capo</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-header-info">
+                <p>Genera idee multithread alimentate dai tuoi agenti AI per dominare i social.</p>
+            </div>
+
+            <div class="brainstorm-grid" id="brainstorm-grid">
+                <!-- Card: Thread 1 -->
+                <div class="brain-card" id="br-thread-1">
+                    <div class="brain-icon"><i class="ph-fill ph-lightbulb"></i></div>
+                    <div class="brain-content">
+                        <h3>Nuovo Concetto Post</h3>
+                        <p>Inserisci un tema e lascia che Radar e Gemini lavorino alla struttura.</p>
+                    </div>
+                    <textarea class="thread-input" placeholder="Di cosa vogliamo parlare oggi?"></textarea>
+                    <div class="action-bar">
+                        <span style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Agent: Gemini Studio</span>
+                        <button class="btn-brain">Avvia Thread</button>
+                    </div>
+                </div>
+
+                <!-- Card: Thread 2 -->
+                <div class="brain-card" id="br-thread-2">
+                    <div class="brain-icon"><i class="ph-fill ph-video"></i></div>
+                    <div class="brain-content">
+                        <h3>Script Video Veloce</h3>
+                        <p>Genera script per TikTok/Reels basati sui trend estratti da Radar.</p>
+                    </div>
+                    <textarea class="thread-input" placeholder="Descrivi il video che hai in mente..."></textarea>
+                    <div class="action-bar">
+                        <span style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Agent: Agent Radar</span>
+                        <button class="btn-brain">Analizza Trend</button>
+                    </div>
+                </div>
+
+                <!-- Card: Thread 3 -->
+                <div class="brain-card" id="br-thread-3">
+                    <div class="brain-icon"><i class="ph-fill ph-article"></i></div>
+                    <div class="brain-content">
+                        <h3>Articolo di Blog</h3>
+                        <p>Espandi un'idea in un contenuto lungo e SEO-friendly.</p>
+                    </div>
+                    <textarea class="thread-input" placeholder="Titolo o argomento dell'articolo..."></textarea>
+                    <div class="action-bar">
+                        <span style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Agent: Writer AI</span>
+                        <button class="btn-brain">Genera Bozza</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Layout Engine Core -->
+    <script src="js/core/layout-engine.js"></script>
+
+</body>
+</html>

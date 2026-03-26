@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V10.1 — Live Analytics</title>
+    
+    <!-- Icons & Fonts -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="css/design-system.css">
+    
+    <style>
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+            padding: 20px 40px 100px 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - var(--header-height));
+        }
+
+        .stat-card {
+            background: var(--glass-heavy);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            grid-column: span 4;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: 0.3s;
+        }
+        .stat-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+
+        .stat-card.wide { grid-column: span 8; }
+        .stat-card.full { grid-column: span 12; }
+
+        .stat-header { display: flex; justify-content: space-between; color: var(--text-dim); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+        .stat-value { font-family: 'Instrument Serif', serif; font-size: 2.5rem; font-weight: 400; color: var(--accent); }
+        .stat-chart { height: 80px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed var(--glass-border); margin-top: 5px; }
+
+        .page-header-info {
+            padding: 20px 40px 0 40px;
+        }
+        .page-header-info p { color: var(--text-dim); font-size: 0.9rem; opacity: 0.8; }
+    </style>
+</head>
+<body class="theme-flux">
+
+    <div class="studio-layout">
+        
+        <!-- SIDEBAR / COMMAND RIBBON -->
+        <aside class="command-ribbon">
+            <a href="studio/index.html" class="ribbon-item"><i class="ph ph-squares-four"></i></a>
+            <a href="agent-lounge.html" class="ribbon-item"><i class="ph ph-users-four"></i></a>
+            <a href="logic-flows.html" class="ribbon-item"><i class="ph ph-graph"></i></a>
+            <div class="ribbon-spacer"></div>
+            <div class="ribbon-item active"><i class="ph ph-chart-bar"></i></div>
+            <div class="ribbon-item"><i class="ph ph-gear"></i></div>
+        </aside>
+
+        <!-- MAIN AREA -->
+        <main class="main-stage">
+            <header class="app-header">
+                <div class="header-content">
+                    <h1>Live Analytics</h1>
+                    <div style="display: flex; gap: 20px; align-items:center;">
+                        <a href="index.html" class="back-nav" style="color: var(--text-dim); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="ph ph-house-line"></i> Hub
+                        </a>
+                        <div class="user-pill">
+                            <i class="ph-fill ph-user-circle"></i>
+                            <span>Il Capo</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-header-info">
+                <p>Monitora le performance delle tue campagne digitali in tempo reale.</p>
+            </div>
+
+            <div class="analytics-grid" id="analytics-grid">
+                <!-- Stat 1 -->
+                <div class="stat-card" id="an-stat-1">
+                    <div class="stat-header">Visualizzazioni Totali <i class="ph ph-eye"></i></div>
+                    <div class="stat-value">124.5K</div>
+                    <div class="stat-chart"></div>
+                </div>
+
+                <!-- Stat 2 -->
+                <div class="stat-card" id="an-stat-2">
+                    <div class="stat-header">Engagement Rate <i class="ph ph-chart-line-up"></i></div>
+                    <div class="stat-value">8.42%</div>
+                    <div class="stat-chart"></div>
+                </div>
+
+                <!-- Stat 3 (Wide) -->
+                <div class="stat-card wide" id="an-stat-wide">
+                    <div class="stat-header">Distribuzione Traffico <i class="ph ph-globe"></i></div>
+                    <div class="stat-value" style="font-size: 1.5rem;">Social: 65% | Web: 25% | Altro: 10%</div>
+                    <div class="stat-chart" style="height: 120px;"></div>
+                </div>
+                
+                <!-- Stat 4 -->
+                <div class="stat-card" id="an-stat-4">
+                    <div class="stat-header">Conversioni <i class="ph ph-shopping-bag"></i></div>
+                    <div class="stat-value">1.1K</div>
+                    <div class="stat-chart"></div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Layout Engine Core -->
+    <script src="js/core/layout-engine.js"></script>
+
+</body>
+</html>

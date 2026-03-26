@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V10.1 — Roadmap Strategica</title>
+    
+    <!-- Icons & Fonts -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="css/soft-corporate.css?v=2">
+    
+    <script>
+        // Aggressive reset to fix previous "strange" stretching and overlaps
+        localStorage.removeItem('cf_layout__roadmap');
+        localStorage.removeItem('cf_layout__roadmap_html');
+    </script>
+    
+    <style>
+        :root {
+            --card-w: 180px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body.dark-factory {
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+            margin: 0; padding: 0;
+            font-family: 'DM Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .roadmap-main-container {
+            position: relative;
+            z-index: 10;
+            padding: 40px 80px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HUB BACK BUTTON */
+        .back-btn-hub {
+            position: absolute; top: 40px; left: 80px;
+            padding: 10px 18px; border-radius: 50px;
+            text-decoration: none; color: #888; font-size: 0.8rem;
+            display: flex; align-items: center; gap: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: 0.3s; z-index: 100;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+        }
+        .back-btn-hub:hover { color: #fff; border-color: rgba(255,255,255,0.2); transform: translateX(-3px); }
+
+        /* HEADER & LEGEND */
+        .rm-header {
+            text-align: center;
+            margin-bottom: 80px;
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        .rm-header h1 {
+            font-size: 4rem;
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, #444);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent !important;
+            letter-spacing: -0.01em;
+            font-weight: 700;
+        }
+
+        .rm-header p {
+            color: #666;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-top: 15px; margin-bottom: 40px;
+        }
+
+        .rm-legend-bar {
+            display: inline-flex;
+            gap: 30px;
+            padding: 15px 35px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.06);
+            align-items: center;
+            background: rgba(255,255,255,0.02);
+            backdrop-filter: blur(20px);
+        }
+
+        .leg-item { display: flex; align-items: center; gap: 10px; }
+        .leg-item i { font-size: 1.1rem; }
+        .leg-txt { display: flex; flex-direction: column; align-items: flex-start; }
+        .leg-txt strong { font-size: 0.75rem; color: #fff; line-height: 1; }
+        .leg-txt span { font-size: 0.6rem; color: #555; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse { 
+            0%, 100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 2px rgba(239,68,68,0.5)); } 
+            50% { transform: scale(1.5); opacity: 0.5; filter: drop-shadow(0 0 12px rgba(239,68,68,0.8)); } 
+        }
+        .spin { animation: spin 4s linear infinite; display: inline-block; }
+        .pulse { animation: pulse 1.2s ease-in-out infinite; display: inline-block; }
+
+        .phase-block {
+            margin-bottom: 80px;
+            width: 100%;
+        }
+
+        .phase-label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #ffd700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            width: 100%;
+        }
+
+        .phase-label::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, rgba(255,215,0,0.3), transparent);
+        }
+
+        /* NO-OVERLAP GRID (STRICT DIMENSIONS) */
+        .rm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 180px);
+            gap: 28px;
+            justify-content: flex-start;
+            width: 100%;
+            position: relative;
+        }
+
+        .rm-item {
+            display: flex;
+            flex-direction: column;
+            width: 180px;
+            min-width: 180px;
+            height: 200px;
+            padding: 24px;
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.06);
+            position: relative;
+            background: rgba(20,20,20,0.4);
+            backdrop-filter: blur(20px);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .rm-item:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255,215,0,0.4);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 20px rgba(255,215,0,0.05);
+            z-index: 20;
+        }
+
+        .rm-icon { font-size: 1.6rem; margin-bottom: 18px; }
+        .rm-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 10px; color: #fff; }
+        .rm-desc {
+            font-size: 0.75rem; color: #777; line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .rm-footer {
+            margin-top: auto; display: flex; justify-content: space-between; align-items: center;
+            padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .rm-status { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; }
+        .rm-percent { font-size: 0.75rem; font-weight: 700; opacity: 0.8; }
+
+        /* MODAL */
+        .rm-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px); z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.4s;
+        }
+        .rm-modal-overlay.active { opacity: 1; pointer-events: all; }
+
+        .rm-modal-card {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; max-width: 480px; z-index: 2001;
+            opacity: 0; pointer-events: none; transition: 0.4s;
+            padding: 40px; border-radius: 20px;
+            box-shadow: 0 50px 150px rgba(0,0,0,0.9);
+            background: rgba(15,15,15,0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .rm-modal-card.active { opacity: 1; pointer-events: all; }
+
+        .modal-close {
+            position: absolute; top: 25px; right: 25px; cursor: pointer; color: #666; font-size: 1.2rem;
+            transition: 0.3s;
+        }
+        .modal-close:hover { color: #fff; }
+
+        .modal-task-list { margin-top: 30px; display: flex; flex-direction: column; gap: 12px; }
+        .task-row { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: #ccc; }
+        .task-check { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #444; }
+        .task-check.done { background: #ffd700; border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.4); }
+    </style>
+</head>
+<body class="dark-factory">
+
+    <!-- Background Orbs: 20 Micro Orbs (Synced with Hub) -->
+    <div class="background-orbs-container" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;">
+        <!-- Pink/Purple Orbs -->
+        <div class="orb" style="width:120px;height:120px;top:5%;left:15%;background:radial-gradient(circle,rgba(255,20,147,0.4) 0%,transparent 70%);animation:float-slow 18s infinite ease-in-out;"></div>
+        <div class="orb" style="width:70px;height:70px;top:45%;left:5%;background:radial-gradient(circle,rgba(255,105,180,0.5) 0%,transparent 70%);animation:float-medium 22s infinite linear;"></div>
+        <div class="orb" style="width:90px;height:90px;bottom:10%;right:30%;background:radial-gradient(circle,rgba(219,112,147,0.4) 0%,transparent 70%);animation:float-slow 25s infinite alternate;"></div>
+        
+        <!-- Green/Teal Orbs -->
+        <div class="orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);animation:float-slow 20s infinite linear reverse;"></div>
+        <div class="orb" style="width:80px;height:80px;bottom:40%;left:8%;background:radial-gradient(circle,rgba(50,205,50,0.4) 0%,transparent 70%);animation:float-medium 15s infinite alternate ease-in-out;"></div>
+        <div class="orb" style="width:100px;height:100px;top:75%;right:20%;background:radial-gradient(circle,rgba(32,178,170,0.35) 0%,transparent 70%);animation:float-slow 30s infinite linear;"></div>
+
+        <!-- Yellow/Gold Orbs -->
+        <div class="orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);animation:float-medium 28s infinite alternate-reverse;"></div>
+        <div class="orb" style="width:60px;height:60px;bottom:20%;left:35%;background:radial-gradient(circle,rgba(255,223,0,0.5) 0%,transparent 70%);animation:float-slow 15s infinite ease-in-out;"></div>
+        <div class="orb" style="width:130px;height:130px;top:60%;left:45%;background:radial-gradient(circle,rgba(255,235,59,0.3) 0%,transparent 70%);animation:float-medium 40s infinite linear;"></div>
+
+        <!-- Blue/Azure Orbs -->
+        <div class="orb" style="width:100px;height:100px;top:50%;right:50%;background:radial-gradient(circle,rgba(0,191,255,0.4) 0%,transparent 70%);animation:float-slow 22s infinite reverse;"></div>
+        <div class="orb" style="width:140px;height:140px;bottom:5%;right:5%;background:radial-gradient(circle,rgba(30,144,255,0.35) 0%,transparent 70%);animation:float-medium 25s infinite linear;"></div>
+        <div class="orb" style="width:80px;height:80px;top:5%;right:2%;background:radial-gradient(circle,rgba(0,250,154,0.3) 0%,transparent 70%);animation:float-slow 12s infinite alternate;"></div>
+
+        <!-- Extra Micro Highlights -->
+        <div class="orb" style="width:40px;height:40px;top:25%;left:40%;background:radial-gradient(circle,rgba(255,255,255,0.4) 0%,transparent 70%);animation:float-medium 10s infinite;"></div>
+        <div class="orb" style="width:50px;height:50px;bottom:30%;right:15%;background:radial-gradient(circle,rgba(255,255,255,0.3) 0%,transparent 70%);animation:float-slow 8s infinite alternate;"></div>
+        <div class="orb" style="width:150px;height:150px;top:80%;left:5%;background:radial-gradient(circle,rgba(255,20,147,0.2) 0%,transparent 70%);animation:float-medium 35s infinite linear;"></div>
+        <div class="orb" style="width:100px;height:100px;top:40%;left:70%;background:radial-gradient(circle,rgba(255,215,0,0.25) 0%,transparent 70%);animation:float-slow 20s infinite ease-in-out;"></div>
+        <div class="orb" style="width:120px;height:120px;bottom:50%;right:5%;background:radial-gradient(circle,rgba(0,255,127,0.2) 0%,transparent 70%);animation:float-medium 25s infinite linear reverse;"></div>
+        <div class="orb" style="width:60px;height:60px;top:10%;left:80%;background:radial-gradient(circle,rgba(168,212,209,0.4) 0%,transparent 70%);animation:float-slow 15s infinite alternate;"></div>
+    </div>
+
+    <div class="roadmap-main-container">
+        
+        <!-- HUB NAVIGATION -->
+        <a href="index.html" class="back-btn-hub">
+            <i class="ph ph-arrow-left"></i> Hub Centrale
+        </a>
+
+        <!-- STRATEGIC HEADER -->
+        <header class="rm-header">
+            <h1>Roadmap Strategica</h1>
+            <p>Building the Creative Core — V10.1</p>
+
+            <!-- LEGEND (Updated Colors & Animations) -->
+            <div class="rm-legend-bar">
+                <div class="leg-item">
+                    <i class="ph ph-check-circle" style="color: #10b981;"></i>
+                    <div class="leg-txt"><strong>Finito</strong><span>Op. 100%</span></div>
+                </div>
+                <div class="leg-item">
+                    <i class="ph ph-arrows-clockwise spin" style="color: #0ea5e9;"></i>
+                    <div class="leg-txt"><strong>In Corso</strong><span>Sviluppo</span></div>
+                </div>
+                <div class="leg-item">
+                    <i class="ph ph-circle-notch spin" style="color: #3b82f6;"></i>
+                    <div class="leg-txt"><strong>Revisione</strong><span>Approv.</span></div>
+                </div>
+                <div class="leg-item">
+                    <i class="ph ph-circle-notch spin" style="color: #a855f7;"></i>
+                    <div class="leg-txt"><strong>Futuro</strong><span>Idee</span></div>
+                </div>
+                <div class="leg-item">
+                    <i class="ph-fill ph-circle pulse" style="color: #ef4444;"></i>
+                    <div class="leg-txt"><strong>Criticità</strong><span>Problemi</span></div>
+                </div>
+                <div class="leg-item">
+                    <i class="ph-bold ph-info" style="color: #00d2ff;"></i>
+                    <div class="leg-txt"><strong>Info</strong><span>News</span></div>
+                </div>
+                <div class="leg-item">
+                    <i class="ph ph-calendar-blank" style="color: #fff;"></i>
+                    <div class="leg-txt"><strong>Piano</strong><span>In Coda</span></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- PHASE 01 -->
+        <section class="phase-block">
+            <div class="phase-label">Phase 01 — Foundation & Protection</div>
+            <div class="rm-grid">
+                <div class="rm-item" onclick="openModal('modal-arc')">
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph ph-check-circle"></i></div>
+                    <h3 class="rm-title">Arch. Refactor</h3>
+                    <p class="rm-desc">Standardizzazione Meta-App e protezione viewport-safe globale.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-auth')">
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph ph-fingerprint"></i></div>
+                    <h3 class="rm-title">Gold Auth</h3>
+                    <p class="rm-desc">Gatekeeper a PIN con estetica "Original Gold" e crittografia.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
+                <!-- MOVED FROM SCREENSHOT -->
+                <div class="rm-item" onclick="openModal('modal-agenti')">
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph ph-brain"></i></div>
+                    <h3 class="rm-title">Sistema Agenti V9</h3>
+                    <p class="rm-desc">Architettura multi-thread e gestione identità neurale.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-media')">
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph ph-monitor-play"></i></div>
+                    <h3 class="rm-title">Media Factory Suite</h3>
+                    <p class="rm-desc">Mixer AI e Visualizzatore universale di contenuti.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-cpu')">
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph ph-cpu"></i></div>
+                    <h3 class="rm-title">Core Engine V11</h3>
+                    <p class="rm-desc">Ottimizzazione kernel per elaborazione parallela neurale.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-ux')">
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph ph-flask"></i></div>
+                    <h3 class="rm-title">UX Lab Beta</h3>
+                    <p class="rm-desc">Test percorsi utente e mappe di calore interattive.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PHASE 02 -->
+        <section class="phase-block">
+            <div class="phase-label" style="color: #0ea5e9;">Phase 02 — Intelligence & Persistence</div>
+            <div class="rm-grid">
+                <div class="rm-item" onclick="openModal('modal-fire')">
+                    <div class="rm-icon" style="color: #0ea5e9;"><i class="ph ph-arrows-clockwise spin"></i></div>
+                    <h3 class="rm-title">Firebase Sync</h3>
+                    <p class="rm-desc">Persistenza cloud realtime e ripristino automatico del layout.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #0ea5e9;">IN CORSO</span>
+                        <span class="rm-percent">30%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-critique')">
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph ph-mask-happy"></i></div>
+                    <h3 class="rm-title">Critique Ecosystem</h3>
+                    <p class="rm-desc">Beta Reader AI e feedback oggettivo sulle creatività.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-analytics')">
+                    <div class="rm-icon" style="color: #10b981;"><i class="ph ph-chart-bar"></i></div>
+                    <h3 class="rm-title">Live Analytics V10</h3>
+                    <p class="rm-desc">Grafici SVG per performance e hype score in tempo reale.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #10b981;">COMPLETATO</span>
+                        <span class="rm-percent">100%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-loop')">
+                    <div class="rm-icon" style="color: #fff;"><i class="ph ph-calendar-blank"></i></div>
+                    <h3 class="rm-title">Social Loop</h3>
+                    <p class="rm-desc">Widget interattivi cross-platform per Instagram e TikTok.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #888;">PIANIFICATO</span>
+                        <span class="rm-percent">0%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PHASE 03 -->
+        <section class="phase-block">
+            <div class="phase-label" style="color: #a855f7;">Phase 03 — Gemini Core Expansion</div>
+            <div class="rm-grid">
+                <div class="rm-item" onclick="openModal('modal-gem')">
+                    <div class="rm-icon" style="color: #3b82f6;"><i class="ph ph-circle-notch spin"></i></div>
+                    <h3 class="rm-title">Gemini Core</h3>
+                    <p class="rm-desc">Orchestrazione cognitiva multi-agente e Chief Editor AI.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #3b82f6;">REVISIONE</span>
+                        <span class="rm-percent">0%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-logic')">
+                    <div class="rm-icon" style="color: #a855f7;"><i class="ph ph-circle-notch spin"></i></div>
+                    <h3 class="rm-title">Logic Flows</h3>
+                    <p class="rm-desc">Diagrammi a nodi dell'automazione studio intelligente.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #a855f7;">FUTURO</span>
+                        <span class="rm-percent">0%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-nexus')">
+                    <div class="rm-icon" style="color: #a855f7;"><i class="ph ph-circle-notch spin"></i></div>
+                    <h3 class="rm-title">The Nexus</h3>
+                    <p class="rm-desc">Distribuzione multi-piattaforma istantanea omnicanale.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #a855f7;">FUTURO</span>
+                        <span class="rm-percent">0%</span>
+                    </div>
+                </div>
+                <div class="rm-item" onclick="openModal('modal-critical')">
+                    <div class="rm-icon" style="color: #ef4444;"><i class="ph-fill ph-circle pulse"></i></div>
+                    <h3 class="rm-title">Note Critiche</h3>
+                    <p class="rm-desc">Rilevamento anomalie e bug persistenti nel Video Engine.</p>
+                    <div class="rm-footer">
+                        <span class="rm-status" style="color: #ef4444;">CRITICITÀ</span>
+                        <span class="rm-percent">ALERT</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- MODAL CARDS -->
+    <div class="rm-modal-card" id="modal-arc">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #10b981;"><i class="ph ph-check-circle"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Arch. Refactor</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Modernizzazione dell'architettura per una Content Factory più fluida e sicura.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> Core Module Standardization</div>
+            <div class="task-row"><div class="task-check done"></div> Viewport Security Engine</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-auth">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #10b981;"><i class="ph ph-fingerprint"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Gold Auth Security</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Accesso protetto con estetica Gold e persistenza intelligente della sessione.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> 6-Digit Alpha-PIN</div>
+            <div class="task-row"><div class="task-check done"></div> Remember Me Logic</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-agenti">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #10b981;"><i class="ph ph-brain"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Sistema Agenti V9</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Gestione avanzata di agenti IA multi-thread con memoria persistente.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> Neural Identity Core</div>
+            <div class="task-row"><div class="task-check done"></div> Multi-thread Orchestration</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-media">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #10b981;"><i class="ph ph-monitor-play"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Media Factory Suite</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Strumenti di produzione e visualizzazione universale per ogni formato.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> AI Universal Mixer</div>
+            <div class="task-row"><div class="task-check done"></div> Cinematic Player V2</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-fire">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #0ea5e9;"><i class="ph ph-arrows-clockwise spin"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Firebase Sync</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Sincronizzazione cloud realtime di ogni configurazione e stato layout.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> Realtime DB Connect</div>
+            <div class="task-row"><div class="task-check"></div> User Preferences Sync</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-critique">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #10b981;"><i class="ph ph-mask-happy"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Critique Ecosystem</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Sistema di revisione automatica con feedback oggettivo basato su IA.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> Objective Feedback Gen</div>
+            <div class="task-row"><div class="task-check done"></div> Quality Score Engine</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-analytics">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #10b981;"><i class="ph ph-chart-bar"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Live Analytics V10</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Monitoraggio in tempo reale di tutte le metriche cross-platform.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> Hype Score Tracking</div>
+            <div class="task-row"><div class="task-check done"></div> Interactive SVG Charts</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-gem">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #3b82f6;"><i class="ph ph-circle-notch spin"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Gemini Core</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">L'intelligenza centrale che orchestra ogni modulo della Factory.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check"></div> AI Brain Integration</div>
+            <div class="task-row"><div class="task-check"></div> Creative Engine V12</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-logic">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #a855f7;"><i class="ph ph-circle-notch spin"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Logic Flows</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Automazione intelligente tramite flussi a nodi visivi.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check"></div> Node Editor Foundation</div>
+            <div class="task-row"><div class="task-check"></div> Trigger System</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-nexus">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #a855f7;"><i class="ph ph-circle-notch spin"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">The Nexus</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Il punto di incontro per la distribuzione omnicanale istantanea.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check"></div> Cross-Platform Hub</div>
+            <div class="task-row"><div class="task-check"></div> Instant Sync API</div>
+        </div>
+    </div>
+
+    <div class="rm-modal-card" id="modal-critical">
+        <div class="modal-close" onclick="closeModal()"><i class="ph ph-x"></i></div>
+        <div class="rm-icon" style="color: #ef4444;"><i class="ph ph-circle-fill pulse"></i></div>
+        <h2 style="color: #fff; margin:0 0 15px 0; font-weight: 700;">Note Critiche</h2>
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.6;">Monitoraggio di anomalie e bug ad alta priorità.</p>
+        <div class="modal-task-list">
+            <div class="task-row"><div class="task-check done"></div> Video Engine Memory Leak</div>
+            <div class="task-row"><div class="task-check"></div> Cross-Browser Glitch Fix</div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            document.getElementById('modalOverlay').classList.add('active');
+            const m = document.getElementById(id);
+            if(m) m.classList.add('active');
+        }
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.querySelectorAll('.rm-modal-card').forEach(m => m.classList.remove('active'));
+        }
+    </script>
+</body>
+</html>

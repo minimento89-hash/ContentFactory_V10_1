@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V10.1 — Accesso Autorizzato</title>
+    
+    <!-- Icons & Fonts -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="../css/soft-corporate.css?v=777">
+    
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+
+        /* Ambient Light - Softened */
+        .ambient-light {
+            position: absolute;
+            width: 80vw;
+            height: 80vw;
+            background: radial-gradient(circle, rgba(184, 212, 168, 0.2) 0%, transparent 70%);
+            top: -20%;
+            left: -10%;
+            pointer-events: none;
+            animation: pulse-slow 10s infinite alternate;
+        }
+
+        @keyframes pulse-slow {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.6; transform: scale(1.1); }
+        }
+
+        .auth-container {
+            width: 380px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-logo {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .auth-header h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 2.4rem;
+            margin-bottom: 8px;
+        }
+
+        .auth-header p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 40px;
+        }
+
+        /* PIN Input */
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .pin-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid var(--glass-border);
+            background: var(--bg);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .pin-dot.active {
+            background: #ffd700;
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            transform: scale(1.2);
+        }
+
+        .pin-dot.error {
+            background: #ef4444;
+            border-color: #ef4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Keypad */
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .key {
+            height: 64px;
+            background: var(--bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .key:hover {
+            background: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .key:active { transform: scale(0.95); }
+
+        .key.special {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        /* Status Message */
+        #status-msg {
+            margin-top: 24px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            height: 20px;
+        }
+
+        .msg-error { color: #ef4444; }
+        .msg-success { color: var(--accent); }
+    </style>
+</head>
+<body class="dark-factory">
+
+    <!-- Background Orbs: 20 Micro Orbs system (Same as Hub) -->
+    <div class="background-orbs-container">
+        <!-- Pink/Purple Orbs -->
+        <div class="orb" style="width:120px;height:120px;top:5%;left:15%;background:radial-gradient(circle,rgba(255,20,147,0.4) 0%,transparent 70%);animation:float-slow 18s infinite ease-in-out;"></div>
+        <div class="orb" style="width:70px;height:70px;top:45%;left:5%;background:radial-gradient(circle,rgba(255,105,180,0.5) 0%,transparent 70%);animation:float-medium 22s infinite linear;"></div>
+        <div class="orb" style="width:90px;height:90px;bottom:10%;right:30%;background:radial-gradient(circle,rgba(219,112,147,0.4) 0%,transparent 70%);animation:float-slow 25s infinite alternate;"></div>
+        
+        <!-- Green/Teal Orbs -->
+        <div class="orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);animation:float-slow 20s infinite linear reverse;"></div>
+        <div class="orb" style="width:80px;height:80px;bottom:40%;left:8%;background:radial-gradient(circle,rgba(50,205,50,0.4) 0%,transparent 70%);animation:float-medium 15s infinite alternate ease-in-out;"></div>
+
+        <!-- Yellow/Gold Orbs -->
+        <div class="orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);animation:float-medium 28s infinite alternate-reverse;"></div>
+        <div class="orb" style="width:60px;height:60px;bottom:20%;left:35%;background:radial-gradient(circle,rgba(255,223,0,0.5) 0%,transparent 70%);animation:float-slow 15s infinite ease-in-out;"></div>
+
+        <!-- Blue/Azure Orbs -->
+        <div class="orb" style="width:100px;height:100px;top:50%;right:50%;background:radial-gradient(circle,rgba(0,191,255,0.4) 0%,transparent 70%);animation:float-slow 22s infinite reverse;"></div>
+        <div class="orb" style="width:140px;height:140px;bottom:5%;right:5%;background:radial-gradient(circle,rgba(30,144,255,0.35) 0%,transparent 70%);animation:float-medium 25s infinite linear;"></div>
+
+        <!-- Extra Micro Highlights -->
+        <div class="orb" style="width:40px;height:40px;top:25%;left:40%;background:radial-gradient(circle,rgba(255,255,255,0.4) 0%,transparent 70%);animation:float-medium 10s infinite;"></div>
+    </div>
+
+    <div class="auth-container frosted-glass-dark" style="width: 380px; padding: 40px; border-radius: 16px;">
+        <div class="auth-logo" style="color: #ffd700; margin-bottom: 10px; font-size: 2.5rem;"><i class="ph-fill ph-fingerprint"></i></div>
+
+        <div class="auth-header">
+            <h1 style="background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.4rem;">Accedi</h1>
+            <p style="color: #666; margin-bottom: 25px;">Inserisci il PIN livello 1</p>
+        </div>
+
+        <div class="pin-display" id="pin-display">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+        </div>
+
+        <!-- REMEMBER ME -->
+        <div style="margin: 20px 0 30px 0; display: flex; align-items: center; justify-content: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <input type="checkbox" id="remember" style="width: 20px; height: 20px; accent-color: #ffd700; cursor: pointer;">
+            <label for="remember" style="font-size: 0.9rem; color: #888; cursor: pointer; user-select: none; font-weight: 500;">Ricordami su questo browser</label>
+        </div>
+
+        <div class="keypad">
+            <div class="key" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="inputDigit('1')">1</div>
+            <div class="key" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="inputDigit('2')">2</div>
+            <div class="key" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="inputDigit('3')">3</div>
+            <div class="key" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="inputDigit('4')">4</div>
+            <div class="key" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="inputDigit('5')">5</div>
+            <div class="key" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="inputDigit('6')">6</div>
+            <div class="key" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="inputDigit('7')">7</div>
+            <div class="key" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="inputDigit('8')">8</div>
+            <div class="key" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="inputDigit('9')">9</div>
+            <div class="key special"><i class="ph ph-mask-happy"></i></div>
+            <div class="key" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="inputDigit('0')">0</div>
+            <div class="key special" onclick="deleteDigit()"><i class="ph ph-backspace"></i></div>
+        </div>
+
+        <div id="status-msg"></div>
+    </div>
+
+    <script>
+        let currentPin = "";
+        const targetPin = "000000";
+        const dots = document.querySelectorAll('.pin-dot');
+        const statusMsg = document.getElementById('status-msg');
+
+        function updateDots() {
+            dots.forEach((dot, index) => {
+                if (index < currentPin.length) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                    dot.classList.remove('error');
+                }
+            });
+        }
+
+        function inputDigit(digit) {
+            if (currentPin.length < 6) {
+                currentPin += digit;
+                updateDots();
+                
+                if (currentPin.length === 6) {
+                    validatePin();
+                }
+            }
+        }
+
+        function deleteDigit() {
+            if (currentPin.length > 0) {
+                currentPin = currentPin.slice(0, -1);
+                updateDots();
+                statusMsg.textContent = "";
+            }
+        }
+
+        function validatePin() {
+            if (currentPin === targetPin) {
+                const remember = document.getElementById('remember').checked;
+                const storage = remember ? localStorage : sessionStorage;
+                
+                storage.setItem('v10_auth', 'true');
+                statusMsg.className = "msg-success";
+                statusMsg.textContent = "Accesso Confermato";
+                
+                // Animazione successo
+                dots.forEach(dot => dot.style.boxShadow = "0 0 20px var(--accent)");
+                
+                setTimeout(() => {
+                    // Dopo il login, si va all'HUB centrale
+                    window.location.href = "../index.html";
+                }, 1000);
+            } else {
+                statusMsg.className = "msg-error";
+                statusMsg.textContent = "PIN non valido";
+                dots.forEach(dot => dot.classList.add('error'));
+                
+                // Shake effect
+                document.querySelector('.auth-container').style.animation = "none";
+                setTimeout(() => {
+                    document.querySelector('.auth-container').style.animation = "shake 0.4s";
+                }, 10);
+
+                setTimeout(() => {
+                    currentPin = "";
+                    updateDots();
+                    dots.forEach(dot => dot.classList.remove('error'));
+                }, 1000);
+            }
+        }
+
+        // Supporto tastiera
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') inputDigit(e.key);
+            if (e.key === 'Backspace') deleteDigit();
+        });
+    </script>
+
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+
+</body>
+</html>

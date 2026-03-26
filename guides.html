@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V10.1 — Guide & Tutorial</title>
+    
+    <!-- Icons & Fonts -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="css/design-system.css">
+    
+    <style>
+        .guides-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            padding: 20px 40px 100px 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - var(--header-height));
+        }
+
+        .guide-item {
+            background: var(--glass-heavy);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .guide-item:hover { border-color: var(--accent); background: rgba(255,255,255,0.05); transform: translateX(10px); }
+
+        .guide-num {
+            font-family: 'Instrument Serif', serif;
+            font-size: 2rem;
+            color: var(--accent);
+            opacity: 0.3;
+            min-width: 40px;
+        }
+
+        .guide-content h3 { font-size: 1.2rem; margin-bottom: 5px; font-family: 'DM Sans', sans-serif; }
+        .guide-content p { color: var(--text-dim); font-size: 0.85rem; opacity: 0.7; }
+
+        .page-header-info {
+            padding: 20px 40px 0 40px;
+        }
+        .page-header-info p { color: var(--text-dim); font-size: 0.9rem; opacity: 0.8; }
+    </style>
+</head>
+<body class="theme-flux">
+
+    <div class="studio-layout">
+        
+        <!-- SIDEBAR / COMMAND RIBBON -->
+        <aside class="command-ribbon">
+            <a href="studio/index.html" class="ribbon-item"><i class="ph ph-squares-four"></i></a>
+            <a href="agent-lounge.html" class="ribbon-item"><i class="ph ph-users-four"></i></a>
+            <a href="logic-flows.html" class="ribbon-item"><i class="ph ph-graph"></i></a>
+            <div class="ribbon-spacer"></div>
+            <div class="ribbon-item active"><i class="ph ph-book-open"></i></div>
+            <div class="ribbon-item"><i class="ph ph-gear"></i></div>
+        </aside>
+
+        <!-- MAIN AREA -->
+        <main class="main-stage">
+            <header class="app-header">
+                <div class="header-content">
+                    <h1>Guide Rapide & Tips</h1>
+                    <div style="display: flex; gap: 20px; align-items:center;">
+                        <a href="index.html" class="back-nav" style="color: var(--text-dim); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="ph ph-house-line"></i> Hub
+                        </a>
+                        <div class="user-pill">
+                            <i class="ph-fill ph-user-circle"></i>
+                            <span>Il Capo</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-header-info">
+                <p>Impara a padroneggiare l'ecosistema Vision V10.1 giorno dopo giorno.</p>
+            </div>
+
+            <div class="guides-grid" id="guides-grid">
+                <div class="guide-item" id="guide-1">
+                    <div class="guide-num">01</div>
+                    <div class="guide-content">
+                        <h3>Configurazione Iniziale</h3>
+                        <p>Come collegare le tue chiavi API e impostare il database Firebase.</p>
+                    </div>
+                    <i class="ph ph-caret-right" style="margin-left: auto; color: var(--text-dim)"></i>
+                </div>
+
+                <div class="guide-item" id="guide-2">
+                    <div class="guide-num">02</div>
+                    <div class="guide-content">
+                        <h3>Personalizzazione Layout</h3>
+                        <p>Trucchi per organizzare le tue dashboard con il drag-and-drop globale.</p>
+                    </div>
+                    <i class="ph ph-caret-right" style="margin-left: auto; color: var(--text-dim)"></i>
+                </div>
+
+                <div class="guide-item" id="guide-3">
+                    <div class="guide-num">03</div>
+                    <div class="guide-content">
+                        <h3>Lavorare con gli Agenti</h3>
+                        <p>Guida al brainstorming multithread e alla delega creativa.</p>
+                    </div>
+                    <i class="ph ph-caret-right" style="margin-left: auto; color: var(--text-dim)"></i>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Layout Engine Core -->
+    <script src="js/core/layout-engine.js"></script>
+
+</body>
+</html>
