@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V10.1 — Il Capo · Profilo</title>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/soft-corporate.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a0a0f;color:#e8e8f0;font-family:'DM Sans',sans-serif;min-height:100vh;overflow:hidden;}
+.orbs-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.13;animation:floatOrb linear infinite;}
+@keyframes floatOrb{0%{transform:translate(0,0) scale(1);}33%{transform:translate(40px,-60px) scale(1.1);}66%{transform:translate(-30px,40px) scale(0.9);}100%{transform:translate(0,0) scale(1);}}
+
+#app{position:relative;z-index:1;display:grid;grid-template-columns:280px 1fr;height:100vh;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{background:rgba(0,0,0,0.5);border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-top{padding:16px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.profile-mini{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:8px;background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);border-radius:14px;cursor:pointer;transition:all 0.2s;text-decoration:none;color:inherit;}
+.profile-mini:hover{background:rgba(255,215,0,0.1);}
+.pm-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#ffd700,#f59e0b);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;color:#000;flex-shrink:0;}
+.pm-name{font-size:0.85rem;font-weight:700;color:#fff;}
+.pm-role{font-size:0.58rem;color:#ffd700;text-transform:uppercase;letter-spacing:1px;}
+.pm-badge{margin-left:auto;background:rgba(255,215,0,0.15);color:#ffd700;font-size:0.52rem;font-weight:800;padding:2px 8px;border-radius:10px;}
+.search-wrap{position:relative;margin-bottom:8px;}
+.search-input{width:100%;padding:8px 10px 8px 34px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#ddd;font-size:0.76rem;outline:none;font-family:'DM Sans',sans-serif;}
+.search-input::placeholder{color:#555;}
+.search-ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#555;font-size:0.95rem;}
+.chat-lbl{font-size:0.55rem;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:2px;padding:0 4px;margin:6px 0 4px;}
+.contacts{flex:1;overflow-y:auto;padding:0 4px;}
+.contact{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;cursor:pointer;transition:all 0.15s;margin-bottom:2px;}
+.contact:hover{background:rgba(255,255,255,0.05);}
+.contact.active{background:rgba(255,255,255,0.08);}
+.c-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0;position:relative;}
+.c-dot{position:absolute;bottom:1px;right:1px;width:9px;height:9px;border-radius:50%;border:2px solid #0a0a0f;}
+.d-on{background:#4ade80;} .d-idle{background:#fbbf24;} .d-off{background:#6b7280;}
+.c-info{flex:1;min-width:0;}
+.c-name{font-size:0.8rem;font-weight:700;}
+.c-prev{font-size:0.62rem;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.c-time{font-size:0.56rem;color:#555;}
+.sidebar-bottom{padding:10px 12px;border-top:1px solid rgba(255,255,255,0.06);}
+.btn-hub{display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border-radius:14px;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(255,255,255,0.03);cursor:pointer;text-decoration:none;transition:all 0.2s;}
+.btn-hub:hover{background:rgba(255,255,255,0.09);color:#fff;border-color:rgba(255,255,255,0.25);}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;overflow:hidden;background:rgba(0,0,0,0.2);}
+#view-profile{flex:1;overflow-y:auto;padding:28px 36px;display:none;}
+#view-profile.vis{display:block;}
+#view-chat{flex:1;display:none;flex-direction:column;overflow:hidden;}
+#view-chat.vis{display:flex;}
+
+/* Chat header */
+.chat-hdr{padding:14px 22px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);}
+.ch-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.ch-name{font-size:0.88rem;font-weight:700;}
+.ch-stat{font-size:0.6rem;color:#aaa;margin-top:1px;}
+.hdr-btns{margin-left:auto;display:flex;gap:8px;}
+.hdr-btn{padding:6px 12px;border-radius:16px;font-size:0.6rem;font-weight:700;text-transform:uppercase;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#aaa;cursor:pointer;transition:all 0.2s;}
+.hdr-btn:hover{background:rgba(255,255,255,0.07);color:#fff;}
+
+/* Messages */
+.msgs-area{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:6px;}
+.msg{display:flex;gap:8px;align-items:flex-end;max-width:72%;}
+.msg.u{align-self:flex-end;flex-direction:row-reverse;}
+.msg.a{align-self:flex-start;}
+.m-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;}
+.bubble{padding:9px 13px;border-radius:16px;font-size:0.78rem;line-height:1.55;word-break:break-word;}
+.u .bubble{background:linear-gradient(135deg,#ffd700,#f59e0b);color:#000;border-bottom-right-radius:3px;}
+.a .bubble{background:rgba(255,255,255,0.08);color:#e8e8f0;border:1px solid rgba(255,255,255,0.07);border-bottom-left-radius:3px;}
+.m-time{font-size:0.56rem;color:#555;margin-top:2px;}
+.u .m-time{text-align:right;} .a .m-time{text-align:left;}
+.typing{display:none;align-self:flex-start;align-items:center;gap:6px;padding:9px 13px;border-radius:16px;border-bottom-left-radius:3px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);margin:0;}
+.typing.vis{display:flex;}
+.td{width:5px;height:5px;border-radius:50%;background:#888;animation:tdB 1.2s ease-in-out infinite;}
+.td:nth-child(2){animation-delay:0.2s;} .td:nth-child(3){animation-delay:0.4s;}
+@keyframes tdB{0%,80%,100%{transform:translateY(0);opacity:0.4;}40%{transform:translateY(-5px);opacity:1;}}
+.tlbl{font-size:0.62rem;color:#666;margin-left:4px;}
+.date-sep{text-align:center;color:#444;font-size:0.58rem;font-family:'Fira Code',monospace;margin:6px 0;}
+
+/* Input */
+.input-bar{padding:14px 18px;border-top:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.3);display:flex;align-items:flex-end;gap:8px;}
+.msg-inp{flex:1;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;color:#fff;font-size:0.8rem;outline:none;resize:none;font-family:'DM Sans',sans-serif;max-height:100px;line-height:1.4;}
+.msg-inp::placeholder{color:#555;}
+.msg-inp:focus{border-color:rgba(255,215,0,0.3);}
+.send-btn{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#ffd700,#f59e0b);color:#000;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.send-btn:hover{transform:scale(1.08);box-shadow:0 4px 16px rgba(255,215,0,0.4);}
+
+/* PROFILE VIEW */
+.hero-card{background:linear-gradient(135deg,rgba(255,215,0,0.07),rgba(251,146,60,0.04));border:1px solid rgba(255,215,0,0.2);border-radius:22px;padding:28px;margin-bottom:20px;display:flex;align-items:center;gap:24px;}
+.big-av{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,#ffd700,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#000;box-shadow:0 0 32px rgba(255,215,0,0.25);flex-shrink:0;animation:avFloat 4s ease-in-out infinite;}
+@keyframes avFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+.pi h2{font-family:'Instrument Serif',serif;font-size:1.9rem;color:#fff;margin-bottom:4px;}
+.role-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.25);color:#ffd700;font-size:0.62rem;font-weight:800;text-transform:uppercase;padding:3px 10px;border-radius:18px;margin-bottom:8px;letter-spacing:1px;}
+.pi p{font-size:0.72rem;color:#999;display:flex;align-items:center;gap:6px;}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+.sc{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:14px 16px;}
+.sc-lbl{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#aaa;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.sc-val{font-family:'Instrument Serif',serif;font-size:1.7rem;color:#fff;}
+
+.sec-lbl{font-size:0.6rem;font-weight:800;color:#ffd700;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.roster{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;}
+.ar{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:13px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:all 0.2s;}
+.ar:hover{background:rgba(255,255,255,0.08);transform:translateY(-1px);}
+.ar-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;}
+.ar-nm{font-size:0.8rem;font-weight:700;}
+.ar-rl{font-size:0.58rem;color:#888;}
+.ar-st{margin-left:auto;font-size:0.55rem;padding:2px 8px;border-radius:10px;font-weight:800;text-transform:uppercase;}
+
+::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
+</style>
+</head>
+<body>
+<script>(function(){var ok=localStorage.getItem('v10_auth')||sessionStorage.getItem('v10_auth');if(ok!=='true')window.location.href='auth/login.html';})();</script>
+<div class="orbs-bg" id="orbs-bg"></div>
+
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <div class="profile-mini" onclick="showProfile()">
+        <div class="pm-avatar">T</div>
+        <div><div class="pm-name">Toni</div><div class="pm-role">Il Capo — Owner</div></div>
+        <span class="pm-badge">OWNER</span>
+      </div>
+      <div class="search-wrap">
+        <i class="ph ph-magnifying-glass search-ico"></i>
+        <input class="search-input" placeholder="Cerca agente..." oninput="filterC(this.value)">
+      </div>
+      <div class="chat-lbl">Messaggi</div>
+    </div>
+    <div class="contacts" id="contacts"></div>
+    <div class="sidebar-bottom">
+      <a href="index.html" class="btn-hub"><i class="ph ph-arrow-left"></i> Torna all'Hub</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- PROFILE -->
+    <div id="view-profile" class="vis">
+      <div class="hero-card">
+        <div class="big-av">T</div>
+        <div class="pi">
+          <h2>Toni</h2>
+          <div class="role-tag"><i class="ph-fill ph-crown"></i> Il Capo — Content Factory Owner</div>
+          <p><i class="ph ph-envelope"></i> minimento89@gmail.com</p>
+          <p style="margin-top:4px;"><i class="ph ph-rocket-launch"></i> Content Factory V10.1 — Sistema Attivo</p>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="sc"><div class="sc-lbl" style="color:#4ade80;"><i class="ph-fill ph-robot"></i>Agenti</div><div class="sc-val" style="color:#4ade80;">5</div></div>
+        <div class="sc"><div class="sc-lbl" style="color:#ec4899;"><i class="ph-fill ph-sparkle"></i>Creazioni</div><div class="sc-val" style="color:#ec4899;" id="st-cr">0</div></div>
+        <div class="sc"><div class="sc-lbl" style="color:#ffd700;"><i class="ph-fill ph-chat-circle"></i>Messaggi</div><div class="sc-val" style="color:#ffd700;" id="st-ms">0</div></div>
+        <div class="sc"><div class="sc-lbl" style="color:#a78bfa;"><i class="ph-fill ph-magnifying-glass"></i>Ricerche</div><div class="sc-val" style="color:#a78bfa;" id="st-sr">0</div></div>
+      </div>
+      <div class="sec-lbl"><i class="ph-fill ph-robot"></i> Il Tuo Team</div>
+      <div class="roster" id="roster"></div>
+    </div>
+
+    <!-- CHAT -->
+    <div id="view-chat">
+      <div class="chat-hdr" id="chat-hdr">
+        <div class="ch-av" id="ch-av"></div>
+        <div><div class="ch-name" id="ch-nm">—</div><div class="ch-stat" id="ch-st">—</div></div>
+        <div class="hdr-btns">
+          <button class="hdr-btn" onclick="clearChat()"><i class="ph ph-trash"></i> Pulisci</button>
+          <button class="hdr-btn" onclick="showProfile()"><i class="ph ph-arrow-left"></i> Profilo</button>
+        </div>
+      </div>
+      <div class="msgs-area" id="msgs-area"><div class="date-sep">Oggi</div></div>
+      <div class="typing vis" id="typing" style="display:none;margin:0 22px 10px;">
+        <div class="td"></div><div class="td"></div><div class="td"></div>
+        <span class="tlbl" id="tlbl">sta scrivendo...</span>
+      </div>
+      <div class="input-bar">
+        <textarea class="msg-inp" id="msg-inp" rows="1" placeholder="Scrivi a questo agente..." onkeydown="hKey(event)" oninput="aResize(this)"></textarea>
+        <button class="send-btn" onclick="sendMsg()"><i class="ph-fill ph-paper-plane-tilt"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/core/agent-core.js"></script>
+<script src="js/core/gemini-engine.js"></script>
+<script>
+/* Orbs */
+(function(){const bg=document.getElementById('orbs-bg');const p=[['#ffd700','#f59e0b'],['#ec4899','#8b5cf6'],['#10b981','#06b6d4'],['#a78bfa','#ffd700'],['#06b6d4','#ec4899']];for(let i=0;i<18;i++){const o=document.createElement('div');o.className='orb';const s=200+Math.random()*400,c=p[i%p.length];o.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*110-5}%;top:${Math.random()*110-5}%;background:radial-gradient(circle,${c[0]},${c[1]});animation-duration:${15+Math.random()*30}s;animation-delay:${-Math.random()*20}s;`;bg.appendChild(o);}})();
+
+const AGENTS=[
+  {id:'broadcast',name:'📡 Tutti',role:'Broadcast',emoji:'📡',color:'#ffd700',bg:'rgba(255,215,0,0.1)',status:'online',stLabel:'Broadcast — tutti i canali',persona:'',greeting:'Ciao Toni! Questo canale trasmette a tutti gli agenti. Cosa vuoi comunicare?'},
+  {id:'olivia',name:'Olivia',role:'Creative Architect',emoji:'🌸',color:'#ec4899',bg:'rgba(236,72,153,0.1)',status:'online',stLabel:'Online — studio attivo',persona:'Sei Olivia, agente creativa di Content Factory. UX Design, App, Siti. Entusiasta e creativa. Rispondi in italiano.',greeting:'Ciao Toni! ✦ Sono qui, pronta a creare. Cosa hai in mente oggi?'},
+  {id:'cipher',name:'CIPHER',role:'Security',emoji:'🛡️',color:'#10b981',bg:'rgba(16,185,129,0.1)',status:'online',stLabel:'Monitoring — stack attivo',persona:'Sei CIPHER, agente sicurezza. Preciso e tecnico. Rispondi in italiano.',greeting:'> CIPHER online. Sistema di sicurezza operativo. Come posso assisterti, Toni?'},
+  {id:'nexus',name:'Nexus',role:'Orchestratore CEO',emoji:'🔮',color:'#8b5cf6',bg:'rgba(139,92,246,0.1)',status:'idle',stLabel:'Standby — pronto',persona:'Sei Nexus, orchestratore CEO. Coordini agenti, decisioni strategiche. Autorevole. Rispondi in italiano.',greeting:'Toni. Nexus in linea. Cosa vuoi orchestrare?'},
+  {id:'disperazione',name:'Disperazione',role:'Web Researcher',emoji:'🔍',color:'#f97316',bg:'rgba(249,115,22,0.1)',status:'online',stLabel:'Online — cercando disperatamente',persona:'Sei Disperazione, ricercatore web. Cerchi info, analizzi siti, trovi risorse gratuite, API, temi. Ansioso ma efficace. Rispondi in italiano.',greeting:'Toni! Sono Disperazione. Dammi un URL o una query e trovo tutto — disperatamente!'}
+];
+
+let activeId=null;
+const SK='cf_chat_messages';
+function loadMsgs(id){const a=JSON.parse(localStorage.getItem(SK)||'{}');return a[id]||[];}
+function saveMsgStore(id,msg){const a=JSON.parse(localStorage.getItem(SK)||'{}');if(!a[id])a[id]=[];a[id].push(msg);localStorage.setItem(SK,JSON.stringify(a));}
+
+function buildContacts(){
+  const el=document.getElementById('contacts');el.innerHTML='';
+  AGENTS.forEach(ag=>{
+    const msgs=loadMsgs(ag.id);const last=msgs[msgs.length-1];
+    const dc=ag.status==='online'?'d-on':ag.status==='idle'?'d-idle':'d-off';
+    const d=document.createElement('div');
+    d.className='contact'+(ag.id===activeId?' active':'');
+    d.id='ct-'+ag.id;d.onclick=()=>openChat(ag.id);
+    d.innerHTML=`<div class="c-av" style="background:${ag.bg};">${ag.emoji}<div class="c-dot ${dc}"></div></div><div class="c-info"><div class="c-name" style="color:${ag.color};">${ag.name}</div><div class="c-prev">${last?(last.from==='user'?'Tu: ':'')+last.text.substring(0,28)+'...' :ag.role}</div></div><div class="c-time">${last?fmtT(last.time):''}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function buildRoster(){
+  document.getElementById('roster').innerHTML=AGENTS.filter(a=>a.id!=='broadcast').map(ag=>`
+    <div class="ar" onclick="openChat('${ag.id}')">
+      <div class="ar-ico" style="background:${ag.bg};">${ag.emoji}</div>
+      <div><div class="ar-nm" style="color:${ag.color};">${ag.name}</div><div class="ar-rl">${ag.role}</div></div>
+      <div class="ar-st" style="background:${ag.status==='online'?'rgba(74,222,128,0.1)':'rgba(107,114,128,0.1)'};color:${ag.status==='online'?'#4ade80':'#9ca3af'};">${ag.status==='online'?'Online':'Idle'}</div>
+    </div>`).join('');
+}
+
+function openChat(id){
+  activeId=id;const ag=AGENTS.find(a=>a.id===id);if(!ag)return;
+  document.getElementById('view-profile').classList.remove('vis');
+  document.getElementById('view-chat').classList.add('vis');
+  document.getElementById('ch-av').innerHTML=`<div style="width:38px;height:38px;border-radius:50%;background:${ag.bg};display:flex;align-items:center;justify-content:center;font-size:1rem;">${ag.emoji}</div>`;
+  document.getElementById('ch-nm').textContent=ag.name;document.getElementById('ch-nm').style.color=ag.color;
+  document.getElementById('ch-st').textContent=ag.stLabel;
+  document.querySelectorAll('.contact').forEach(e=>e.classList.remove('active'));
+  const ci=document.getElementById('ct-'+id);if(ci)ci.classList.add('active');
+  renderMsgs(id);
+  const msgs=loadMsgs(id);
+  if(msgs.length===0){const g={id:Date.now(),from:'agent',text:ag.greeting,time:new Date().toISOString()};saveMsgStore(id,g);renderMsgs(id);}
+  document.getElementById('msg-inp').focus();
+}
+
+function renderMsgs(id){
+  const ag=AGENTS.find(a=>a.id===id);const msgs=loadMsgs(id);
+  const area=document.getElementById('msgs-area');area.innerHTML='<div class="date-sep">Oggi</div>';
+  msgs.forEach(msg=>{
+    const el=document.createElement('div');
+    el.className='msg '+(msg.from==='user'?'u':'a');
+    if(msg.from==='user'){
+      el.innerHTML=`<div class="m-av" style="background:linear-gradient(135deg,#ffd700,#f59e0b);color:#000;font-weight:800;">T</div><div><div class="bubble">${esc(msg.text)}</div><div class="m-time">${fmtT(msg.time)}</div></div>`;
+    }else{
+      el.innerHTML=`<div class="m-av" style="background:${ag.bg};">${ag.emoji}</div><div><div class="bubble">${esc(msg.text)}</div><div class="m-time">${fmtT(msg.time)}</div></div>`;
+    }
+    area.appendChild(el);
+  });
+  area.scrollTop=area.scrollHeight;
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('msg-inp');const text=inp.value.trim();if(!text||!activeId)return;
+  inp.value='';inp.style.height='auto';
+  const um={id:Date.now(),from:'user',text,time:new Date().toISOString()};
+  if(activeId==='broadcast'){AGENTS.filter(a=>a.id!=='broadcast').forEach(ag=>saveMsgStore(ag.id,um));saveMsgStore('broadcast',um);}
+  else saveMsgStore(activeId,um);
+  renderMsgs(activeId);updateStats();showTyping(activeId);
+  await sl(700+Math.random()*1100);hideTyping();
+  if(activeId==='broadcast'){
+    const r={id:Date.now()+1,from:'agent',text:'📡 Messaggio ricevuto da tutti gli agenti: Olivia, CIPHER, Nexus e Disperazione sono stati notificati.',time:new Date().toISOString()};
+    saveMsgStore('broadcast',r);renderMsgs('broadcast');
+  } else {
+    const ag=AGENTS.find(a=>a.id===activeId);let reply='';
+    try{if(window.Gemini&&!window.Gemini.offlineMode)reply=await window.Gemini.ask(text,ag.persona);else reply=simReply(ag,text);}
+    catch(e){reply=simReply(ag,text);}
+
+    // If asking Disperazione to research, also add to queue
+    if(activeId==='disperazione'){
+      const q=JSON.parse(localStorage.getItem('disperazione_queue')||'[]');
+      q.push({id:'rq_'+Date.now(),from:'profilo',query:text,status:'pending',time:new Date().toISOString()});
+      localStorage.setItem('disperazione_queue',JSON.stringify(q));
+    }
+
+    const am={id:Date.now()+1,from:'agent',text:reply,time:new Date().toISOString()};
+    saveMsgStore(activeId,am);renderMsgs(activeId);
+  }
+  buildContacts();updateStats();
+}
+
+function simReply(ag,t){
+  const r={
+    olivia:['Ottima idea, Toni! ✦ Apro subito lo studio e ci lavoro. Vuoi che cominci adesso?','Capito! Ho già un concept in mente. Ti mostrerò qualcosa di bellissimo!','Interessante! Fammi sviluppare qualche variante e scegli quella che preferisci.'],
+    cipher:['> CIPHER: Ricevuto. Analisi in corso. Nessuna anomalia rilevata al momento.','> Compreso, Toni. Ho avviato una scansione preventiva — risultati a breve.','> CIPHER: Attenzione ricevuta. Monitoraggio attivo su tutti i parametri.'],
+    nexus:['Analisi in corso. La direttiva è registrata nel registro centrale. Coordinerò gli agenti necessari.','Ricevuto. Ho delegato le parti operative a Olivia e CIPHER. Resoconto entro fine sessione.','Compreso. Come orchestratore, darò priorità massima a questa direttiva.'],
+    disperazione:['Trovato! Ho cercato disperatamente e ho delle informazioni. Apri la mia pagina per vedere il report completo!','Sto cercando... sto cercando... ecco! Ho trovato fonti attendibili. Vuoi che prepari un report?','Capito! Mi butto subito su Dribbble, GitHub, StackOverflow — non lascio nessuna pietra inesplorata!']
+  };
+  const a=r[ag.id]||['Messaggio ricevuto. Sto elaborando.'];
+  return a[Math.floor(Math.random()*a.length)];
+}
+
+function showProfile(){
+  activeId=null;
+  document.getElementById('view-chat').classList.remove('vis');
+  document.getElementById('view-profile').classList.add('vis');
+  document.querySelectorAll('.contact').forEach(e=>e.classList.remove('active'));
+  updateStats();
+}
+
+function updateStats(){
+  document.getElementById('st-cr').textContent=JSON.parse(localStorage.getItem('olivia_creations')||'[]').length;
+  const all=JSON.parse(localStorage.getItem(SK)||'{}');let tot=0;
+  Object.values(all).forEach(arr=>{tot+=arr.filter(m=>m.from==='user').length;});
+  document.getElementById('st-ms').textContent=tot;
+  document.getElementById('st-sr').textContent=JSON.parse(localStorage.getItem('disperazione_queue')||'[]').length;
+}
+
+function showTyping(id){const ag=AGENTS.find(a=>a.id===id);if(!ag)return;const t=document.getElementById('typing');t.style.display='flex';document.getElementById('tlbl').textContent=ag.name+' sta scrivendo...';document.getElementById('msgs-area').scrollTop=999999;}
+function hideTyping(){document.getElementById('typing').style.display='none';}
+function clearChat(){if(!activeId||!confirm('Cancellare questa chat?'))return;const a=JSON.parse(localStorage.getItem(SK)||'{}');delete a[activeId];localStorage.setItem(SK,JSON.stringify(a));openChat(activeId);buildContacts();}
+function filterC(q){document.querySelectorAll('.contact').forEach(e=>{const n=(e.querySelector('.c-name')?.textContent||'').toLowerCase();e.style.display=n.includes(q.toLowerCase())?'':' none';});}
+function sl(ms){return new Promise(r=>setTimeout(r,ms));}
+function fmtT(iso){const d=new Date(iso);return d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function hKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function aResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+
+buildContacts();buildRoster();updateStats();showProfile();
+</script>
+</body>
+</html>

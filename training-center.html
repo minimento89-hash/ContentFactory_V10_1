@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Center — Content Factory V10.1</title>
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script src="js/core/agent-core.js"></script>
+    <script src="js/core/ui-engine.js"></script>
+    
+    <style>
+        :root {
+            --accent: #ffd700;
+            --bg: #050505;
+            --surface: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f0f0;
+            --text-dim: #666;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* 20-ORB BACKGROUND */
+        .orb-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background: #000; overflow: hidden;
+        }
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(80px); opacity: 0.12;
+            animation: orbFloat 25s infinite alternate ease-in-out;
+        }
+        @keyframes orbFloat { from { transform: translate(0,0) scale(1); } to { transform: translate(120px, 60px) scale(1.3); } }
+
+        .container {
+            max-width: 1200px; margin: 0 auto; padding: 60px 30px;
+            position: relative; z-index: 10;
+        }
+
+        .header { text-align: center; margin-bottom: 80px; }
+        .header h1 { font-family: 'Instrument Serif', serif; font-size: 4rem; line-height: 1; margin-bottom: 12px; }
+        .header p { font-family: 'Fira Code', monospace; font-size: 0.65rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; }
+
+        .btn-back {
+            position: fixed; top: 40px; left: 40px;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            padding: 12px 24px; border-radius: 50px; color: #fff; text-decoration: none;
+            font-size: 0.75rem; font-weight: 700; transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.3); transform: translateX(-3px); }
+
+        /* GRID */
+        .training-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 30px;
+        }
+
+        .course-card {
+            background: var(--surface); backdrop-filter: blur(40px);
+            border: 1px solid var(--border); border-radius: 32px;
+            padding: 40px; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative; overflow: hidden;
+        }
+        .course-card:hover { border-color: var(--accent); transform: translateY(-8px); }
+        
+        .tag {
+            font-size: 0.55rem; font-weight: 800; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 20px;
+            display: block; opacity: 0.8;
+        }
+        .course-card h3 { font-size: 1.6rem; margin-bottom: 15px; font-weight: 700; line-height: 1.2; }
+        .course-card p { font-size: 0.85rem; color: #aaa; line-height: 1.6; margin-bottom: 30px; }
+
+        .progress-container {
+            margin-top: auto;
+        }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.65rem; font-weight: 800; color: #666; margin-bottom: 8px; }
+        .progress-bar { height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 1s; }
+
+        .btn-start {
+            margin-top: 30px; width: 100%; padding: 14px; border-radius: 16px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
+            cursor: pointer; transition: 0.3s;
+        }
+        .btn-start:hover { background: #fff; color: #000; }
+
+        /* TIPS SECTION */
+        .tips-area {
+            margin-top: 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
+        }
+        .tip-card {
+            background: rgba(255, 215, 0, 0.03); border: 1px dashed rgba(255, 215, 0, 0.3);
+            border-radius: 24px; padding: 30px; display: flex; gap: 20px; align-items: flex-start;
+        }
+        .tip-card i { font-size: 1.6rem; color: var(--accent); }
+        .tip-content h4 { font-size: 0.9rem; margin-bottom: 8px; color: var(--accent); }
+        .tip-content p { font-size: 0.75rem; color: #888; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<div class="orb-bg" id="orb-container"></div>
+
+<a href="index.html" class="btn-back">← Hub Strategico</a>
+
+<div class="container">
+    <header class="header">
+        <h1>Training Center</h1>
+        <p>Knowledge Base & Agent Alignment — V10.1</p>
+    </header>
+
+    <div class="training-grid">
+        <!-- Module 1 -->
+        <div class="course-card">
+            <span class="tag">Foundation</span>
+            <h3>Neural Core Orchestration</h3>
+            <p>Master the communication between Olivia, Disperazione, and the Central Node. Learn to delegate multi-platform tasks.</p>
+            <div class="progress-container">
+                <div class="progress-label"><span>Completamento</span><span>100%</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width: 100%;"></div></div>
+            </div>
+            <button class="btn-start">Review Lesson</button>
+        </div>
+
+        <!-- Module 2 -->
+        <div class="course-card">
+            <span class="tag">Creative</span>
+            <h3>Cinematic Aesthetic Standards</h3>
+            <p>The visual signature of V10.1. Explore glassmorphism, 20-orb dynamics, and typography selection for peak WOW effect.</p>
+            <div class="progress-container">
+                <div class="progress-label"><span>Completamento</span><span>45%</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width: 45%; background: #ec4899;"></div></div>
+            </div>
+            <button class="btn-start" style="background: #ec4899; color: #fff;">Continue Learning</button>
+        </div>
+
+        <!-- Module 3 -->
+        <div class="course-card">
+            <span class="tag">Strategy</span>
+            <h3>Logic Flow Engineering</h3>
+            <p>Design complex strategic automations using the Strategic Creative Engine. Connect spikes in sentiment to active generation.</p>
+            <div class="progress-container">
+                <div class="progress-label"><span>Completamento</span><span>0%</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
+            </div>
+            <button class="btn-start">Start Module</button>
+        </div>
+    </div>
+
+    <div class="tips-area">
+        <div class="tip-card">
+            <i class="ph ph-lightbulb"></i>
+            <div class="tip-content">
+                <h4>Pro-Tip: Sentiment Sync</h4>
+                <p>Usa il modulo Sentiment per innescare automazioni in Logic Flows quando l'hype supera il 95%.</p>
+            </div>
+        </div>
+        <div class="tip-card">
+            <i class="ph ph-shield-check"></i>
+            <div class="tip-content">
+                <h4>Pro-Tip: Cipher Security</h4>
+                <p>Ricorda di validare sempre i nuovi asset creativi con Cipher prima della distribuzione globale tramite The Nexus.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 20-ORB ENGINE
+    const orbContainer = document.getElementById('orb-container');
+    const colors = ['#ffd700', '#ec4899', '#8b5cf6', '#3b82f6'];
+    for (let i = 0; i < 20; i++) {
+        const orb = document.createElement('div');
+        orb.className = 'orb';
+        const size = Math.random() * 400 + 200;
+        orb.style.width = size + 'px';
+        orb.style.height = size + 'px';
+        orb.style.left = Math.random() * 100 + '%';
+        orb.style.top = Math.random() * 100 + '%';
+        orb.style.background = colors[Math.floor(Math.random() * colors.length)];
+        orbContainer.appendChild(orb);
+    }
+</script>
+</body>
+</html>

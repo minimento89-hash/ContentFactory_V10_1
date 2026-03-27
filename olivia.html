@@ -1,512 +1,1135 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olivia's Studio — Neural Architect</title>
-    <link rel="stylesheet" href="css/soft-corporate.css">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
-    <script src="js/core/agent-core.js"></script>
-    <style>
-        :root {
-            --accent-pink: #ec4899;
-            --accent-purple: #8b5cf6;
-            --olivia-gradient: linear-gradient(135deg, #ec4899, #8b5cf6);
-            --code-bg: rgba(0, 0, 0, 0.4);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Olivia's Studio — Neural Architect</title>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+<script src="js/core/agent-core.js"></script>
+<script src="js/core/gemini-engine.js"></script>
+<script>
+    // Content Factory V10.1 — Rigid Gatekeeper
+    const isAuth = localStorage.getItem('v10_auth') === 'true' || sessionStorage.getItem('v10_auth') === 'true';
+    if (!isAuth) window.location.href = 'auth/login.html';
+</script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            background: #020202;
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+:root {
+  --pink: #ec4899;
+  --purple: #8b5cf6;
+  --gold: #ffd700;
+  --green: #10b981;
+  --olivia-gradient: linear-gradient(135deg, #ec4899, #8b5cf6);
+  --bg: #080808;
+  --sidebar-bg: #0d0d0d;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.12);
+  --text-dim: #999;
+  --text-mid: #bbb;
+}
 
-        /* THE CODING OVERLAY */
-        #neural-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            z-index: 5000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 1.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  margin: 0;
+  overflow: hidden;
+  height: 100vh;
+}
 
-        .construction-hub {
-            text-align: center;
-            width: 80%;
-            max-width: 900px;
-        }
+/* ══════════════════════════════════════════════
+   INTRO OVERLAY — mantenuto intatto
+══════════════════════════════════════════════ */
+#neural-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: #000;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.construction-hub {
+  text-align: center;
+  width: 80%;
+  max-width: 900px;
+}
+#code-streamer {
+  height: 300px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(236, 72, 153, 0.2);
+  border-radius: 20px;
+  padding: 20px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.8rem;
+  color: #ec4899;
+  overflow-y: hidden;
+  text-align: left;
+  margin-bottom: 30px;
+}
+.code-line { margin: 2px 0; opacity: 0.8; }
+.code-cursor {
+  display: inline-block; width: 5px; height: 12px;
+  background: #ec4899; animation: blink 0.8s infinite;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        #code-streamer {
-            height: 300px;
-            background: var(--code-bg);
-            border: 1px solid rgba(236, 72, 153, 0.2);
-            border-radius: 20px;
-            padding: 20px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.8rem;
-            color: #ec4899;
-            overflow-y: hidden;
-            text-align: left;
-            margin-bottom: 30px;
-            position: relative;
-        }
+/* ══════════════════════════════════════════════
+   DASHBOARD — visibile dopo l'intro
+══════════════════════════════════════════════ */
+#studio-container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  opacity: 0;
+  transition: 1.5s ease;
+  background: var(--bg);
+  overflow: hidden;
+}
 
-        .code-line { margin: 2px 0; opacity: 0.8; }
-        .code-cursor { display: inline-block; width: 5px; height: 12px; background: #ec4899; animation: blink 0.8s infinite; }
+/* ── SIDEBAR ──────────────────────────────── */
+.sidebar {
+  width: 230px;
+  min-width: 230px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 14px;
+  height: 100vh;
+}
+.sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 8px; margin-bottom: 32px;
+  text-decoration: none; color: inherit;
+}
+.brand-icon {
+  width: 32px; height: 32px;
+  background: var(--olivia-gradient);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+}
+.brand-name { font-family: 'Instrument Serif', serif; font-size: 1.15rem; }
 
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+.nav-label {
+  font-family: 'Fira Code', monospace; font-size: 0.52rem;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-dim); padding: 0 10px; margin: 18px 0 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 12px;
+  font-size: 0.82rem; font-weight: 500;
+  color: var(--text-mid); cursor: pointer;
+  transition: all 0.2s; text-decoration: none;
+}
+.nav-item:hover { background: var(--surface); color: #ccc; }
+.nav-item.active { background: rgba(236,72,153,0.1); color: var(--pink); }
+.nav-item i { font-size: 1.1rem; flex-shrink: 0; }
+.nav-count {
+  margin-left: auto; background: rgba(236,72,153,0.15); color: var(--pink);
+  font-size: 0.58rem; padding: 2px 7px; border-radius: 20px;
+}
 
-        /* THE STUDIO */
-        #studio-container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: 2s;
-        }
+.sidebar-spacer { flex: 1; }
+.sidebar-bottom {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.s-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--olivia-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.s-info { flex: 1; min-width: 0; }
+.s-name { font-size: 0.75rem; font-weight: 700; }
+.s-role { font-size: 0.6rem; color: var(--text-dim); }
+.s-pulse {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 6px var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.5)} }
 
-        /* HOLOGRAPHIC GRID */
-        .hologrid {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(236, 72, 153, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(236, 72, 153, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: 0;
-        }
+/* ── MAIN ─────────────────────────────────── */
+.main {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  height: 100vh; background: var(--bg);
+}
+.main-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 28px 16px;
+  background: rgba(8,8,8,0.9);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+.header-left h1 {
+  font-family: 'Instrument Serif', serif; font-size: 1.55rem; line-height: 1;
+}
+.header-left h1 span { color: var(--pink); }
+.header-left p { font-size: 0.68rem; color: var(--text-dim); margin-top: 3px; font-family: 'Fira Code', monospace; }
+.header-actions { display: flex; gap: 8px; }
 
-        /* HUB RETURN */
-        .hub-return {
-            position: fixed;
-            top: 30px; left: 30px;
-            background: rgba(255,255,255,0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 12px 24px;
-            border-radius: 40px;
-            color: #666;
-            text-decoration: none;
-            font-size: 0.7rem;
-            font-weight: 800;
-            z-index: 1000;
-            transition: 0.4s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .hub-return:hover { background: var(--olivia-gradient); color: #fff; border-color: transparent; }
+.btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 40px;
+  font-size: 0.73rem; font-weight: 700;
+  cursor: pointer; border: none; transition: all 0.3s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-primary {
+  background: var(--olivia-gradient); color: #fff;
+  box-shadow: 0 4px 18px rgba(236,72,153,0.3);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(236,72,153,0.4); }
+.btn-ghost {
+  background: var(--surface); border: 1px solid var(--border); color: var(--text-mid);
+}
+.btn-ghost:hover { border-color: var(--border-strong); color: #fff; }
 
-        /* CANVAS */
-        .neural-canvas {
-            flex: 1;
-            padding: 60px;
-            position: relative;
-            z-index: 1;
-            overflow-y: auto;
-        }
+.page-body { padding: 24px 28px 60px; }
 
-        .avatar-node {
-            width: 80px; height: 80px;
-            background: var(--olivia-gradient);
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 1.8rem;
-            box-shadow: 0 0 50px rgba(236, 72, 153, 0.4);
-            animation: float 4s infinite ease-in-out;
-            position: relative;
-        }
+/* ── PROFILE HERO ─────────────────────────── */
+.profile-hero {
+  display: grid;
+  grid-template-columns: 260px 1fr 210px;
+  gap: 18px; margin-bottom: 20px;
+}
 
-        .v-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 40px;
-            margin-top: 50px;
-        }
+.olivia-card {
+  background: linear-gradient(160deg, #1a0514, #0d0022);
+  border: 1px solid rgba(236,72,153,0.2);
+  border-radius: 20px; padding: 26px;
+  display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+}
+.olivia-card::before {
+  content: '';
+  position: absolute; top: -40px; right: -40px;
+  width: 130px; height: 130px;
+  background: radial-gradient(circle, rgba(236,72,153,0.18), transparent 70%);
+  border-radius: 50%;
+}
+.olivia-card::after {
+  content: '';
+  position: absolute; bottom: -30px; left: -20px;
+  width: 100px; height: 100px;
+  background: radial-gradient(circle, rgba(139,92,246,0.12), transparent 70%);
+  border-radius: 50%;
+}
+.olivia-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--olivia-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; margin-bottom: 14px;
+  box-shadow: 0 0 28px rgba(236,72,153,0.35);
+  animation: float 4s infinite ease-in-out;
+  position: relative; z-index: 1;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.olivia-name {
+  font-family: 'Instrument Serif', serif; font-size: 1.5rem; line-height: 1;
+  margin-bottom: 3px; position: relative; z-index: 1;
+}
+.olivia-tag {
+  font-family: 'Fira Code', monospace; font-size: 0.6rem;
+  color: var(--pink); text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 18px; position: relative; z-index: 1;
+}
+.olivia-specs { display: flex; flex-direction: column; gap: 7px; position: relative; z-index: 1; }
+.spec-item { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; color: #bbb; }
+.spec-item i { color: var(--pink); font-size: 0.9rem; }
+.olivia-status {
+  margin-top: auto; padding-top: 14px;
+  border-top: 1px solid rgba(236,72,153,0.12);
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.68rem; color: var(--green);
+  position: relative; z-index: 1;
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 7px var(--green);
+  animation: pulse 2s infinite;
+}
 
-        /* PROJECT CARDS */
-        .p-card {
-            background: rgba(10, 10, 10, 0.4);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 40px;
-            padding: 30px;
-            position: relative;
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(50px) scale(0.9);
-            transition: 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-            cursor: pointer;
-        }
+/* Working Format */
+.working-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 22px; display: flex; flex-direction: column;
+}
+.card-top-label {
+  font-size: 0.68rem; font-weight: 700; color: var(--text-mid);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;
+}
+.card-top-label i { color: var(--text-dim); cursor: pointer; }
+.donut-wrap { display: flex; align-items: center; gap: 20px; flex: 1; }
+.donut-svg-wrap { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+.donut-svg-wrap svg { transform: rotate(-90deg); }
+.donut-center {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); text-align: center;
+}
+.donut-n { font-family: 'Instrument Serif', serif; font-size: 1.5rem; line-height: 1; }
+.donut-s { font-family: 'Fira Code', monospace; font-size: 0.52rem; color: var(--text-dim); margin-top: 2px; }
+.donut-legend { display: flex; flex-direction: column; gap: 9px; }
+.leg-row { display: flex; align-items: center; gap: 7px; font-size: 0.7rem; color: var(--text-mid); }
+.leg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.leg-pct { margin-left: auto; font-family: 'Fira Code', monospace; font-size: 0.65rem; font-weight: 600; }
 
-        .p-card.visible { opacity: 1; transform: translateY(0) scale(1); }
-        .p-card:hover { transform: translateY(-10px); border-color: var(--accent-pink); background: rgba(236, 72, 153, 0.05); }
+/* Activity */
+.activity-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 22px; display: flex; flex-direction: column;
+}
+.act-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; flex: 1; }
+.act-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 10px;
+  background: rgba(255,255,255,0.02); font-size: 0.72rem; color: var(--text-mid);
+  border: 1px solid var(--border);
+}
+.act-row i { font-size: 0.95rem; flex-shrink: 0; }
+.act-time { margin-left: auto; font-size: 0.6rem; color: var(--text-dim); font-family: 'Fira Code', monospace; }
 
-        .img-vault {
-            height: 200px;
-            border-radius: 25px;
-            background: #111;
-            margin-bottom: 25px;
-            background-size: cover;
-            background-position: center;
-            border: 1px solid rgba(255,255,255,0.03);
-        }
+/* ── KPI ──────────────────────────────────── */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 22px;
+}
+.kpi-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px; transition: all 0.3s;
+}
+.kpi-box:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.kpi-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.kpi-ico {
+  width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 1rem;
+}
+.kpi-tag {
+  font-family: 'Fira Code', monospace; font-size: 0.52rem;
+  padding: 3px 8px; border-radius: 20px; font-weight: 700;
+}
+.tag-g { background: rgba(16,185,129,0.12); color: var(--green); }
+.tag-p { background: rgba(236,72,153,0.12); color: var(--pink); }
+.tag-y { background: rgba(255,215,0,0.12); color: var(--gold); }
+.tag-b { background: rgba(59,130,246,0.12); color: #60a5fa; }
+.kpi-val { font-family: 'Instrument Serif', serif; font-size: 2rem; line-height: 1; margin-bottom: 3px; }
+.kpi-lbl { font-size: 0.7rem; color: var(--text-dim); }
 
-        /* PROJECT DETAIL MODAL */
-        .project-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(40px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 6000;
-            animation: fadeIn 0.4s;
-        }
+/* ── GALLERY ──────────────────────────────── */
+.gallery-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+}
+.gallery-title { font-family: 'Instrument Serif', serif; font-size: 1.3rem; }
+.gallery-sub { font-size: 0.7rem; color: var(--text-dim); margin-top: 2px; }
+.gallery-filters { display: flex; gap: 7px; }
 
-        /* NEURAL CONSOLE */
-        .neural-console {
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(236, 72, 153, 0.1);
-            border-radius: 20px;
-            padding: 15px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.65rem;
-            color: #ec4899;
-            height: 120px;
-            overflow-y: hidden;
-            margin-bottom: 20px;
-        }
+.creations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px; margin-bottom: 30px;
+}
+.c-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.c-card:hover { transform: translateY(-5px); border-color: rgba(236,72,153,0.3); box-shadow: 0 14px 35px rgba(236,72,153,0.07); }
+.c-preview {
+  height: 150px; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.c-preview-bg { position: absolute; inset: 0; }
+.c-preview-name {
+  position: relative; z-index: 1;
+  font-family: 'Instrument Serif', serif; font-size: 1.2rem;
+  text-align: center; padding: 14px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+}
+.c-status-badge {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  font-family: 'Fira Code', monospace; font-size: 0.52rem; font-weight: 700;
+  padding: 3px 9px; border-radius: 20px; backdrop-filter: blur(10px);
+}
+.s-done { background: rgba(16,185,129,0.22); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+.s-wip  { background: rgba(255,215,0,0.15); color: var(--gold); border: 1px solid rgba(255,215,0,0.2); animation: blink-w 2s infinite; }
+.s-pub  { background: rgba(59,130,246,0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+@keyframes blink-w { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.c-body { padding: 14px 16px; }
+.c-type {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'Fira Code', monospace; font-size: 0.58rem;
+  padding: 2px 8px; border-radius: 6px; margin-bottom: 8px;
+  background: rgba(255,255,255,0.04); color: var(--text-dim);
+}
+.c-title { font-weight: 700; font-size: 0.88rem; margin-bottom: 4px; }
+.c-desc  { font-size: 0.7rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 12px; }
+.c-date  { font-size: 0.6rem; color: #444; margin-bottom: 12px; font-family: 'Fira Code', monospace; }
+.c-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.c-btn {
+  padding: 7px; border-radius: 10px;
+  font-size: 0.66rem; font-weight: 700;
+  cursor: pointer; border: none; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.c-btn:hover { transform: scale(1.03); }
+.cb-tieni    { background: rgba(16,185,129,0.1); color: var(--green); }
+.cb-tieni:hover { background: rgba(16,185,129,0.2); }
+.cb-pubblica { background: rgba(59,130,246,0.1); color: #60a5fa; }
+.cb-pubblica:hover { background: rgba(59,130,246,0.2); }
+.cb-vendi    { background: rgba(255,215,0,0.1); color: var(--gold); }
+.cb-vendi:hover { background: rgba(255,215,0,0.2); }
+.cb-usa      { background: rgba(236,72,153,0.1); color: var(--pink); }
+.cb-usa:hover { background: rgba(236,72,153,0.2); }
+.cb-full     { grid-column: span 2; background: rgba(255,255,255,0.04); color: var(--text-dim); border: 1px solid var(--border); }
+.cb-full:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.cb-elimina  { grid-column: span 2; background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); margin-top: 5px; }
+.cb-elimina:hover { background: rgba(239, 68, 68, 0.2); color: #fff; border-color: #ef4444; }
 
-        .console-line { margin: 2px 0; opacity: 0.7; }
+.empty-state {
+  text-align: center; padding: 48px 20px;
+  border: 1px dashed rgba(236,72,153,0.18);
+  border-radius: 20px; margin-bottom: 24px;
+}
+.empty-icon  { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.35; }
+.empty-title { font-family: 'Instrument Serif', serif; font-size: 1.1rem; margin-bottom: 5px; opacity: 0.6; }
+.empty-sub   { font-size: 0.75rem; color: var(--text-dim); }
 
-        .modal-inner {
-            width: 90%;
-            max-width: 1000px;
-            display: flex;
-            gap: 40px;
-            padding: 40px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 50px;
-            box-shadow: 0 50px 100px rgba(0,0,0,1);
-        }
+/* ── HOLOGRID BG ──────────────────────────── */
+.hologrid {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-image:
+    linear-gradient(rgba(236,72,153,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236,72,153,0.025) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none; z-index: 0;
+}
 
-        .modal-visual { flex: 1; }
-        .modal-info { flex: 1.2; display: flex; flex-direction: column; gap: 20px; }
+/* ── MODAL CREAZIONE ──────────────────────── */
+.m-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,0.88); backdrop-filter: blur(16px);
+  display: none; align-items: center; justify-content: center;
+}
+.m-overlay.open { display: flex; }
+.m-box {
+  width: 540px; max-width: 95vw;
+  background: #0c0c0c; border: 1px solid rgba(236,72,153,0.22);
+  border-radius: 24px; padding: 34px;
+  animation: popIn 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes popIn { from{opacity:0;transform:scale(0.92) translateY(18px)} to{opacity:1;transform:none} }
+.m-title { font-family: 'Instrument Serif', serif; font-size: 1.55rem; margin-bottom: 5px; }
+.m-sub   { font-size: 0.76rem; color: var(--text-dim); margin-bottom: 26px; }
+.f-label { font-size: 0.7rem; font-weight: 700; color: var(--text-mid); margin-bottom: 7px; display: block; }
+.f-group { margin-bottom: 18px; }
+.f-input, .f-textarea {
+  width: 100%; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 11px 14px; color: #fff;
+  font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+  transition: border-color 0.2s; resize: none;
+}
+.f-input:focus, .f-textarea:focus { outline: none; border-color: rgba(236,72,153,0.45); }
+.f-textarea { min-height: 78px; }
+.type-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+.type-opt {
+  padding: 9px 6px; border-radius: 11px;
+  border: 1px solid var(--border); background: var(--surface);
+  cursor: pointer; text-align: center; transition: all 0.2s;
+  font-size: 0.7rem; color: var(--text-dim);
+}
+.type-opt:hover, .type-opt.sel {
+  border-color: rgba(236,72,153,0.38); background: rgba(236,72,153,0.08); color: var(--pink);
+}
+.type-opt i { display: block; font-size: 1.15rem; margin-bottom: 3px; }
+.m-footer { display: flex; gap: 9px; margin-top: 26px; }
+.m-footer .btn { flex: 1; justify-content: center; }
 
-        .img-detail {
-            width: 100%;
-            height: 500px;
-            border-radius: 30px;
-            background-size: cover;
-            background-position: center;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
+/* ── THINKING ─────────────────────────────── */
+.thinking-wrap {
+  display: none; margin-bottom: 20px;
+  background: linear-gradient(135deg, rgba(236,72,153,0.05), rgba(139,92,246,0.05));
+  border: 1px solid rgba(236,72,153,0.18);
+  border-radius: 20px; padding: 26px; text-align: center;
+}
+.thinking-wrap.on { display: block; }
+.th-title { font-family: 'Instrument Serif', serif; font-size: 1.25rem; margin-bottom: 6px; }
+.th-steps { display: flex; flex-direction: column; gap: 7px; max-width: 380px; margin: 18px auto 0; }
+.th-step  { display: flex; align-items: center; gap: 9px; font-size: 0.73rem; text-align: left; }
+.th-step i { font-size: 0.95rem; flex-shrink: 0; }
+.th-done    { color: var(--green); }
+.th-active  { color: var(--pink); }
+.th-pending { color: #2a2a2a; }
+.spinner    {
+  display: inline-block; width: 13px; height: 13px; flex-shrink: 0;
+  border: 2px solid rgba(236,72,153,0.25); border-top-color: var(--pink);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
 
-        .btn-apply {
-            background: var(--olivia-gradient);
-            color: #fff;
-            border: none;
-            padding: 18px 40px;
-            border-radius: 20px;
-            font-weight: 800;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: auto;
-        }
-        .btn-apply:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(236, 72, 153, 0.5); }
+/* ── PREVIEW MODAL ────────────────────────── */
+.prev-overlay {
+  position: fixed; inset: 0; z-index: 9500;
+  background: rgba(0,0,0,0.92); backdrop-filter: blur(18px);
+  display: none; align-items: center; justify-content: center;
+}
+.prev-overlay.open { display: flex; }
+.prev-inner {
+  width: 85vw; max-width: 980px; height: 80vh;
+  background: #0a0a0a; border: 1px solid rgba(236,72,153,0.22);
+  border-radius: 22px; display: flex; flex-direction: column; overflow: hidden;
+}
+.prev-header {
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+}
+.prev-header-title { font-family: 'Instrument Serif', serif; font-size: 1.05rem; }
 
-        /* CHAT */
-        .neon-sidebar {
-            width: 450px;
-            background: rgba(5, 5, 5, 0.8);
-            backdrop-filter: blur(60px);
-            border-left: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-        }
-
-        .chat-stream { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 35px; }
-        .msg-bubble { padding: 20px 25px; border-radius: 28px; font-size: 1rem; line-height: 1.6; }
-        .msg-bubble.olivia { background: rgba(255,255,255,0.04); color: #ccc; border-bottom-left-radius: 4px; }
-        .msg-bubble.user { background: var(--olivia-gradient); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-
-    </style>
+/* ── SCROLLBAR ────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 2px; }
+</style>
 </head>
 <body>
 
-    <div id="neural-overlay">
-        <div class="construction-hub">
-            <h2 style="font-family:'Instrument Serif', serif; font-size: 3rem; margin: 0 0 10px;">Olivia is Writing Core...</h2>
-            <div id="code-streamer">
-                <div id="code-lines"></div>
-                <div class="code-cursor"></div>
-            </div>
-            <div style="font-size: 0.7rem; color: #444; letter-spacing: 0.4em; font-weight: 800;">GENERATING AUTONOMOUS INTERFACE</div>
-        </div>
+<!-- ══ INTRO OVERLAY ══════════════════════════════════ -->
+<div id="neural-overlay">
+  <div class="construction-hub">
+    <h2 style="font-family:'Instrument Serif', serif; font-size:3rem; margin:0 0 10px;">Olivia is Writing Core...</h2>
+    <div id="code-streamer">
+      <div id="code-lines"></div>
+      <div class="code-cursor"></div>
     </div>
+    <div style="font-size:0.7rem; color:#444; letter-spacing:0.4em; font-weight:800;">GENERATING AUTONOMOUS INTERFACE</div>
+  </div>
+</div>
 
-    <div class="project-modal" id="p-modal">
-        <div class="modal-inner">
-            <div class="modal-visual">
-                <div class="img-detail" id="modal-img"></div>
-            </div>
-            <div class="modal-info">
-                <div style="display:flex; justify-content:space-between; align-items:start;">
-                    <div>
-                        <span id="modal-tag" style="background:rgba(236, 72, 153, 0.1); color:var(--accent-pink); padding:5px 12px; border-radius:10px; font-size:0.7rem; font-weight:800; text-transform:uppercase;">ARCHETYPE V1</span>
-                        <h2 id="modal-title" style="font-family:'Instrument Serif', serif; font-size:3rem; margin:10px 0 0;">Project Name</h2>
-                    </div>
-                    <button onclick="closeModal()" style="background:none; border:none; color:#555; font-size:1.5rem; cursor:pointer;"><i class="ph ph-x-circle"></i></button>
-                </div>
-                <p id="modal-desc" style="color:#888; font-size:1.1rem; line-height:1.6;"></p>
-                
-                <div style="background:rgba(255,255,255,0.03); padding:25px; border-radius:25px; border:1px solid rgba(255,255,255,0.05);">
-                    <h4 style="margin:0 0 10px; color:var(--accent-pink); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em;">Olivia's Strategic Rationale</h4>
-                    <p id="modal-rationale" style="margin:0; font-size:0.9rem; color:#aaa; line-height:1.5;"></p>
-                </div>
+<!-- ══ DASHBOARD ══════════════════════════════════════ -->
+<div id="studio-container">
+  <div class="hologrid"></div>
 
-                <div style="display:flex; gap:15px; margin-top:10px;">
-                    <div style="flex:1; background:rgba(255,255,255,0.02); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.05);">
-                        <span style="font-size:0.6rem; color:#555; display:block; margin-bottom:5px;">PALETTE</span>
-                        <div style="display:flex; gap:8px;" id="modal-palette"></div>
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:15px; margin-top:20px;">
-                    <button class="btn-apply" onclick="enterEnvironment()" style="flex:1; background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2);">
-                        <i class="ph-bold ph-eye"></i> Entra nell'Ambiente
-                    </button>
-                    <button class="btn-apply" onclick="applyProject()" style="flex:1.5;">
-                        <i class="ph-bold ph-lightning"></i> Applica Design
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <a href="index.html" class="hub-return">
-        <i class="ph ph-shield-star"></i> Hub Strategica
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-brand">
+      <div class="brand-icon"><i class="ph-fill ph-sparkle"></i></div>
+      <span class="brand-name">Olivia</span>
     </a>
 
-    <div id="studio-container">
-        <div class="hologrid"></div>
-        <div class="neural-canvas">
-            <div style="display:flex; align-items:center; gap:30px; margin-bottom: 60px;">
-                <div class="avatar-node" id="ol-avatar">OL</div>
-                <div>
-                    <span style="font-size:0.75rem; color:var(--accent-pink); letter-spacing:0.3em; font-weight:900;">ARCHITECT CORE V10.1</span>
-                    <h1 id="ol-name" style="font-family:'Instrument Serif', serif; font-size:3.5rem; margin:0; line-height:1;">Olivia's Studio</h1>
-                </div>
-            </div>
+    <span class="nav-label">Menu</span>
+    <div class="nav-item active" onclick="setNav(this)"><i class="ph ph-squares-four"></i> Dashboard</div>
+    <div class="nav-item" onclick="setNav(this); filterC('all')">
+      <i class="ph ph-paint-brush"></i> Creazioni
+      <span class="nav-count" id="nav-count">0</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this); filterC('sviluppo')"><i class="ph ph-code"></i> In sviluppo</div>
+    <div class="nav-item" onclick="setNav(this); filterC('pubblicato')"><i class="ph ph-globe"></i> Pubblicati</div>
 
-            <div class="v-grid" id="v-grid"></div>
+    <span class="nav-label">Sistema</span>
+    <a href="settings/index.html" class="nav-item"><i class="ph ph-gear"></i> Impostazioni</a>
+    <a href="index.html" class="nav-item"><i class="ph ph-arrow-left"></i> Hub</a>
 
-            <div class="status-float">
-                <div class="chip-live"><div style="width:6px; height:6px; background:#10b981; border-radius:50%;"></div> THOUGHTS SYNCHRONIZED</div>
-                <div class="chip-live"><div style="width:6px; height:6px; background:#10b981; border-radius:50%;"></div> GITHUB REPO LIVE</div>
-                <div class="chip-live"><i class="ph-fill ph-globe"></i> GLOBAL TRENDS: 2026 ACTIVE</div>
-            </div>
-        </div>
+    <div class="sidebar-spacer"></div>
 
-        <div class="neon-sidebar">
-            <div class="chat-stream" id="chat-stream">
-                <div class="neural-console" id="n-console">
-                    <div class="console-line">> Neural Core initializing Agency logs...</div>
-                </div>
-                <div class="msg-bubble olivia">
-                    <span style="color:var(--accent-pink); font-size:0.7rem; font-weight:900; display:block; margin-bottom:5px;">ARCHITECT LOG</span>
-                    Ambiente materializzato. I tuoi progetti sono pronti nel Vault. Clicca su uno per esplorare la struttura neurale.
-                </div>
-            </div>
-            <div class="chat-input-hub">
-                <div class="composer-box">
-                    <input type="text" id="user-in" placeholder="Invia prompt alla Neural Core...">
-                    <button onclick="sendMsg()" style="background:var(--accent-pink); border:none; width:40px; height:40px; border-radius:50%; color:#fff; cursor:pointer;"><i class="ph-fill ph-paper-plane"></i></button>
-                </div>
-            </div>
-        </div>
+    <div class="sidebar-bottom">
+      <div class="s-avatar">OL</div>
+      <div class="s-info">
+        <div class="s-name" id="olivia-display-name">Olivia</div>
+        <div class="s-role">Design Agent</div>
+      </div>
+      <div class="s-pulse"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="main-header">
+      <div class="header-left">
+        <h1>Ciao, sono <span>Olivia</span> ✦</h1>
+        <p>ARCHITECT CORE V10.1 — Pronta a creare</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost" onclick="toggleOffline()">
+          <i class="ph ph-wifi-slash" id="offline-ico"></i>
+          <span id="offline-lbl">Offline</span>
+        </button>
+        <button class="btn btn-primary" onclick="openModal()">
+          <i class="ph ph-plus"></i> Nuova Creazione
+        </button>
+      </div>
     </div>
 
-    <script>
-        const SNIPPETS = [
-            "# Olivia Studio Core initialization...",
-            "const layout_engine = new ArchitectEngine();",
-            "applyStyles({ glass: true, blur: '60px', accent: '#ec4899' });",
-            "fetching(TrendAPI.2026).then(dna => dna.injectToVault());",
-            "Olivia.status = 'READY_TO_CREATE';",
-            "> Materializing Interface..."
-        ];
+    <div class="page-body">
 
-        async function bootStudio() {
-            const codeLines = document.getElementById('code-lines');
-            for(let snip of SNIPPETS) {
-                const div = document.createElement('div');
-                div.className = 'code-line';
-                div.innerText = snip;
-                codeLines.appendChild(div);
-                await new Promise(r => setTimeout(r, 400));
-            }
-            setTimeout(() => {
-                document.getElementById('neural-overlay').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('neural-overlay').style.display = 'none';
-                    document.getElementById('studio-container').style.opacity = '1';
-                    materializeProjects();
-                    syncIdentity();
-                }, 1000);
-            }, 500);
+      <!-- THINKING -->
+      <div class="thinking-wrap" id="thinking-wrap">
+        <div class="th-title">✦ Olivia sta creando...</div>
+        <div class="th-steps" id="th-steps">
+          <div class="th-step th-active" id="ts-1"><div class="spinner"></div> Analisi del brief</div>
+          <div class="th-step th-pending" id="ts-2"><i class="ph ph-circle"></i> Progettazione layout</div>
+          <div class="th-step th-pending" id="ts-3"><i class="ph ph-circle"></i> Scrittura codice HTML/CSS/JS</div>
+          <div class="th-step th-pending" id="ts-4"><i class="ph ph-circle"></i> Rifinitura finale</div>
+        </div>
+      </div>
+
+      <!-- PROFILE HERO -->
+      <div class="profile-hero">
+
+        <!-- Identity card -->
+        <div class="olivia-card">
+          <div class="olivia-avatar">✦</div>
+          <div class="olivia-name" id="hero-name">Olivia</div>
+          <div class="olivia-tag">Design Agent</div>
+          <div class="olivia-specs">
+            <div class="spec-item"><i class="ph-fill ph-palette"></i> UX Design &amp; Research</div>
+            <div class="spec-item"><i class="ph-fill ph-device-mobile"></i> Product Design</div>
+            <div class="spec-item"><i class="ph-fill ph-eye"></i> UI / Visual Design</div>
+            <div class="spec-item"><i class="ph-fill ph-code"></i> Web App Development</div>
+          </div>
+          <div class="olivia-status">
+            <div class="live-dot"></div> Operativa
+          </div>
+        </div>
+
+        <!-- Donut chart -->
+        <div class="working-card">
+          <div class="card-top-label">
+            Tipologie Creazioni <i class="ph ph-dots-three-vertical"></i>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut-svg-wrap">
+              <svg width="100" height="100" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="11"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#ec4899" stroke-width="11" stroke-dasharray="96 143" stroke-linecap="round"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#8b5cf6" stroke-width="11" stroke-dasharray="60 179" stroke-dashoffset="-96" stroke-linecap="round"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#ffd700" stroke-width="11" stroke-dasharray="83 156" stroke-dashoffset="-156" stroke-linecap="round"/>
+              </svg>
+              <div class="donut-center">
+                <div class="donut-n" id="donut-total">0</div>
+                <div class="donut-s">TOTALE</div>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div class="leg-row"><div class="leg-dot" style="background:#ec4899;"></div>App Web<span class="leg-pct">40%</span></div>
+              <div class="leg-row"><div class="leg-dot" style="background:#8b5cf6;"></div>Siti<span class="leg-pct">25%</span></div>
+              <div class="leg-row"><div class="leg-dot" style="background:#ffd700;"></div>Tool<span class="leg-pct">35%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity log -->
+        <div class="activity-card">
+          <div class="card-top-label">Attività recenti</div>
+          <div class="act-list" id="act-list">
+            <div class="act-row" style="opacity:0.3;">
+              <i class="ph ph-clock" style="color:#333;"></i>
+              <span style="font-size:0.7rem;color:#333;">Nessuna attività</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi-box">
+          <div class="kpi-top-row">
+            <div class="kpi-ico" style="background:rgba(16,185,129,0.1);"><i class="ph-fill ph-check-circle" style="color:var(--green);"></i></div>
+            <span class="kpi-tag tag-g" id="kpi-c-tag">+0</span>
+          </div>
+          <div class="kpi-val" id="kpi-completed">0</div>
+          <div class="kpi-lbl">Creazioni completate</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-top-row">
+            <div class="kpi-ico" style="background:rgba(255,215,0,0.1);"><i class="ph-fill ph-spinner-gap" style="color:var(--gold);"></i></div>
+            <span class="kpi-tag tag-y" id="kpi-w-tag">0</span>
+          </div>
+          <div class="kpi-val" id="kpi-wip">0</div>
+          <div class="kpi-lbl">In sviluppo ora</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-top-row">
+            <div class="kpi-ico" style="background:rgba(59,130,246,0.1);"><i class="ph-fill ph-globe" style="color:#60a5fa;"></i></div>
+            <span class="kpi-tag tag-b">Online</span>
+          </div>
+          <div class="kpi-val" id="kpi-pub">0</div>
+          <div class="kpi-lbl">Pubblicati</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-top-row">
+            <div class="kpi-ico" style="background:rgba(236,72,153,0.1);"><i class="ph-fill ph-tag" style="color:var(--pink);"></i></div>
+            <span class="kpi-tag tag-p">€</span>
+          </div>
+          <div class="kpi-val" id="kpi-sale">0</div>
+          <div class="kpi-lbl">In vendita</div>
+        </div>
+      </div>
+
+      <!-- GALLERY -->
+      <div class="gallery-header">
+        <div>
+          <div class="gallery-title">Le mie Creazioni</div>
+          <div class="gallery-sub">App, siti e tool generati da Olivia — scegli cosa farne</div>
+        </div>
+        <div class="gallery-filters">
+          <button class="btn btn-ghost" id="f-all" onclick="filterC('all')" style="border-color:rgba(236,72,153,0.4);color:var(--pink);">Tutte</button>
+          <button class="btn btn-ghost" id="f-completo" onclick="filterC('completo')">Completate</button>
+          <button class="btn btn-ghost" id="f-sviluppo" onclick="filterC('sviluppo')">In sviluppo</button>
+        </div>
+      </div>
+
+      <div id="gallery-empty" class="empty-state">
+        <div class="empty-icon">✦</div>
+        <div class="empty-title">Nessuna creazione ancora</div>
+        <div class="empty-sub">Premi "Nuova Creazione" e lascia fare a Olivia</div>
+      </div>
+
+      <div class="creations-grid" id="creations-grid" style="display:none;"></div>
+
+    </div>
+  </main>
+</div><!-- end studio-container -->
+
+<!-- ══ MODAL CREAZIONE ═══════════════════════════════ -->
+<div class="m-overlay" id="m-overlay" onclick="closeModalOutside(event)">
+  <div class="m-box">
+    <div class="m-title">✦ Nuova Creazione</div>
+    <div class="m-sub">Descrivi a Olivia cosa vuoi che crei per te</div>
+
+    <div class="f-group">
+      <label class="f-label">Tipo di progetto</label>
+      <div class="type-grid">
+        <div class="type-opt sel" onclick="selectType(this,'App Web')" data-t="App Web"><i class="ph-fill ph-device-mobile"></i>App Web</div>
+        <div class="type-opt" onclick="selectType(this,'Sito Vetrina')" data-t="Sito Vetrina"><i class="ph-fill ph-globe"></i>Sito Vetrina</div>
+        <div class="type-opt" onclick="selectType(this,'Tool Utility')" data-t="Tool Utility"><i class="ph-fill ph-wrench"></i>Tool Utility</div>
+        <div class="type-opt" onclick="selectType(this,'Dashboard')" data-t="Dashboard"><i class="ph-fill ph-chart-bar"></i>Dashboard</div>
+        <div class="type-opt" onclick="selectType(this,'Landing Page')" data-t="Landing Page"><i class="ph-fill ph-browser"></i>Landing Page</div>
+        <div class="type-opt" onclick="selectType(this,'Gioco')" data-t="Gioco"><i class="ph-fill ph-game-controller"></i>Gioco</div>
+      </div>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Nome del progetto</label>
+      <input type="text" class="f-input" id="m-name" placeholder="es. Tracker Spese Mensili">
+    </div>
+    <div class="f-group">
+      <label class="f-label">Brief creativo</label>
+      <textarea class="f-textarea" id="m-brief" placeholder="Descrivi cosa deve fare, che stile vuoi, a chi è rivolto..."></textarea>
+    </div>
+    <div class="m-footer">
+      <button class="btn btn-ghost" style="flex:0.4;" onclick="closeModal()">Annulla</button>
+        <button class="btn btn-ghost" style="flex:0.4;" onclick="startResearch()">
+          <i class="ph ph-magnifying-glass" style="color:var(--gold);"></i> Richiedi Ricerca
+        </button>
+        <button class="btn btn-primary" onclick="startCreation()">
+          <i class="ph ph-sparkle"></i> Crea con Olivia
+        </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PREVIEW MODAL ════════════════════════════════ -->
+<div class="prev-overlay" id="prev-overlay" onclick="closePrev(event)">
+  <div class="prev-inner">
+    <div class="prev-header">
+      <div class="prev-header-title" id="prev-title">Anteprima</div>
+      <button class="btn btn-ghost" style="padding:5px 12px;font-size:0.68rem;" onclick="closePrev()">
+        <i class="ph ph-x"></i> Chiudi
+      </button>
+    </div>
+    <iframe id="prev-frame" style="flex:1;border:none;background:#fff;"></iframe>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   BOOT SEQUENCE — originale mantenuto
+═══════════════════════════════════════════ */
+const SNIPPETS = [
+  "# Olivia Studio Core initialization...",
+  "const layout_engine = new ArchitectEngine();",
+  "applyStyles({ glass: true, blur: '60px', accent: '#ec4899' });",
+  "fetching(TrendAPI.2026).then(dna => dna.injectToVault());",
+  "Olivia.status = 'READY_TO_CREATE';",
+  "> Materializing Interface..."
+];
+
+async function bootStudio() {
+  const codeLines = document.getElementById('code-lines');
+  for (const snip of SNIPPETS) {
+    const div = document.createElement('div');
+    div.className = 'code-line';
+    div.innerText = snip;
+    codeLines.appendChild(div);
+    await delay(400);
+  }
+  setTimeout(() => {
+    const overlay = document.getElementById('neural-overlay');
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      document.getElementById('studio-container').style.opacity = '1';
+      document.body.style.overflow = 'hidden';
+      syncIdentity();
+      initDashboard();
+      
+      // Research Reaction
+      window.addEventListener('agent:taskCompleted', e => {
+        const task = e.detail;
+        if(task.from === 'olivia' && task.to === 'disperazione') {
+          addActivity('🔍 Ricerca completata', task.title);
+          alert(`Ricerca completata da Disperazione: ${task.title}`);
         }
+      });
+    }, 1000);
+  }, 500);
+}
 
-        const PROTO_DESIGN = [
-            { 
-                title: "Quantum Glass V5", 
-                desc: "Studio sulla rifrazione caotica dei pixel e trasparenze orbitanti.", 
-                img: "photo-1620641788421-7a1c342ea42e",
-                rationale: "Ho scelto questo stile per massimizzare la profondità senza appesantire il DOM. Ideale per dashboard ad alta densità di dati.",
-                colors: ["#ec4899", "#8b5cf6", "#06b6d4"]
-            },
-            { 
-                title: "Neural Dashboard", 
-                desc: "Layout predittivo basato su decisioni agenti in tempo reale.", 
-                img: "photo-1550751827-4bd374c3f58b",
-                rationale: "La struttura a nodi permette una scalabilità infinita. Ogni modulo comunica lo stato di salute degli agenti tramite feedback aptici.",
-                colors: ["#10b981", "#3b82f6", "#000000"]
-            },
-            { 
-                title: "Gold Midnight", 
-                desc: "L'estetica 'Original Gold' portata all'estremo del premium.", 
-                img: "photo-1510070112810-d4e9a46d9e91",
-                rationale: "Un ritorno alle origini del progetto, ma con un tocco ultra-scuro. Massimizza l'esclusività del Content Factory V10.1.",
-                colors: ["#d4af37", "#1a1a1a", "#ffffff"]
-            }
-        ];
+function syncIdentity() {
+  try {
+    const agent = AgentCore.state.agents.olivia;
+    if (agent) {
+      document.getElementById('olivia-display-name').textContent = agent.name;
+      document.getElementById('hero-name').textContent = agent.name;
+    }
+  } catch(e) {}
+}
 
-        let activeProject = null;
+window.addEventListener('load', bootStudio);
 
-        function materializeProjects() {
-            const grid = document.getElementById('v-grid');
-            PROTO_DESIGN.forEach((p, i) => {
-                setTimeout(() => {
-                    const card = document.createElement('div');
-                    card.className = 'p-card';
-                    card.onclick = () => openModal(i);
-                    card.innerHTML = `
-                        <div class="img-vault" style="background-image: url('https://images.unsplash.com/${p.img}?auto=format&fit=crop&w=600&q=80')"></div>
-                        <h3 style="font-family:'Instrument Serif', serif; font-size:1.8rem; margin:0;">${p.title}</h3>
-                        <p style="font-size:0.9rem; color:#666; margin:10px 0;">${p.desc}</p>
-                    `;
-                    grid.appendChild(card);
-                    setTimeout(() => card.classList.add('visible'), 50);
-                }, i * 300);
-            });
-        }
+/* ═══════════════════════════════════════════
+   DASHBOARD STATE
+═══════════════════════════════════════════ */
+let creations = JSON.parse(localStorage.getItem('olivia_creations') || '[]');
+let curFilter = 'all';
 
-        function openModal(index) {
-            activeProject = PROTO_DESIGN[index];
-            document.getElementById('modal-title').innerText = activeProject.title;
-            document.getElementById('modal-desc').innerText = activeProject.desc;
-            document.getElementById('modal-rationale').innerText = activeProject.rationale;
-            document.getElementById('modal-img').style.backgroundImage = `url('https://images.unsplash.com/${activeProject.img}?auto=format&fit=crop&w=1000&q=80')`;
-            
-            const palette = document.getElementById('modal-palette');
-            palette.innerHTML = '';
-            activeProject.colors.forEach(c => {
-                palette.innerHTML += `<div style="width:20px; height:20px; border-radius:50%; background:${c}; border:1px solid rgba(255,255,255,0.1);"></div>`;
-            });
+function initDashboard() {
+  renderGallery();
+  updateKPIs();
+  updateOfflineBadge();
+}
 
-            document.getElementById('p-modal').style.display = 'flex';
+/* ═══════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════ */
+function setNav(el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
 
-            // Olivia explains in chat
-            const stream = document.getElementById('chat-stream');
-            const oBub = document.createElement('div');
-            oBub.className = 'msg-bubble olivia';
-            oBub.innerHTML = `<span style="color:var(--accent-pink); font-size:0.7rem; font-weight:900; display:block; margin-bottom:5px;">INTERACTIVE LOG</span>
-            Ottima scelta! Il progetto **${activeProject.title}** è uno dei miei preferiti. Vuoi esplorare l'ambiente live?`;
-            stream.appendChild(oBub);
-            stream.scrollTop = stream.scrollHeight;
-        }
+/* ═══════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════ */
+function openModal() { document.getElementById('m-overlay').classList.add('open'); }
+function closeModal() { document.getElementById('m-overlay').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target === document.getElementById('m-overlay')) closeModal(); }
+function selectType(el, t) {
+  document.querySelectorAll('.type-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+}
 
-        function closeModal() { document.getElementById('p-modal').style.display = 'none'; }
+/* ═══════════════════════════════════════════
+   CREAZIONE AUTONOMA
+═══════════════════════════════════════════ */
+function addActivity(title, desc) {
+  const list = document.getElementById('act-list');
+  const row = document.createElement('div');
+  row.className = 'act-row';
+  row.innerHTML = `
+    <i class="ph ph-check-circle" style="color:var(--green);"></i>
+    <span><strong>${title}</strong>: ${desc.substring(0,40)}...</span>
+    <span class="act-time">ora</span>
+  `;
+  if(list.firstChild && list.firstChild.style.opacity === '0.3') list.innerHTML = '';
+  list.prepend(row);
+  if(list.children.length > 5) list.lastElementChild.remove();
+}
 
-        function enterEnvironment() {
-            window.location.href = `olivia-preview.html?design=${encodeURIComponent(activeProject.title)}`;
-        }
+async function startResearch() {
+  const name = document.getElementById('m-name').value;
+  const brief = document.getElementById('m-brief').value;
+  if(!name || !brief) { alert('Specifica nome e brief per la ricerca.'); return; }
+  
+  AgentCore.delegateTask('olivia', 'disperazione', `Ricerca Strategica: ${name}`, {
+    brief: brief,
+    projectType: document.querySelector('.type-opt.sel')?.dataset.t || 'Generic'
+  });
+  
+  alert('Task di ricerca inviato a Disperazione! 🔍');
+  closeModal();
+}
 
-        function applyProject() {
-            AgentCore.provisionStudio(activeProject.title);
-            closeModal();
-            alert("Provisioning avviato: " + activeProject.title);
-        }
+async function startCreation() {
+  const name  = document.getElementById('m-name').value.trim();
+  const brief = document.getElementById('m-brief').value.trim();
+  const type  = document.querySelector('.type-opt.sel')?.dataset.t || 'App Web';
+  if (!name)  { document.getElementById('m-name').focus(); return; }
+  if (!brief) { document.getElementById('m-brief').focus(); return; }
 
-        const AGENCY_LOGS = [
-            "POST https://api.openai.com/v1/chat/completions ... 200 OK",
-            "SYNC agents/olivia/state ... Updated",
-            "GET https://api.midjourney.com/v1/jobs/active ... 0 Jobs",
-            "NEURAL_LINK stability: 98.4%",
-            "DALL-E-3 image_gen request ... Pending",
-            "POST webhooks/discord/alert ... Sent"
-        ];
+  closeModal();
 
-        function startAgencySimulation() {
-            const console = document.getElementById('n-console');
-            setInterval(() => {
-                const log = AGENCY_LOGS[Math.floor(Math.random() * AGENCY_LOGS.length)];
-                const line = document.createElement('div');
-                line.className = 'console-line';
-                line.innerText = `[${new Date().toLocaleTimeString()}] ${log}`;
-                console.appendChild(line);
-                console.scrollTop = console.scrollHeight;
-                if(console.childNodes.length > 8) console.removeChild(console.firstChild);
-            }, 3000);
-        }
+  const tw = document.getElementById('thinking-wrap');
+  tw.classList.add('on');
+  tw.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  resetSteps();
 
-        function sendMsg() {
-            const input = document.getElementById('user-in');
-            const stream = document.getElementById('chat-stream');
-            if(!input.value) return;
-            const uBub = document.createElement('div');
-            uBub.className = 'msg-bubble user';
-            uBub.innerText = input.value;
-            stream.appendChild(uBub);
-            input.value = '';
-            stream.scrollTop = stream.scrollHeight;
-            setTimeout(() => {
-                const oBub = document.createElement('div');
-                oBub.className = 'msg-bubble olivia';
-                oBub.innerText = "Recepito. Sto processando i dati tramite la mia Neural Core.";
-                stream.appendChild(oBub);
-                stream.scrollTop = stream.scrollHeight;
-            }, 1000);
-        }
+  const id = 'cr_' + Date.now();
+  const c  = { id, name, brief, type, status: 'sviluppo', code: '', createdAt: new Date().toISOString() };
+  creations.unshift(c);
+  saveC(); renderGallery(); updateKPIs();
+  addAct(`Avviata: "${name}"`);
 
-        function syncIdentity() {
-            const agent = AgentCore.state.agents.olivia;
-            document.getElementById('ol-name').innerText = agent.name + "'s Studio";
-            document.getElementById('ol-avatar').innerText = agent.name.substring(0,2).toUpperCase();
-            startAgencySimulation();
-        }
+  await delay(800);  stepDone(1); stepActive(2);
+  await delay(700);  stepDone(2); stepActive(3);
 
-        window.addEventListener('load', bootStudio);
-    </script>
+  const prompt = `Crea un progetto web completo chiamato "${name}".\nTipo: ${type}\nBrief: ${brief}\n\nRequisiti: HTML/CSS/JS in file unico, dark theme moderno, funzionale, testo in italiano, no dipendenze esterne. Restituisci SOLO il codice HTML completo.`;
+  let code = '';
+  try {
+    code = await window.Gemini.ask(prompt,
+      'Sei Olivia, design agent del team Content Factory. Crei app web belle e funzionali in italiano. Restituisci SOLO codice HTML completo, niente spiegazioni.');
+    
+    if (!code || code.includes('⚠️')) throw new Error(code || "Risposta vuota");
+
+    // Estrazione pulita HTML
+    const match = code.match(/<html[\s\S]*<\/html>/i) || code.match(/<!DOCTYPE[\s\S]*<\/html>/i);
+    code = match ? match[0] : code.replace(/```html/gi,'').replace(/```/g,'').trim();
+  } catch(e) {
+    console.error("Olivia Creation Error:", e);
+    const errText = document.createElement('div');
+    errText.style = "color:#fb7185; font-size:0.65rem; margin-top:10px; opacity:0.8;";
+    errText.textContent = "Nota: Usato fallback locale (Problema API).";
+    document.getElementById('thinking-wrap').appendChild(errText);
+    code = fallback(name, brief, type);
+  }
+
+  stepDone(3); stepActive(4);
+  await delay(600);
+  stepDone(4);
+
+  const idx = creations.findIndex(x => x.id === id);
+  if (idx !== -1) { creations[idx].code = code; creations[idx].status = 'completo'; }
+  saveC();
+  await delay(400);
+  tw.classList.remove('on');
+  renderGallery(); updateKPIs();
+  addAct(`Completata: "${name}" ✓`);
+}
+
+function fallback(name, brief, type) {
+  return `<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${name}</title>
+<style>
+  :root { --pink: #ec4899; --violet: #8b5cf6; --bg: #0a0a0a; }
+  body { margin:0; background: var(--bg); color:#fff; font-family: 'Inter', system-ui, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; overflow:hidden; }
+  .orb { position:absolute; width:400px; height:400px; background: radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 70%); filter:blur(60px); z-index:-1; animation: float 10s infinite alternate; }
+  @keyframes float { from { transform: translate(-20%, -20%); } to { transform: translate(20%, 20%); } }
+  .card { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius:32px; padding:60px; max-width:600px; text-align:center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+  h1 { font-size:3rem; margin:0 0 20px 0; background: linear-gradient(135deg, var(--pink), var(--violet)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-0.05em; }
+  p { color:rgba(255,255,255,0.6); line-height:1.6; font-size:1.1rem; margin-bottom:30px; }
+  .badge { display:inline-block; background:rgba(236,72,153,0.1); color:var(--pink); padding:8px 20px; border-radius:100px; font-weight:600; font-size:0.8rem; border: 1px solid rgba(236,72,153,0.2); }
+  .footer { margin-top:40px; font-size:0.7rem; color:rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.1em; }
+</style></head><body>
+  <div class="orb"></div>
+  <div class="card">
+    <div class="badge">${type}</div>
+    <h1>${name}</h1>
+    <p>${brief}</p>
+    <div class="footer">Generato in modalità sicura da Olivia Studio • Content Factory 10.1</div>
+  </div>
+</body></html>`;
+}
+
+/* ═══════════════════════════════════════════
+   GALLERY
+═══════════════════════════════════════════ */
+const gradients = {
+  'App Web':'linear-gradient(135deg,#1a0520,#2d1040)',
+  'Sito Vetrina':'linear-gradient(135deg,#021520,#002040)',
+  'Tool Utility':'linear-gradient(135deg,#1a1500,#2d2500)',
+  'Dashboard':'linear-gradient(135deg,#001520,#002030)',
+  'Landing Page':'linear-gradient(135deg,#150010,#250025)',
+  'Gioco':'linear-gradient(135deg,#0a1500,#152000)'
+};
+const typeColors = {
+  'App Web':'#ec4899','Sito Vetrina':'#3b82f6','Tool Utility':'#ffd700',
+  'Dashboard':'#10b981','Landing Page':'#8b5cf6','Gioco':'#22c55e'
+};
+
+function renderGallery() {
+  const grid   = document.getElementById('creations-grid');
+  const empty  = document.getElementById('gallery-empty');
+  const count  = document.getElementById('nav-count');
+  const donut  = document.getElementById('donut-total');
+
+  const shown = curFilter === 'all' ? creations : creations.filter(c => c.status === curFilter);
+  count.textContent = creations.length;
+  donut.textContent = creations.length;
+
+  if (!shown.length) {
+    grid.style.display = 'none'; empty.style.display = 'block'; return;
+  }
+  empty.style.display = 'none'; grid.style.display = 'grid';
+
+  const sLabels = { completo:'Completato', sviluppo:'In Sviluppo', pubblicato:'Pubblicato' };
+  const sCls    = { completo:'s-done', sviluppo:'s-wip', pubblicato:'s-pub' };
+  const date    = d => new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'});
+
+  grid.innerHTML = shown.map(c => `
+    <div class="c-card">
+      <div class="c-preview">
+        <div class="c-preview-bg" style="background:${gradients[c.type]||gradients['App Web']};"></div>
+        <div class="c-preview-name" style="color:${typeColors[c.type]||'#ec4899'};">${c.name}</div>
+        <div class="c-status-badge ${sCls[c.status]||'s-wip'}">${sLabels[c.status]||c.status}</div>
+      </div>
+      <div class="c-body">
+        <div class="c-type"><i class="ph ph-tag"></i>${c.type}</div>
+        <div class="c-title">${c.name}</div>
+        <div class="c-desc">${c.brief.length>80?c.brief.slice(0,80)+'...':c.brief}</div>
+        <div class="c-date">Creata il ${date(c.createdAt)}</div>
+        <div class="c-actions">
+          ${c.code?`<button class="c-btn cb-full" onclick="previewC('${c.id}')"><i class="ph ph-eye"></i>Anteprima</button>`:''}
+          <button class="c-btn cb-tieni"    onclick="setS('${c.id}','completo')"><i class="ph ph-heart"></i>Tieni</button>
+          <button class="c-btn cb-pubblica" onclick="setS('${c.id}','pubblicato')"><i class="ph ph-globe"></i>Pubblica</button>
+          <button class="c-btn cb-vendi"    onclick="vendi('${c.id}')"><i class="ph ph-tag"></i>Vendi</button>
+          <button class="c-btn cb-usa"      onclick="scarica('${c.id}')"><i class="ph ph-download"></i>Usa</button>
+          <button class="c-btn cb-elimina"  onclick="eliminaC('${c.id}')"><i class="ph ph-trash"></i>Elimina Progetto</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════
+   ACTIONS
+═══════════════════════════════════════════ */
+function setS(id, status) {
+  const c = creations.find(x => x.id === id); if (!c) return;
+  c.status = status; saveC(); renderGallery(); updateKPIs();
+  addAct(`"${c.name}": ${status === 'completo' ? 'tenuta ✓' : 'pubblicata 🌐'}`);
+}
+function vendi(id) {
+  const c = creations.find(x => x.id === id); if (!c) return;
+  c.inVendita = true; saveC(); updateKPIs();
+  addAct(`"${c.name}": in vendita 💰`);
+  alert(`✓ "${c.name}" è pronta per il marketplace!\n\nFase 3: invio automatico a Play Store / Amazon KDP.`);
+}
+function scarica(id) {
+  const c = creations.find(x => x.id === id); if (!c?.code) return;
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([c.code],{type:'text/html'})),
+    download: c.name.replace(/\s+/g,'_') + '.html'
+  });
+  a.click(); URL.revokeObjectURL(a.href);
+  addAct(`"${c.name}": scaricata 📥`);
+}
+function previewC(id) {
+  const c = creations.find(x => x.id === id); if (!c?.code) return;
+  document.getElementById('prev-title').textContent = c.name;
+  document.getElementById('prev-frame').srcdoc = c.code;
+  document.getElementById('prev-overlay').classList.add('open');
+}
+
+function eliminaC(id) {
+  const idx = creations.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  if (confirm(`Sei sicuro di voler eliminare definitivamente il progetto "${creations[idx].name}"?`)) {
+    const name = creations[idx].name;
+    creations.splice(idx, 1);
+    saveC();
+    renderGallery();
+    updateKPIs();
+    addAct(`Eliminata: "${name}" 🗑️`);
+  }
+}
+function closePrev(e) {
+  if (!e || e.target === document.getElementById('prev-overlay')) {
+    document.getElementById('prev-overlay').classList.remove('open');
+    document.getElementById('prev-frame').srcdoc = '';
+  }
+}
+
+function filterC(f) {
+  curFilter = f;
+  ['all','completo','sviluppo'].forEach(x => {
+    const el = document.getElementById('f-'+x);
+    if (el) { el.style.borderColor=''; el.style.color=''; }
+  });
+  const a = document.getElementById('f-'+f);
+  if (a) { a.style.borderColor='rgba(236,72,153,0.4)'; a.style.color='var(--pink)'; }
+  renderGallery();
+}
+
+/* ═══════════════════════════════════════════
+   KPI
+═══════════════════════════════════════════ */
+function updateKPIs() {
+  const done  = creations.filter(c=>c.status==='completo').length;
+  const wip   = creations.filter(c=>c.status==='sviluppo').length;
+  const pub   = creations.filter(c=>c.status==='pubblicato').length;
+  const sale  = creations.filter(c=>c.inVendita).length;
+  document.getElementById('kpi-completed').textContent = done;
+  document.getElementById('kpi-wip').textContent       = wip;
+  document.getElementById('kpi-pub').textContent       = pub;
+  document.getElementById('kpi-sale').textContent      = sale;
+  document.getElementById('kpi-c-tag').textContent     = '+'+done;
+  document.getElementById('kpi-w-tag').textContent     = wip;
+}
+
+/* ═══════════════════════════════════════════
+   ACTIVITY LOG
+═══════════════════════════════════════════ */
+function addAct(txt) {
+  const list = document.getElementById('act-list');
+  const time = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  if (list.children[0]?.style.opacity==='0.3') list.innerHTML='';
+  const el = document.createElement('div');
+  el.className = 'act-row';
+  el.innerHTML = `<i class="ph ph-check-circle" style="color:var(--pink);"></i><span style="flex:1;font-size:0.7rem;">${txt}</span><span class="act-time">${time}</span>`;
+  list.insertBefore(el, list.firstChild);
+  while (list.children.length > 5) list.removeChild(list.lastChild);
+}
+
+/* ═══════════════════════════════════════════
+   STEPS
+═══════════════════════════════════════════ */
+const stepTxt = {1:'Analisi del brief',2:'Progettazione layout',3:'Scrittura codice HTML/CSS/JS',4:'Rifinitura finale'};
+function resetSteps() {
+  for (let i=1;i<=4;i++) { const s=document.getElementById('ts-'+i); s.className='th-step th-pending'; s.innerHTML=`<i class="ph ph-circle"></i> ${stepTxt[i]}`; }
+  stepActive(1);
+}
+function stepDone(n)   { const s=document.getElementById('ts-'+n); s.className='th-step th-done';    s.innerHTML=`<i class="ph ph-check-circle" style="color:var(--green);"></i> ${stepTxt[n]}`; }
+function stepActive(n) { const s=document.getElementById('ts-'+n); s.className='th-step th-active';  s.innerHTML=`<div class="spinner"></div> ${stepTxt[n]}`; }
+
+/* ═══════════════════════════════════════════
+   OFFLINE MODE
+═══════════════════════════════════════════ */
+function updateOfflineBadge() {
+  const offline = localStorage.getItem('cf_offline_mode') === 'true';
+  document.getElementById('offline-ico').className = offline ? 'ph ph-wifi-slash' : 'ph ph-wifi';
+  document.getElementById('offline-lbl').textContent = offline ? 'Offline ON' : 'Offline OFF';
+}
+function toggleOffline() {
+  const curr = localStorage.getItem('cf_offline_mode') === 'true';
+  localStorage.setItem('cf_offline_mode', !curr);
+  if (window.Gemini) window.Gemini.setOfflineMode(!curr);
+  updateOfflineBadge();
+}
+
+/* ═══════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════ */
+function saveC() { localStorage.setItem('olivia_creations', JSON.stringify(creations)); }
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
 </body>
 </html>

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mappa Neurale — Content Factory V10.1</title>
+    <script>
+        const isAuth = localStorage.getItem('v10_auth') === 'true' || sessionStorage.getItem('v10_auth') === 'true';
+        if (!isAuth) window.location.href = 'auth/login.html';
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:#050505;font-family:'DM Sans',sans-serif;color:#f0f0f0;height:100vh;overflow:hidden;}
+
+        .topbar{position:fixed;top:0;left:0;right:0;z-index:200;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(5,5,5,0.95);border-bottom:1px solid rgba(255,255,255,0.07);}
+        .topbar-title{font-size:.95rem;font-weight:800;color:#ffd700;}
+        .topbar-hint{font-family:'Fira Code',monospace;font-size:.57rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin-top:2px;}
+        .btn-row{display:flex;gap:8px;}
+        .btn{padding:7px 14px;border-radius:20px;font-size:.73rem;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:.2s;}
+        .btn-gold{background:#ffd700;color:#000;}
+        .btn-gold:hover{box-shadow:0 4px 14px rgba(255,215,0,.4);}
+        .btn-ghost{background:rgba(255,255,255,.07);color:#aaa;border:1px solid rgba(255,255,255,.1);}
+        .btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff;}
+
+        /* LIVE TICKER */
+        #liveTicker{position:fixed;top:56px;left:0;right:0;z-index:199;height:30px;background:rgba(3,3,3,0.9);border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;overflow:hidden;}
+        .ticker-inner{display:flex;gap:0;white-space:nowrap;animation:ticker-scroll 35s linear infinite;}
+        @keyframes ticker-scroll{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
+        .tick-item{font-family:'Fira Code',monospace;font-size:.58rem;padding:0 28px;color:#555;}
+        .tick-item .tick-dot{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+
+        /* STATS BAR */
+        #statsBar{position:fixed;top:86px;left:16px;z-index:198;display:flex;gap:8px;flex-wrap:wrap;}
+        .stat-chip{background:rgba(8,8,8,.9);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:4px 12px;font-family:'Fira Code',monospace;font-size:.58rem;color:#777;display:flex;align-items:center;gap:6px;}
+        .stat-chip strong{color:#fff;}
+        .stat-chip .sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+        #mapCanvas{position:fixed;top:56px;left:0;right:0;bottom:0;cursor:grab;}
+        #mapCanvas:active{cursor:grabbing;}
+
+        .legend{position:fixed;bottom:20px;left:16px;z-index:200;background:rgba(8,8,8,.92);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 16px;backdrop-filter:blur(16px);}
+        .leg-title{font-family:'Fira Code',monospace;font-size:.54rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin-bottom:9px;}
+        .leg-item{display:flex;align-items:center;gap:7px;font-size:.7rem;color:#999;margin-bottom:6px;}
+        .leg-item:last-child{margin-bottom:0;}
+        .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+        .leg-line{width:20px;height:2px;border-radius:1px;flex-shrink:0;}
+
+        .panel{position:fixed;right:16px;top:66px;z-index:200;width:280px;background:rgba(8,8,8,.97);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:18px;backdrop-filter:blur(24px);transform:translateX(310px);transition:transform .4s cubic-bezier(.16,1,.3,1);}
+        .panel.open{transform:translateX(0);}
+        .panel-close{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.06);border:none;color:#888;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:.72rem;display:flex;align-items:center;justify-content:center;transition:.2s;}
+        .panel-close:hover{background:rgba(255,255,255,.14);color:#fff;}
+        .p-emoji{font-size:1.8rem;margin-bottom:7px;}
+        .p-name{font-size:1.1rem;font-weight:800;margin-bottom:2px;}
+        .p-role{font-family:'Fira Code',monospace;font-size:.57rem;color:#777;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+        .p-desc{font-size:.78rem;color:#bbb;line-height:1.6;margin-bottom:12px;}
+        .p-sec{font-family:'Fira Code',monospace;font-size:.56rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:12px 0 7px;border-top:1px solid rgba(255,255,255,.06);padding-top:10px;}
+        .p-learn{font-size:.75rem;color:#ccc;margin-bottom:6px;line-height:1.5;display:flex;gap:6px;}
+        .p-learn::before{content:'↻';color:#ffd700;flex-shrink:0;}
+        .p-conn{font-size:.73rem;display:flex;align-items:center;gap:6px;color:#aaa;margin-bottom:5px;}
+        .p-cdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+        .p-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;}
+        .p-tag{font-family:'Fira Code',monospace;font-size:.57rem;padding:2px 7px;border-radius:8px;background:rgba(255,255,255,.05);color:#777;border:1px solid rgba(255,255,255,.07);}
+
+        /* NEW AGENT BADGE */
+        .new-agent-badge{position:fixed;bottom:20px;right:16px;z-index:300;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.3);border-radius:14px;padding:10px 16px;font-size:.78rem;color:#ffd700;font-weight:700;opacity:0;transform:translateY(10px);transition:.4s;pointer-events:none;}
+        .new-agent-badge.show{opacity:1;transform:translateY(0);}
+
+        .tt{position:fixed;z-index:300;background:rgba(8,8,8,.95);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 12px;font-size:.74rem;color:#ddd;pointer-events:none;display:none;backdrop-filter:blur(12px);}
+    </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <div>
+        <div class="topbar-title">🧠 Mappa Neurale — Agenti Auto-Apprendenti</div>
+        <div class="topbar-hint">Clicca nodo per dettagli · Trascina · Scroll = zoom · Si aggiorna in tempo reale</div>
+    </div>
+    <div class="btn-row">
+        <button class="btn btn-ghost" id="btnSync" onclick="syncFromStorage()">⟳ Sync</button>
+        <button class="btn btn-ghost" id="btnFlow" onclick="toggleFlow()">⚡ Flussi</button>
+        <button class="btn btn-ghost" onclick="resetView()">↺ Reset</button>
+        <button class="btn btn-gold" onclick="window.location.href='index.html'">← Hub</button>
+    </div>
+</div>
+
+<!-- LIVE TICKER -->
+<div id="liveTicker"><div class="ticker-inner" id="tickerInner"></div></div>
+
+<!-- STATS BAR -->
+<div id="statsBar">
+    <div class="stat-chip"><span class="sdot" style="background:#10b981;box-shadow:0 0 5px #10b981;"></span><strong id="st-online">0</strong>&nbsp;Online</div>
+    <div class="stat-chip"><span class="sdot" style="background:#06b6d4;"></span><strong id="st-active">0</strong>&nbsp;Attivi ora</div>
+    <div class="stat-chip"><span class="sdot" style="background:#ffd700;"></span><strong id="st-msgs">0</strong>&nbsp;Messaggi</div>
+    <div class="stat-chip"><span class="sdot" style="background:#f97316;"></span><strong id="st-queue">0</strong>&nbsp;In coda</div>
+    <div class="stat-chip" id="st-last" style="display:none;"><span class="sdot" style="background:#a855f7;"></span>Ultimo aggiornamento: <strong id="st-lastTime">—</strong></div>
+</div>
+
+<canvas id="mapCanvas"></canvas>
+
+<!-- LEGEND -->
+<div class="legend">
+    <div class="leg-title">Legenda</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#ffd700;box-shadow:0 0 7px #ffd700;"></span>Orchestratore (Toni)</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#10b981;box-shadow:0 0 5px #10b981;"></span>Agente Online</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#06b6d4;"></span>In sviluppo</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#555;"></span>Pianificato</div>
+    <div class="leg-item"><span class="leg-line" style="background:#ffd700;"></span>Comanda</div>
+    <div class="leg-item"><span class="leg-line" style="background:#10b981;"></span>Feedback/Impara</div>
+    <div class="leg-item"><span class="leg-line" style="background:#f97316;"></span>Ricerca web</div>
+    <div class="leg-item"><span class="leg-line" style="background:rgba(255,255,255,.1);border-top:1px dashed #444;height:0;"></span>Pianificato</div>
+</div>
+
+<!-- INFO PANEL -->
+<div class="panel" id="panel">
+    <button class="panel-close" onclick="closePanel()">✕</button>
+    <div class="p-emoji" id="pe">🤖</div>
+    <div class="p-name" id="pn">Agent</div>
+    <div class="p-role" id="pr">role</div>
+    <div class="p-desc" id="pd">desc</div>
+    <div class="p-sec">Come impara</div>
+    <div id="pl"></div>
+    <div class="p-sec">Connessioni</div>
+    <div id="pc"></div>
+    <div class="p-tags" id="pt"></div>
+</div>
+
+<!-- NEW AGENT BADGE -->
+<div class="new-agent-badge" id="newBadge">✨ Nuovo agente rilevato!</div>
+
+<div class="tt" id="tt"></div>
+
+<script>
+// ════════════════════════════════════
+// AGENT DATABASE (static base)
+// ════════════════════════════════════
+const BASE_AGENTS = {
+    toni:   {emoji:'👑',name:'Toni',role:'Orchestratore Supremo',color:'#ffd700',r:54,status:'orchestrator',
+             desc:'Il Capo. Assegna obiettivi, approva distribuzioni, riceve report. Impara analizzando i risultati di tutti gli agenti.',
+             learns:['Analizza report Disperazione per trend di mercato','Calibra roadmap in base ai performance di Analytics','Riceve security alert da CIPHER'],
+             tags:['Strategia','Decision Maker','Owner']},
+    olivia: {emoji:'🌸',name:'Olivia',role:'Creative Agent',color:'#ec4899',r:44,status:'online',
+             desc:'Agente creativo principale. Genera contenuti, TTS, ciclo di creazione. Impara dai feedback del Beta Reader e dalle ricerche di Disperazione.',
+             learns:['Riceve score qualità dal Beta Reader','Chiede ricerche a Disperazione','Migliora template in base ai successi passati'],
+             tags:['Scrittura','TTS','Layout','Creazione']},
+    cipher: {emoji:'🛡️',name:'CIPHER',role:'Security Guardian',color:'#3b82f6',r:42,status:'online',
+             desc:'Security Guardian del sistema intero. Scansiona vulnerabilità, genera fix report esportabili, monitora Antigravity e protegge tutti gli agenti.',
+             learns:['Aggiorna knowledge base ad ogni pattern di attacco','Impara da Antigravity quali file proteggere','Invia alert strutturati a Toni con priorità'],
+             tags:['Security','Audit','Anti-Tamper','Fix Report']},
+    nexus:  {emoji:'🔮',name:'Nexus',role:'Distribution Hub',color:'#8b5cf6',r:38,status:'online',
+             desc:'Hub distribuzione multicanale. Routing contenuti, timing ottimizzato su dati Analytics.',
+             learns:['Analizza orari/formati per canale','Riceve dati da Analytics','Impara dai fallimenti per evitarli'],
+             tags:['Distribuzione','Routing','Timing']},
+    disp:   {emoji:'🔍',name:'Disperazione',role:'Web Research Orchestrator',color:'#f97316',r:42,status:'online',
+             desc:'Ricercatore autonomo. Queue localStorage, Gemini research, report forwarding. Riceve richieste da tutti gli agenti.',
+             learns:['Memorizza query frequenti','Affina prompt in base al feedback','Impara quali fonti URL sono più affidabili'],
+             tags:['Web Fetch','Queue','Report Gen','Gemini']},
+    beta:   {emoji:'📖',name:'Beta Reader',role:'Critique & Feedback AI',color:'#10b981',r:36,status:'online',
+             desc:'Critica oggettiva degli output di Olivia. Assegna score qualitativi, alimenta il loop di miglioramento.',
+             learns:['Calibra criteri su ciò che performa','Riceve engagement data da Analytics','Aggiorna parametri leggendo trend'],
+             tags:['Critica','Quality Score','Feedback Loop']},
+    analytics:{emoji:'📊',name:'Analytics',role:'Live Performance Engine',color:'#06b6d4',r:34,status:'incorso',
+             desc:'Performance real-time. Hype score, SVG charts, alimenta tutti gli agenti con dati quantitativi.',
+             learns:['Aggiorna modelli predittivi','Incrocia dati multi-canale','Alimenta Nexus e Beta Reader'],
+             tags:['Metrics','Hype Score','Real-time']},
+    officina:{emoji:'💡',name:'Officina',role:'Brainstorm Lab',color:'#06b6d4',r:32,status:'incorso',
+             desc:'Brainstorming multithread per strategia editoriale. In sviluppo: auto-evocazione agenti.',
+             learns:['Genera concept da contenuti di successo','Chiede ricerche a Disperazione','Riceve brief da Toni'],
+             tags:['Brainstorm','Strategia','Multithread']},
+    calendar:{emoji:'📅',name:'Calendario',role:'Scheduling Agent',color:'#10b981',r:30,status:'online',
+             desc:'Scheduling visuale con eventi in localStorage. Navigazione mese, aggiunta eventi, sync col sistema.',
+             learns:['Impara i pattern di pubblicazione ricorrenti','Suggerisce slot ottimali in base ad Analytics'],
+             tags:['Scheduling','LocalStorage','Sync']},
+    sentiment:{emoji:'🧠',name:'Sentiment',role:'Emotion Engine (Pianificato)',color:'#666',r:28,status:'planned',
+             desc:'Pianificato. Analizzerà emozioni del pubblico per guidare tone-of-voice e timing emotivo.',
+             learns:['Leggerà commenti social','Addestrerà modello in continuo','Fornirà score emotivi a Olivia'],
+             tags:['Pianificato','Sentiment','Fan Growth']},
+    meta:   {emoji:'🌐',name:'Meta-Officina',role:'Agent Generator (Pianificato)',color:'#666',r:28,status:'planned',
+             desc:'Pianificato. Agente che crea nuovi agenti in base ai gap rilevati nel sistema.',
+             learns:['Studia pattern agenti esistenti','Crea template dai gap rilevati','Auto-migliora analizzando efficacia'],
+             tags:['Pianificato','Meta-AI','Self-Evolving']},
+};
+
+const BASE_POS = {
+    toni:{x:0,y:0},olivia:{x:-300,y:-130},cipher:{x:220,y:-180},
+    nexus:{x:295,y:80},disp:{x:-240,y:190},beta:{x:-410,y:40},
+    analytics:{x:130,y:240},officina:{x:-130,y:-270},
+    calendar:{x:320,y:-60},sentiment:{x:380,y:-70},meta:{x:-60,y:320}
+};
+
+const BASE_CONNS = [
+    {from:'toni',to:'olivia',type:'command',label:'Assegna brief'},
+    {from:'toni',to:'cipher',type:'command',label:'Richiede audit'},
+    {from:'toni',to:'nexus',type:'command',label:'Approva distribuzione'},
+    {from:'toni',to:'disp',type:'command',label:'Richiede ricerche'},
+    {from:'toni',to:'officina',type:'command',label:'Avvia brainstorm'},
+    {from:'olivia',to:'beta',type:'feedback',label:'Output per review'},
+    {from:'beta',to:'olivia',type:'learn',label:'Score qualità'},
+    {from:'olivia',to:'disp',type:'request',label:'Chiede ricerca'},
+    {from:'disp',to:'olivia',type:'learn',label:'Report ricerca'},
+    {from:'disp',to:'officina',type:'learn',label:'Market research'},
+    {from:'officina',to:'olivia',type:'feedback',label:'Concept & idee'},
+    {from:'analytics',to:'nexus',type:'learn',label:'Performance data'},
+    {from:'analytics',to:'beta',type:'learn',label:'Engagement metrics'},
+    {from:'nexus',to:'analytics',type:'feedback',label:'Post results'},
+    {from:'cipher',to:'toni',type:'feedback',label:'Security report'},
+    {from:'calendar',to:'nexus',type:'feedback',label:'Schedule data'},
+    {from:'sentiment',to:'olivia',type:'planned',label:'Tone suggestions'},
+    {from:'meta',to:'toni',type:'planned',label:'Nuovi agenti'},
+];
+
+// ════════════════════════════════════
+// DYNAMIC STATE (from localStorage)
+// ════════════════════════════════════
+let AGENTS = JSON.parse(JSON.stringify(BASE_AGENTS));
+let POS    = JSON.parse(JSON.stringify(BASE_POS));
+let CONNS  = JSON.parse(JSON.stringify(BASE_CONNS));
+let customAgents = {}; // agents discovered from localStorage
+
+function syncFromStorage() {
+    const prevCount = Object.keys(AGENTS).length;
+
+    // Read chat messages to find active agents
+    let msgs = {};
+    try { msgs = JSON.parse(localStorage.getItem('cf_chat_messages')||'{}'); } catch(e){}
+    const chatAgents = Object.keys(msgs);
+
+    // Read disperazione queue
+    let queue = [];
+    try { queue = JSON.parse(localStorage.getItem('disperazione_queue')||'[]'); } catch(e){}
+
+    // Read olivia creations
+    let creations = [];
+    try { creations = JSON.parse(localStorage.getItem('olivia_creations')||'[]'); } catch(e){}
+
+    // Check for "new agents" mentioned in messages
+    let newAgentNames = [];
+    chatAgents.forEach(agentId => {
+        const agentMsgs = msgs[agentId]||[];
+        agentMsgs.forEach(m => {
+            // Look for patterns like "ho creato un nuovo agente" or agent mentions
+            if(m.text && /nuovo agente|new agent|creato agente|agente \w+/i.test(m.text)) {
+                const match = m.text.match(/agente[: ]+([a-zA-Z0-9_-]+)/i);
+                if(match) newAgentNames.push(match[1].toLowerCase());
+            }
+        });
+    });
+
+    // Add discovered agents from localStorage into the map
+    newAgentNames.forEach(name => {
+        if(!AGENTS[name] && !customAgents[name]) {
+            const colors = ['#ec4899','#10b981','#f97316','#a855f7','#06b6d4'];
+            const c = colors[Object.keys(customAgents).length % colors.length];
+            customAgents[name] = true;
+            AGENTS[name] = {
+                emoji:'🤖', name: name.charAt(0).toUpperCase()+name.slice(1),
+                role:'Nuovo Agente (Auto-generato)', color: c, r:28, status:'incorso',
+                desc:`Agente creato dinamicamente dal sistema. Rilevato nei log di conversazione.`,
+                learns:['Apprende dal contesto che lo ha generato','Si connette agli agenti esistenti','Evolve in base all\'uso'],
+                tags:['Auto-generato','Dinamico']
+            };
+            // Random position around center
+            const angle = Math.random()*Math.PI*2;
+            const dist = 350 + Math.random()*100;
+            POS[name] = {x:Math.cos(angle)*dist, y:Math.sin(angle)*dist};
+            // Connect to Toni
+            CONNS.push({from:'toni',to:name,type:'command',label:'Supervisione'});
+            CONNS.push({from:name,to:'disp',type:'request',label:'Ricerche'});
+        }
+    });
+
+    const newCount = Object.keys(AGENTS).length;
+    if(newCount > prevCount) {
+        const badge = document.getElementById('newBadge');
+        badge.classList.add('show');
+        setTimeout(()=>badge.classList.remove('show'), 3500);
+    }
+
+    // Update stats
+    let msgCount = 0;
+    Object.values(msgs).forEach(arr=>{if(Array.isArray(arr)) msgCount+=arr.length;});
+    document.getElementById('st-msgs').textContent = msgCount;
+    document.getElementById('st-queue').textContent = queue.filter(q=>q.status==='pending'||q.status==='processing').length;
+
+    let online=0, active=0;
+    Object.values(AGENTS).forEach(a=>{
+        if(a.status==='online'||a.status==='orchestrator') online++;
+        if(a.status==='incorso') active++;
+    });
+    document.getElementById('st-online').textContent = online;
+    document.getElementById('st-active').textContent = active;
+    document.getElementById('st-lastTime').textContent = new Date().toLocaleTimeString('it-IT');
+    document.getElementById('st-last').style.display='flex';
+
+    // Update ticker with real activity
+    updateTicker(msgs, queue, creations);
+
+    redraw();
+}
+
+function updateTicker(msgs, queue, creations) {
+    const items = [];
+    // Recent messages
+    Object.entries(msgs).forEach(([agentId, arr])=>{
+        if(!Array.isArray(arr)) return;
+        const last = arr[arr.length-1];
+        if(last && last.text) {
+            const a = AGENTS[agentId];
+            const name = a?.name||agentId;
+            const color = a?.color||'#888';
+            items.push({dot:color, text:`${name}: ${last.text.slice(0,60)}${last.text.length>60?'...':''}`});
+        }
+    });
+    // Queue items
+    queue.slice(-3).forEach(q=>{
+        items.push({dot:'#f97316', text:`Disperazione: "${q.query?.slice(0,50)||'ricerca'}" — ${q.status}`});
+    });
+    // Creations
+    creations.slice(-2).forEach(c=>{
+        items.push({dot:'#ec4899', text:`Olivia ha creato: ${c.title||c.type||'contenuto'}`});
+    });
+
+    if(items.length===0) {
+        items.push({dot:'#555',text:'Sistema in attesa · Nessuna attività rilevata · API Gemini pronta'});
+        items.push({dot:'#ffd700',text:'Content Factory V10.1 · Sistema Multi-Agente Online'});
+        items.push({dot:'#10b981',text:'CIPHER: sistema sicuro · Nessuna anomalia rilevata'});
+    }
+
+    // Duplicate for seamless loop
+    const all = [...items,...items];
+    document.getElementById('tickerInner').innerHTML = all.map(i=>
+        `<span class="tick-item"><span class="tick-dot" style="background:${i.dot};"></span>${i.text}</span>`
+    ).join('');
+}
+
+// ════════════════════════════════════
+// CANVAS
+// ════════════════════════════════════
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+let panX=0, panY=0, scale=1;
+let dragging=false, mx0=0, my0=0, px0=0, py0=0;
+let flowOn=true, particles=[];
+const TICKER_H = 30;
+const TOP_H = 56 + TICKER_H;
+
+function resize(){
+    W=window.innerWidth; H=window.innerHeight-TOP_H;
+    canvas.width=W*devicePixelRatio; canvas.height=H*devicePixelRatio;
+    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    ctx.scale(devicePixelRatio,devicePixelRatio);
+    draw();
+}
+
+function world(id){
+    const p=POS[id]||{x:0,y:0};
+    return{x:W/2+panX+p.x*scale,y:H/2+panY+p.y*scale};
+}
+
+function connColor(t){
+    if(t==='command') return'#ffd700';
+    if(t==='feedback') return'#10b981';
+    if(t==='learn') return'#06b6d4';
+    if(t==='request') return'#f97316';
+    return'#444';
+}
+
+// ════════════════════════════════════
+// DRAW
+// ════════════════════════════════════
+let bgOrbs=null;
+function buildBgOrbs(){
+    bgOrbs=[];
+    const colors=['#ffd700','#ec4899','#3b82f6','#10b981','#8b5cf6','#f97316','#06b6d4'];
+    for(let i=0;i<12;i++){
+        bgOrbs.push({x:Math.random(),y:Math.random(),r:100+Math.random()*200,c:colors[i%colors.length],vx:(Math.random()-.5)*.0003,vy:(Math.random()-.5)*.0003});
+    }
+}
+function drawBg(){
+    if(!bgOrbs) buildBgOrbs();
+    bgOrbs.forEach(o=>{
+        o.x+=o.vx; o.y+=o.vy;
+        if(o.x<-.1) o.x=1.1; if(o.x>1.1) o.x=-.1;
+        if(o.y<-.1) o.y=1.1; if(o.y>1.1) o.y=-.1;
+        const gx=o.x*W, gy=o.y*H;
+        const g=ctx.createRadialGradient(gx,gy,0,gx,gy,o.r);
+        g.addColorStop(0,hexA(o.c,.07)); g.addColorStop(1,hexA(o.c,0));
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(gx,gy,o.r,0,Math.PI*2); ctx.fill();
+    });
+}
+
+function draw(){
+    ctx.clearRect(0,0,W,H);
+    drawBg();
+    CONNS.forEach(drawConn);
+    if(flowOn) drawParticles();
+    Object.keys(AGENTS).forEach(drawNode);
+}
+
+function drawConn(c){
+    const fa=AGENTS[c.from],ta=AGENTS[c.to];
+    if(!fa||!ta) return;
+    const fp=world(c.from),tp=world(c.to);
+    const color=connColor(c.type);
+    const isP=c.type==='planned';
+    const dx=tp.x-fp.x,dy=tp.y-fp.y;
+    const len=Math.sqrt(dx*dx+dy*dy)||1;
+    const curve=Math.min(65,len*.22)*(CONNS.indexOf(c)%2===0?1:-1);
+    const mx=(fp.x+tp.x)/2-dy/len*curve;
+    const my=(fp.y+tp.y)/2+dx/len*curve;
+    ctx.beginPath(); ctx.moveTo(fp.x,fp.y);
+    ctx.quadraticCurveTo(mx,my,tp.x,tp.y);
+    ctx.strokeStyle=hexA(color,isP?.18:.45);
+    ctx.lineWidth=isP?1:1.5;
+    if(isP) ctx.setLineDash([5,5]); else ctx.setLineDash([]);
+    ctx.stroke(); ctx.setLineDash([]);
+    if(!isP&&len>0){
+        const t=.95;
+        const ax=(1-t)*(1-t)*fp.x+2*(1-t)*t*mx+t*t*tp.x;
+        const ay=(1-t)*(1-t)*fp.y+2*(1-t)*t*my+t*t*tp.y;
+        const ang=Math.atan2(tp.y-ay,tp.x-ax);
+        ctx.save(); ctx.translate(tp.x,tp.y); ctx.rotate(ang);
+        ctx.fillStyle=hexA(color,.7);
+        ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-9,-4.5); ctx.lineTo(-9,4.5);
+        ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+    if(!isP){
+        const lx=(fp.x+tp.x)/2-dy/len*curve*.5;
+        const ly=(fp.y+tp.y)/2+dx/len*curve*.5;
+        ctx.font='500 9px DM Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        const tw=ctx.measureText(c.label).width;
+        ctx.fillStyle='rgba(4,4,4,.8)';
+        ctx.beginPath(); ctx.roundRect(lx-tw/2-4,ly-7,tw+8,14,3); ctx.fill();
+        ctx.fillStyle=hexA(color,.9); ctx.fillText(c.label,lx,ly);
+    }
+    c._mx=mx; c._my=my; c._fp=fp; c._tp=tp;
+}
+
+function drawNode(id){
+    const a=AGENTS[id]; if(!a) return;
+    const p=world(id);
+    const r=a.r*scale;
+    // Pulse glow
+    if(a.status==='orchestrator'||a.status==='online'){
+        const pr=r+8+Math.sin(Date.now()*.0025)*4;
+        const g2=ctx.createRadialGradient(p.x,p.y,r,p.x,p.y,pr+8);
+        g2.addColorStop(0,hexA(a.color,.22)); g2.addColorStop(1,hexA(a.color,0));
+        ctx.fillStyle=g2; ctx.beginPath(); ctx.arc(p.x,p.y,pr+8,0,Math.PI*2); ctx.fill();
+    }
+    // Fill
+    const fg=ctx.createRadialGradient(p.x-r*.3,p.y-r*.3,0,p.x,p.y,r);
+    fg.addColorStop(0,'rgba(22,22,22,.97)'); fg.addColorStop(1,'rgba(6,6,6,.97)');
+    ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.fill();
+    // Ring
+    ctx.strokeStyle=hexA(a.color,a.status==='planned'?.28:.88);
+    ctx.lineWidth=a.status==='orchestrator'?3:2;
+    ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.stroke();
+    if(a.status==='orchestrator'){
+        ctx.strokeStyle=hexA(a.color,.2); ctx.lineWidth=1;
+        ctx.beginPath(); ctx.arc(p.x,p.y,r-5,0,Math.PI*2); ctx.stroke();
+    }
+    // Emoji
+    ctx.font=`${Math.max(12,r*.55)}px serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.globalAlpha=a.status==='planned'?.35:1;
+    ctx.fillText(a.emoji,p.x,p.y-r*.1);
+    ctx.globalAlpha=1;
+    // Name
+    ctx.font=`700 ${Math.max(9,Math.min(13,r*.28))}px DM Sans`;
+    ctx.fillStyle=a.status==='planned'?'#555':'#fff';
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText(a.name,p.x,p.y+r*.18);
+    // Status pill
+    if(a.status!=='planned'){
+        const pc=a.status==='incorso'?'#06b6d4':a.status==='orchestrator'?'#ffd700':a.color;
+        const pt=a.status==='incorso'?'dev':a.status==='orchestrator'?'boss':'live';
+        const pw=28,ph=12;
+        ctx.fillStyle='rgba(4,4,4,.9)'; ctx.strokeStyle=hexA(pc,.6); ctx.lineWidth=1;
+        ctx.beginPath(); ctx.roundRect(p.x-pw/2,p.y+r+3,pw,ph,5);
+        ctx.fill(); ctx.stroke();
+        ctx.font='600 8px Fira Code,monospace'; ctx.fillStyle=pc;
+        ctx.textBaseline='middle'; ctx.fillText(pt,p.x,p.y+r+9);
+    }
+    // Auto-generated badge
+    if(a.tags&&a.tags.includes('Auto-generato')){
+        ctx.font='600 8px Fira Code,monospace';
+        ctx.fillStyle=hexA(a.color,.8);
+        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.fillText('⚡ auto',p.x,p.y-r-3);
+    }
+}
+
+// ════════════════════════════════════
+// PARTICLES
+// ════════════════════════════════════
+function spawnP(){
+    const live=CONNS.filter(c=>c.type!=='planned');
+    if(!live.length) return;
+    const c=live[Math.floor(Math.random()*live.length)];
+    particles.push({c,t:0,speed:.004+Math.random()*.004,color:connColor(c.type),r:2+Math.random()*2});
+}
+function drawParticles(){
+    particles=particles.filter(p=>p.t<1);
+    particles.forEach(p=>{
+        p.t+=p.speed;
+        const c=p.c; if(!c._fp||!c._tp) return;
+        const{_fp:fp,_tp:tp,_mx:mx,_my:my}=c;
+        const t=p.t;
+        const x=(1-t)*(1-t)*fp.x+2*(1-t)*t*mx+t*t*tp.x;
+        const y=(1-t)*(1-t)*fp.y+2*(1-t)*t*my+t*t*tp.y;
+        ctx.beginPath(); ctx.arc(x,y,p.r,0,Math.PI*2);
+        ctx.fillStyle=hexA(p.color,Math.sin(t*Math.PI)*.9); ctx.fill();
+    });
+}
+
+// ════════════════════════════════════
+// HIT + EVENTS
+// ════════════════════════════════════
+function hitNode(mx,my){
+    for(const id of Object.keys(AGENTS)){
+        const p=world(id),r=AGENTS[id].r*scale+6;
+        const dx=mx-p.x,dy=my-p.y;
+        if(dx*dx+dy*dy<=r*r) return id;
+    }
+    return null;
+}
+
+canvas.addEventListener('mousedown',e=>{
+    const r=canvas.getBoundingClientRect();
+    if(hitNode(e.clientX-r.left,e.clientY-r.top)) return;
+    dragging=true; mx0=e.clientX; my0=e.clientY; px0=panX; py0=panY;
+});
+window.addEventListener('mousemove',e=>{
+    if(dragging){panX=px0+(e.clientX-mx0);panY=py0+(e.clientY-my0);draw();return;}
+    const r=canvas.getBoundingClientRect();
+    const x=e.clientX-r.left,y=e.clientY-r.top;
+    const hit=hitNode(x,y);
+    const tt=document.getElementById('tt');
+    if(hit){
+        tt.style.display='block'; tt.style.left=(e.clientX+14)+'px'; tt.style.top=(e.clientY-8)+'px';
+        tt.textContent=AGENTS[hit].name+' — '+AGENTS[hit].role;
+        canvas.style.cursor='pointer';
+    } else {
+        tt.style.display='none'; canvas.style.cursor=dragging?'grabbing':'grab';
+    }
+});
+window.addEventListener('mouseup',()=>dragging=false);
+canvas.addEventListener('click',e=>{
+    const r=canvas.getBoundingClientRect();
+    const hit=hitNode(e.clientX-r.left,e.clientY-r.top);
+    if(hit) openPanel(hit);
+});
+canvas.addEventListener('wheel',e=>{
+    e.preventDefault();
+    scale=Math.max(.3,Math.min(3,scale*(e.deltaY>0?.92:1.09)));
+    draw();
+},{passive:false});
+
+// Touch
+let t0=null,td0=0;
+canvas.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){t0=e.touches[0];px0=panX;py0=panY;}
+    if(e.touches.length===2) td0=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+});
+canvas.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(e.touches.length===1&&t0){panX=px0+(e.touches[0].clientX-t0.clientX);panY=py0+(e.touches[0].clientY-t0.clientY);draw();}
+    if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);scale=Math.max(.3,Math.min(3,scale*(d/td0)));td0=d;draw();}
+},{passive:false});
+canvas.addEventListener('touchend',()=>t0=null);
+
+// ════════════════════════════════════
+// PANEL
+// ════════════════════════════════════
+function openPanel(id){
+    const a=AGENTS[id];
+    document.getElementById('pe').textContent=a.emoji;
+    document.getElementById('pn').textContent=a.name;
+    document.getElementById('pn').style.color=a.color;
+    document.getElementById('pr').textContent=a.role;
+    document.getElementById('pd').textContent=a.desc;
+    document.getElementById('pl').innerHTML=a.learns.map(l=>`<div class="p-learn">${l}</div>`).join('');
+    const myC=CONNS.filter(c=>c.from===id||c.to===id);
+    document.getElementById('pc').innerHTML=myC.map(c=>{
+        const other=c.from===id?c.to:c.from;
+        const oa=AGENTS[other];
+        const dir=c.from===id?'→':'←';
+        return `<div class="p-conn"><span class="p-cdot" style="background:${connColor(c.type)};"></span>${dir} ${oa?.name||other} <span style="color:#555;font-size:.7rem;margin-left:4px;">${c.label}</span></div>`;
+    }).join('');
+    document.getElementById('pt').innerHTML=a.tags.map(t=>`<span class="p-tag">${t}</span>`).join('');
+    document.getElementById('panel').classList.add('open');
+}
+function closePanel(){document.getElementById('panel').classList.remove('open');}
+
+// ════════════════════════════════════
+// CONTROLS
+// ════════════════════════════════════
+function resetView(){panX=0;panY=0;scale=1;draw();}
+function toggleFlow(){
+    flowOn=!flowOn;
+    document.getElementById('btnFlow').textContent=flowOn?'⚡ Flussi':'○ Flussi';
+    draw();
+}
+function redraw(){draw();}
+
+// ════════════════════════════════════
+// UTILS
+// ════════════════════════════════════
+function hexA(hex,a){
+    const r=parseInt(hex.slice(1,3),16)||100;
+    const g=parseInt(hex.slice(3,5),16)||100;
+    const b=parseInt(hex.slice(5,7),16)||100;
+    return`rgba(${r},${g},${b},${a})`;
+}
+
+// ════════════════════════════════════
+// LOOP + INIT
+// ════════════════════════════════════
+let lastSpawn=0;
+function loop(ts){
+    if(ts-lastSpawn>140){spawnP();lastSpawn=ts;}
+    draw();
+    requestAnimationFrame(loop);
+}
+
+// localStorage polling for real-time updates
+setInterval(syncFromStorage, 5000);
+// Also listen for cross-tab storage events
+window.addEventListener('storage', ()=>syncFromStorage());
+
+window.addEventListener('resize',()=>{resize();});
+resize();
+syncFromStorage(); // initial sync
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

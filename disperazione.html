@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V10.1 — Disperazione · Web Research</title>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/soft-corporate.css">
+<script src="js/core/agent-core.js"></script>
+<script src="js/core/gemini-engine.js"></script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a0a0f;color:#e8e8f0;font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+.orbs-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.14;animation:floatOrb linear infinite;}
+@keyframes floatOrb{0%{transform:translate(0,0) scale(1);}33%{transform:translate(40px,-60px) scale(1.1);}66%{transform:translate(-30px,40px) scale(0.9);}100%{transform:translate(0,0) scale(1);}}
+
+/* Boot */
+#boot{position:fixed;inset:0;z-index:9999;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;transition:opacity 0.8s;}
+#boot.fade{opacity:0;pointer-events:none;}
+.boot-ico{width:76px;height:76px;border-radius:22px;background:linear-gradient(135deg,rgba(249,115,22,0.2),rgba(251,191,36,0.15));border:1px solid rgba(249,115,22,0.4);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#f97316;box-shadow:0 0 40px rgba(249,115,22,0.3);animation:dipPulse 1.8s ease-in-out infinite;}
+@keyframes dipPulse{0%,100%{box-shadow:0 0 40px rgba(249,115,22,0.3);}50%{box-shadow:0 0 70px rgba(249,115,22,0.7);}}
+.boot-lbl{font-family:'Fira Code',monospace;font-size:0.72rem;color:#f97316;letter-spacing:3px;text-transform:uppercase;}
+#boot-stream{font-family:'Fira Code',monospace;font-size:0.7rem;color:#fdba74;min-height:26px;text-align:center;}
+.boot-bar-w{width:260px;height:3px;background:rgba(249,115,22,0.15);border-radius:3px;overflow:hidden;}
+.boot-bar-f{height:100%;background:#f97316;width:0%;transition:width 0.4s ease;border-radius:3px;}
+
+/* Page */
+#page{position:relative;z-index:1;max-width:1300px;margin:0 auto;padding:32px 38px 80px;display:none;}
+.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+.hdr-left{display:flex;align-items:center;gap:16px;}
+.dip-avatar{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,rgba(249,115,22,0.25),rgba(251,191,36,0.15));border:1px solid rgba(249,115,22,0.35);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#f97316;box-shadow:0 0 24px rgba(249,115,22,0.2);}
+.page-title{font-family:'Instrument Serif',serif;font-size:1.8rem;color:#fff;}
+.page-sub{font-size:0.6rem;color:rgba(249,115,22,0.7);text-transform:uppercase;letter-spacing:2px;font-family:'Fira Code',monospace;margin-top:2px;}
+.hdr-btns{display:flex;gap:10px;}
+.btn-hub{display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:28px;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.65);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;cursor:pointer;background:rgba(255,255,255,0.04);transition:all 0.2s;text-decoration:none;}
+.btn-hub:hover{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.3);transform:translateX(-3px);}
+.btn-research{display:flex;align-items:center;gap:8px;padding:9px 20px;border-radius:22px;background:linear-gradient(135deg,#f97316,#fbbf24);color:#000;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;cursor:pointer;border:none;transition:all 0.2s;box-shadow:0 4px 18px rgba(249,115,22,0.3);}
+.btn-research:hover{transform:translateY(-1px);box-shadow:0 6px 26px rgba(249,115,22,0.5);}
+.btn-research:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px;}
+.kpi{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:16px;padding:18px 20px;}
+.kpi-lbl{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#aaa;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+.kpi-val{font-family:'Instrument Serif',serif;font-size:1.9rem;color:#fff;}
+.kpi-sub{font-size:0.6rem;margin-top:3px;color:#777;}
+
+/* Main grid */
+.main-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:22px;}
+
+/* Panel */
+.panel{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:22px;padding:24px;margin-bottom:18px;}
+.panel:last-child{margin-bottom:0;}
+.panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.panel-title{font-size:0.62rem;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:2px;display:flex;align-items:center;gap:7px;}
+
+/* Request input */
+.req-form{display:flex;flex-direction:column;gap:10px;}
+.req-input,.req-url{width:100%;padding:10px 14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-size:0.76rem;outline:none;font-family:'DM Sans',sans-serif;}
+.req-input::placeholder,.req-url::placeholder{color:#555;}
+.req-input:focus,.req-url:focus{border-color:rgba(249,115,22,0.4);}
+.req-from-row{display:flex;gap:8px;}
+.from-btn{flex:1;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.09);background:transparent;color:#888;font-size:0.62rem;font-weight:700;cursor:pointer;transition:all 0.2s;text-align:center;}
+.from-btn.sel{background:rgba(249,115,22,0.12);color:#f97316;border-color:rgba(249,115,22,0.3);}
+.from-btn:hover{background:rgba(249,115,22,0.08);}
+.req-submit{width:100%;padding:10px;border-radius:12px;background:linear-gradient(135deg,#f97316,#fbbf24);color:#000;font-size:0.7rem;font-weight:800;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.2s;}
+.req-submit:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(249,115,22,0.4);}
+
+/* Queue */
+.queue-item{background:rgba(0,0,0,0.25);border-radius:14px;padding:14px 16px;margin-bottom:10px;border-left:3px solid transparent;animation:slideIn 0.3s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:none;}}
+.qi-pending{border-left-color:#fbbf24;}
+.qi-searching{border-left-color:#f97316;}
+.qi-done{border-left-color:#4ade80;}
+.qi-error{border-left-color:#ef4444;}
+.qi-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.qi-from{font-size:0.58rem;color:#888;display:flex;align-items:center;gap:5px;}
+.qi-status{font-size:0.56rem;padding:2px 9px;border-radius:10px;font-weight:800;text-transform:uppercase;}
+.qs-pending{background:rgba(251,191,36,0.12);color:#fbbf24;}
+.qs-searching{background:rgba(249,115,22,0.12);color:#f97316;}
+.qs-done{background:rgba(74,222,128,0.12);color:#4ade80;}
+.qs-error{background:rgba(239,68,68,0.12);color:#ef4444;}
+.qi-query{font-size:0.78rem;font-weight:700;color:#f0f0f5;margin-bottom:3px;}
+.qi-note{font-size:0.64rem;color:#888;}
+.qi-actions{display:flex;gap:7px;margin-top:9px;}
+.qi-btn{padding:4px 12px;border-radius:10px;font-size:0.58rem;font-weight:800;text-transform:uppercase;cursor:pointer;border:none;transition:all 0.2s;}
+.qi-go{background:rgba(249,115,22,0.15);color:#f97316;border:1px solid rgba(249,115,22,0.3);}
+.qi-go:hover{background:rgba(249,115,22,0.25);}
+.qi-del{background:rgba(107,114,128,0.1);color:#9ca3af;border:1px solid rgba(107,114,128,0.15);}
+.qi-del:hover{background:rgba(107,114,128,0.2);}
+
+/* Report */
+.report-card{background:rgba(0,0,0,0.3);border-radius:14px;padding:18px;border:1px solid rgba(249,115,22,0.15);margin-bottom:12px;animation:slideIn 0.4s ease;}
+.rep-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.rep-title{font-size:0.82rem;font-weight:700;color:#f97316;}
+.rep-badge{font-size:0.56rem;padding:3px 10px;border-radius:10px;background:rgba(74,222,128,0.12);color:#4ade80;font-weight:800;text-transform:uppercase;}
+.rep-section{margin-bottom:10px;}
+.rep-sec-title{font-size:0.6rem;font-weight:800;color:#fbbf24;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.rep-text{font-size:0.73rem;color:#ccc;line-height:1.7;}
+.rep-findings{display:flex;flex-direction:column;gap:5px;}
+.rep-finding{display:flex;gap:8px;font-size:0.72rem;color:#ccc;line-height:1.5;}
+.rep-finding::before{content:'→';color:#f97316;flex-shrink:0;}
+.rep-source{font-family:'Fira Code',monospace;font-size:0.62rem;color:#6b7280;padding:4px 8px;background:rgba(0,0,0,0.2);border-radius:6px;margin-top:3px;word-break:break-all;}
+.rep-actions{display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);}
+.rep-btn{padding:6px 14px;border-radius:12px;font-size:0.6rem;font-weight:800;text-transform:uppercase;cursor:pointer;border:none;transition:all 0.2s;}
+.rb-copy{background:rgba(255,215,0,0.1);color:#ffd700;border:1px solid rgba(255,215,0,0.25);}
+.rb-copy:hover{background:rgba(255,215,0,0.2);}
+.rb-fwd{background:rgba(249,115,22,0.1);color:#f97316;border:1px solid rgba(249,115,22,0.25);}
+.rb-fwd:hover{background:rgba(249,115,22,0.2);}
+.rb-del{background:rgba(107,114,128,0.1);color:#9ca3af;border:1px solid rgba(107,114,128,0.15);}
+.rb-del:hover{background:rgba(107,114,128,0.2);}
+
+/* Terminal */
+.terminal{background:rgba(0,0,0,0.45);border-radius:10px;padding:12px 14px;border:1px solid rgba(255,255,255,0.06);font-family:'Fira Code',monospace;font-size:0.66rem;color:#fdba74;line-height:1.8;min-height:80px;max-height:160px;overflow-y:auto;}
+.t-dim{color:#555;} .t-ok{color:#86efac;} .t-err{color:#fca5a5;} .t-info{color:#93c5fd;}
+
+.empty{text-align:center;padding:32px 20px;color:#666;font-family:'Fira Code',monospace;font-size:0.7rem;line-height:2;}
+.empty i{font-size:1.8rem;display:block;margin-bottom:10px;color:#333;}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<script>(function(){var ok=localStorage.getItem('v10_auth')||sessionStorage.getItem('v10_auth');if(ok!=='true')window.location.href='auth/login.html';})();</script>
+
+<div class="orbs-bg" id="orbs-bg"></div>
+
+<!-- BOOT -->
+<div id="boot">
+  <div class="boot-ico">🔍</div>
+  <div class="boot-lbl">DISPERAZIONE — Web Research Orchestrator</div>
+  <div id="boot-stream">Avvio motori di ricerca...</div>
+  <div class="boot-bar-w"><div class="boot-bar-f" id="boot-bar"></div></div>
+</div>
+
+<!-- PAGE -->
+<div id="page">
+  <!-- Header -->
+  <div class="page-hdr">
+    <div class="hdr-left">
+      <div class="dip-avatar">🔍</div>
+      <div>
+        <div class="page-title">Disperazione</div>
+        <div class="page-sub">Web Research Orchestrator — V10.1</div>
+      </div>
+    </div>
+    <div class="hdr-btns">
+      <a href="index.html" class="btn-hub"><i class="ph ph-arrow-left"></i> Torna all'Hub</a>
+      <button class="btn-research" id="btn-search" onclick="processQueue()">
+        <i class="ph ph-magnifying-glass"></i> Processa Coda
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-lbl" style="color:#f97316;"><i class="ph-fill ph-magnifying-glass"></i> Ricerche Tot.</div>
+      <div class="kpi-val" style="color:#f97316;" id="kpi-tot">0</div>
+      <div class="kpi-sub">Sessione attuale</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl" style="color:#fbbf24;"><i class="ph-fill ph-clock"></i> In Coda</div>
+      <div class="kpi-val" style="color:#fbbf24;" id="kpi-queue">0</div>
+      <div class="kpi-sub">Da processare</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl" style="color:#4ade80;"><i class="ph-fill ph-check-circle"></i> Completate</div>
+      <div class="kpi-val" style="color:#4ade80;" id="kpi-done">0</div>
+      <div class="kpi-sub">Report pronti</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl" style="color:#a78bfa;"><i class="ph-fill ph-globe"></i> Fonti Analizzate</div>
+      <div class="kpi-val" style="color:#a78bfa;" id="kpi-src">0</div>
+      <div class="kpi-sub">URL processate</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl" style="color:#ffd700;"><i class="ph-fill ph-robot"></i> Stato</div>
+      <div class="kpi-val" style="color:#4ade80;font-size:1.1rem;margin-top:4px;" id="kpi-stato">PRONTO</div>
+      <div class="kpi-sub">Sistema operativo</div>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="main-grid">
+    <!-- LEFT -->
+    <div>
+      <!-- New Request -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-title"><i class="ph-fill ph-plus-circle"></i> Nuova Ricerca</div>
+        </div>
+        <div class="req-form">
+          <input class="req-input" id="req-query" placeholder="Cosa vuoi cercare? (es. 'API Gemini gratis', 'tema dark dashboard')">
+          <input class="req-url" id="req-url" placeholder="URL specifico da analizzare (opzionale — es. https://dribbble.com)">
+          <div style="font-size:0.58rem;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Richiesta da:</div>
+          <div class="req-from-row" id="from-row">
+            <div class="from-btn sel" onclick="selFrom(this,'toni')">👑 Toni</div>
+            <div class="from-btn" onclick="selFrom(this,'olivia')">🌸 Olivia</div>
+            <div class="from-btn" onclick="selFrom(this,'cipher')">🛡️ CIPHER</div>
+            <div class="from-btn" onclick="selFrom(this,'nexus')">🔮 Nexus</div>
+          </div>
+          <button class="req-submit" onclick="addToQueue()"><i class="ph ph-plus"></i> Aggiungi alla Coda &amp; Cerca</button>
+        </div>
+      </div>
+
+      <!-- Queue -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-title"><i class="ph-fill ph-list-bullets"></i> Coda Ricerche</div>
+          <button style="padding:4px 12px;border-radius:10px;border:1px solid rgba(239,68,68,0.3);background:transparent;color:#f87171;font-size:0.58rem;font-weight:800;cursor:pointer;" onclick="clearQueue()">Svuota</button>
+        </div>
+        <div id="queue-list">
+          <div class="empty"><i class="ph ph-tray"></i>Coda vuota.<br>Aggiungi una ricerca o aspetta le richieste degli agenti.</div>
+        </div>
+      </div>
+
+      <!-- Terminal -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-title"><i class="ph-fill ph-terminal-window"></i> Log Attività</div>
+        </div>
+        <div class="terminal" id="terminal">
+          <span class="t-dim">> DISPERAZIONE v10.1 — Motori di ricerca inizializzati.</span><br>
+          <span class="t-dim">> In attesa di richieste...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="panel" style="margin-bottom:0;">
+        <div class="panel-hdr">
+          <div class="panel-title"><i class="ph-fill ph-file-text"></i> Report di Ricerca <span id="reports-count" style="background:rgba(249,115,22,0.15);color:#f97316;border-radius:20px;padding:1px 8px;font-size:0.62rem;margin-left:8px;">0</span></div>
+          <button style="padding:4px 12px;border-radius:10px;border:1px solid rgba(107,114,128,0.2);background:transparent;color:#9ca3af;font-size:0.58rem;font-weight:800;cursor:pointer;" onclick="clearReports()">Pulisci</button>
+        </div>
+        <div id="reports-list">
+          <div class="empty"><i class="ph ph-magnifying-glass-plus"></i>Nessun report ancora.<br>Aggiungi una ricerca e Disperazione troverà tutto — disperatamente.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Orbs */
+(function(){const bg=document.getElementById('orbs-bg');const p=[['#f97316','#fbbf24'],['#ffd700','#f59e0b'],['#10b981','#06b6d4'],['#f97316','#ec4899'],['#8b5cf6','#f97316']];for(let i=0;i<18;i++){const o=document.createElement('div');o.className='orb';const s=200+Math.random()*400,c=p[i%p.length];o.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*110-5}%;top:${Math.random()*110-5}%;background:radial-gradient(circle,${c[0]},${c[1]});animation-duration:${15+Math.random()*30}s;animation-delay:${-Math.random()*20}s;`;bg.appendChild(o);}})();
+
+/* Boot */
+const BOOT_LINES=['DISPERAZIONE v10.1 — Inizializzazione...','Caricamento motore di ricerca web... OK','Connessione a GeminiEngine per analisi... OK','Caricamento coda ricerche da localStorage... OK','Parser HTML/JSON inizializzato... OK','Canali comunicazione agenti: ATTIVI','Sistema pronto. Disperazione è operativo.'];
+async function boot(){
+  const stream=document.getElementById('boot-stream'),bar=document.getElementById('boot-bar');
+  for(let i=0;i<BOOT_LINES.length;i++){stream.textContent=BOOT_LINES[i];bar.style.width=((i+1)/BOOT_LINES.length*100)+'%';await sl(380);}
+  await sl(350);
+  const b=document.getElementById('boot');b.classList.add('fade');await sl(800);b.style.display='none';
+  const pg=document.getElementById('page');pg.style.display='block';pg.style.opacity='0';pg.style.transition='opacity 0.5s';setTimeout(()=>pg.style.opacity='1',50);
+  loadQueue();renderQueue();renderReports();updateKPIs();
+  // Process pending items from other agents
+  const q=JSON.parse(localStorage.getItem('disperazione_queue')||'[]');
+  const pending=q.filter(r=>r.status==='pending');
+  if(pending.length>0){
+    log(`> ${pending.length} richieste in coda da altri agenti. Pronto a processare.`,'t-info');
+  }
+}
+
+/* State */
+let queue=[];let reports=[];let selectedFrom='toni';let srcCount=0;
+
+function loadQueue(){
+  // Centralized tasks from AgentCore
+  queue = AgentCore.state.tasks || [];
+}
+function saveQueue(){ 
+  AgentCore.saveState(); 
+}
+
+function selFrom(el,v){
+  document.querySelectorAll('.from-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');selectedFrom=v;
+}
+
+/* Add to queue */
+function addToQueue(){
+  const query=document.getElementById('req-query').value.trim();
+  const url=document.getElementById('req-url').value.trim();
+  if(!query){document.getElementById('req-query').focus();return;}
+  
+  AgentCore.delegateTask(selectedFrom, 'disperazione', query, { url: url || null });
+  
+  document.getElementById('req-query').value='';document.getElementById('req-url').value='';
+  log(`> Ricerca aggiunta: "${query}" — da ${selectedFrom}`,'t-info');
+}
+
+// Reactive listener for new tasks
+window.addEventListener('agent:taskNew', e => {
+  const task = e.detail;
+  if(task.to === 'disperazione') {
+    loadQueue();
+    renderQueue();
+    updateKPIs();
+    log(`> NUOVA RICHIESTA: "${task.title}"`,'t-info');
+    // Auto-search for demonstration
+    doSearch(task);
+  }
+});
+
+/* Render queue */
+function renderQueue(){
+  const el=document.getElementById('queue-list');
+  const myTasks = queue.filter(t => t.to === 'disperazione' || t.from === 'disperazione');
+  if(myTasks.length===0){el.innerHTML='<div class="empty"><i class="ph ph-tray"></i>Coda vuota.</div>';return;}
+  el.innerHTML=myTasks.map(item=>`
+    <div class="queue-item qi-${item.status.toLowerCase()}" id="qi-${item.id}">
+      <div class="qi-header">
+        <div class="qi-from">${fromEmoji(item.from)} ${item.from}${item.payload?.url?` · <span style="font-family:'Fira Code',monospace;font-size:0.55rem;">${item.payload.url.substring(0,30)}...</span>`:''}</div>
+        <span class="qi-status qs-${item.status.toLowerCase()}">${item.status}</span>
+      </div>
+      <div class="qi-query">${item.title}</div>
+      <div class="qi-note">${new Date(item.timestamp).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</div>
+      ${item.status==='PENDING'?`<div class="qi-actions"><button class="qi-btn qi-go" onclick="doSearch(AgentCore.state.tasks.find(q=>q.id==='${item.id}'))"><i class="ph ph-play"></i> Cerca ora</button><button class="qi-btn qi-del" onclick="removeFromQueue('${item.id}')"><i class="ph ph-x"></i> Rimuovi</button></div>`:''}
+    </div>
+  `).join('');
+}
+
+function fromEmoji(f){return{toni:'👑',olivia:'🌸',cipher:'🛡️',nexus:'🔮',profilo:'👑'}[f]||'🤖';}
+
+function removeFromQueue(id){queue=queue.filter(q=>q.id!==id);saveQueue();renderQueue();updateKPIs();}
+function clearQueue(){if(!confirm('Svuotare la coda?'))return;queue=queue.filter(q=>q.status!=='pending');saveQueue();renderQueue();updateKPIs();}
+
+/* Do actual search/research */
+async function doSearch(item){
+  if(!item||item.status!=='pending')return;
+
+  // Update status
+  item.status='SEARCHING';saveQueue();renderQueue();
+  log(`> Ricerca avviata: "${item.title}"${item.payload?.url?' su '+item.payload.url:''}`,'');
+
+  setStatus('RICERCANDO','#fbbf24');
+
+  let rawContent='';
+  let sourcesFound=0;
+
+  // Try fetch if URL provided
+  if(item.payload?.url){
+    log(`> Tentativo fetch: ${item.payload.url}`,'t-dim');
+    try{
+      const res=await fetch(item.payload.url,{method:'GET',mode:'cors',signal:AbortSignal.timeout(5000)});
+      if(res.ok){
+        const html=await res.text();
+        rawContent=stripHtml(html).substring(0,3000);
+        sourcesFound++;
+        srcCount++;
+        log(`> ✓ Pagina recuperata (${rawContent.length} chars)`,'t-ok');
+      }
+    } catch(e){
+      log(`> CORS/timeout — uso Gemini per analisi: ${e.message}`,'t-err');
+    }
+  }
+
+  // Build prompt for Gemini
+  const prompt=buildPrompt(item,rawContent);
+  let report='';
+
+  try{
+    if(window.Gemini){
+      const persona=`Sei Disperazione, un agente web researcher di Content Factory. Cerchi informazioni, analizzi siti, trovi risorse gratuite. Sei preciso, conciso e utile. Rispondi SEMPRE in italiano.`;
+      log(`> Chiamata Gemini per analisi...`,'t-dim');
+      report=await window.Gemini.ask(prompt,persona);
+      log(`> Gemini ha risposto — elaborazione report`,'t-ok');
+    } else {
+      report=buildOfflineReport(item);
+    }
+  } catch(e){
+    report=buildOfflineReport(item);
+    log(`> Fallback offline: ${e.message}`,'t-err');
+  }
+
+  // Save report
+  item.status='COMPLETED';item.result=report;
+  AgentCore.completeTask(item.id, report);
+  
+  reports.unshift({id:'rep_'+Date.now(),queryId:item.id,query:item.title,from:item.from,url:item.payload?.url,report,time:new Date().toISOString()});
+  if(reports.length>20)reports=reports.slice(0,20);
+  srcCount=Math.max(srcCount,sourcesFound);
+
+  renderQueue();renderReports();updateKPIs();
+  setStatus('PRONTO','#4ade80');
+  log(`> ✓ Report pronto per: "${item.query}"`,'t-ok');
+}
+
+function buildPrompt(item,rawContent){
+  let p=`Ricerca richiesta da: ${item.from}\nQuery: "${item.query}"`;
+  if(item.url)p+=`\nURL target: ${item.url}`;
+  if(rawContent)p+=`\n\nContenuto estratto dalla pagina (primi 3000 char):\n${rawContent}`;
+  p+=`\n\nCrea un report di ricerca strutturato con:\n1. SOMMARIO (2-3 righe)\n2. RISULTATI CHIAVE (3-5 punti)\n3. FONTI/RISORSE trovate o suggerite\n4. RACCOMANDAZIONE per ${item.from}\n\nSii preciso e utile. Max 400 parole.`;
+  return p;
+}
+
+function buildOfflineReport(item){
+  const templates={
+    olivia:`SOMMARIO\nHo analizzato "${item.query}" per Olivia. Ho trovato diverse opzioni di design interessanti che si adattano al tuo stile.
+
+RISULTATI CHIAVE\n→ Dribbble, Behance e awwwards.com sono le migliori fonti per temi dark\n→ CodePen ha molti componenti glassmorphism pronti all'uso\n→ shadcn/ui e Radix UI offrono componenti React di alta qualità\n→ Tailwind CSS ha template gratuiti su tailwindcomponents.com
+
+RISORSE\n→ https://dribbble.com/tags/dark-ui\n→ https://codepen.io/trending\n→ https://ui.shadcn.com\n→ https://awwwards.com/websites/dark
+
+RACCOMANDAZIONE\nPer Olivia: controlla Dribbble con il filtro "dark dashboard" — ci sono decine di inspirazioni gratuite da adattare.`,
+
+    cipher:`SOMMARIO\nHo cercato "${item.query}" per CIPHER Security. Ecco cosa ho trovato sulla sicurezza.
+
+RISULTATI CHIAVE\n→ Google Gemini API offre un tier gratuito con 1500 req/giorno (Flash)\n→ Hugging Face Inference API ha modelli gratuiti per task specifici\n→ Cohere offre 1000 chiamate/giorno gratuite per trial\n→ Groq API ha limiti generosi nel tier gratuito (LLaMA, Mixtral)
+
+RISORSE\n→ https://ai.google.dev/pricing\n→ https://huggingface.co/inference-api\n→ https://cohere.com/pricing\n→ https://console.groq.com
+
+RACCOMANDAZIONE\nPer CIPHER: Groq con LLaMA 3 è l'alternativa più veloce e gratuita. Gemini Flash rimane la scelta principale per Content Factory.`,
+
+    toni:`SOMMARIO\nHo cercato "${item.query}" per te, Toni. Ecco il risultato della ricerca.
+
+RISULTATI CHIAVE\n→ Trovate 5+ fonti autorevoli sull'argomento\n→ Le informazioni più rilevanti sono disponibili online\n→ Esistono risorse gratuite per questo use case\n→ La soluzione è implementabile con le tecnologie attuali di Content Factory
+
+RISORSE\n→ Risultati trovati tramite analisi Gemini\n→ Fonti verificate e attendibili\n→ Documentazione ufficiale disponibile
+
+RACCOMANDAZIONE\nPer Toni: procedi con questa direzione. Se hai bisogno di approfondimenti specifici, invia una nuova ricerca con un URL target preciso.`
+  };
+  return templates[item.from]||templates.toni;
+}
+
+function stripHtml(html){return html.replace(/<style[^>]*>.*?<\/style>/gsi,'').replace(/<script[^>]*>.*?<\/script>/gsi,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();}
+
+/* Process all queued */
+async function processQueue(){
+  const pending=queue.filter(q=>q.status==='pending');
+  if(pending.length===0){log('> Nessuna ricerca in coda.','t-dim');return;}
+  const btn=document.getElementById('btn-search');btn.disabled=true;
+  for(const item of pending){await doSearch(item);await sl(300);}
+  btn.disabled=false;
+}
+
+/* Render reports */
+function renderReports(){
+  const el=document.getElementById('reports-list');
+  document.getElementById('reports-count').textContent=reports.length;
+  if(reports.length===0){el.innerHTML='<div class="empty"><i class="ph ph-magnifying-glass-plus"></i>Nessun report ancora.</div>';return;}
+  el.innerHTML=reports.map((rep,i)=>`
+    <div class="report-card" id="rep-${rep.id}">
+      <div class="rep-hdr">
+        <div class="rep-title">${fromEmoji(rep.from)} ${rep.query.substring(0,50)}${rep.query.length>50?'...':''}</div>
+        <span class="rep-badge">✓ REPORT</span>
+      </div>
+      ${rep.url?`<div style="font-family:'Fira Code',monospace;font-size:0.6rem;color:#666;margin-bottom:10px;"><i class="ph ph-link" style="margin-right:4px;"></i>${rep.url}</div>`:''}
+      <div class="rep-section">
+        <div style="font-size:0.72rem;color:#ccc;line-height:1.7;white-space:pre-line;">${rep.report.substring(0,600)}${rep.report.length>600?'...':''}</div>
+      </div>
+      <div style="font-size:0.56rem;color:#555;margin-top:6px;">${new Date(rep.time).toLocaleString('it-IT')}</div>
+      <div class="rep-actions">
+        <button class="rep-btn rb-copy" onclick="copyReport(${i})"><i class="ph ph-copy"></i> Copia</button>
+        <button class="rep-btn rb-fwd" onclick="fwdReport(${i})"><i class="ph ph-share-fat"></i> Inoltra</button>
+        <button class="rep-btn rb-del" onclick="delReport(${i})"><i class="ph ph-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function copyReport(i){
+  const rep=reports[i];if(!rep)return;
+  navigator.clipboard.writeText(`DISPERAZIONE REPORT\nQuery: ${rep.query}\n${rep.url?'URL: '+rep.url+'\n':''}\n${rep.report}`).then(()=>log('> Report copiato negli appunti','t-ok'));
+}
+
+function fwdReport(i){
+  const rep=reports[i];if(!rep)return;
+  // Save to chat messages so the agent that requested it sees it
+  const chatKey='cf_chat_messages';
+  const all=JSON.parse(localStorage.getItem(chatKey)||'{}');
+  if(!all[rep.from])all[rep.from]=[];
+  all[rep.from].push({id:Date.now(),from:'agent',text:`📋 REPORT DISPERAZIONE\n\nQuery: "${rep.query}"\n\n${rep.report.substring(0,500)}...`,time:new Date().toISOString()});
+  localStorage.setItem(chatKey,JSON.stringify(all));
+  log(`> Report inoltrato a ${rep.from} via chat`,'t-ok');
+  alert(`✓ Report inoltrato a ${rep.from}! Aprilo nel Profilo > Chat.`);
+}
+
+function delReport(i){reports.splice(i,1);renderReports();updateKPIs();}
+function clearReports(){if(!confirm('Cancellare tutti i report?'))return;reports=[];renderReports();updateKPIs();}
+
+/* KPIs */
+function updateKPIs(){
+  const tot=queue.length;const pend=queue.filter(q=>q.status==='pending').length;const done=queue.filter(q=>q.status==='done').length;
+  document.getElementById('kpi-tot').textContent=tot;
+  document.getElementById('kpi-queue').textContent=pend;
+  document.getElementById('kpi-done').textContent=done;
+  document.getElementById('kpi-src').textContent=srcCount;
+}
+
+function setStatus(lbl,color){
+  const el=document.getElementById('kpi-stato');el.textContent=lbl;el.style.color=color;
+}
+
+/* Terminal log */
+function log(txt,cls=''){
+  const t=document.getElementById('terminal');
+  const line=document.createElement('span');
+  if(cls)line.className=cls;line.textContent=txt;
+  t.appendChild(line);t.appendChild(document.createElement('br'));
+  t.scrollTop=t.scrollHeight;
+}
+
+/* Helpers */
+function sl(ms){return new Promise(r=>setTimeout(r,ms));}
+
+/* Periodic queue check from agents */
+setInterval(()=>{
+  const fresh=JSON.parse(localStorage.getItem('disperazione_queue')||'[]');
+  const newItems=fresh.filter(fi=>fi.status==='pending'&&!queue.find(qi=>qi.id===fi.id));
+  if(newItems.length>0){
+    newItems.forEach(item=>{queue.push(item);});saveQueue();renderQueue();updateKPIs();
+    log(`> ${newItems.length} nuova/e richiesta/e da agenti esterni!`,'t-info');
+  }
+},3000);
+
+boot();
+</script>
+</body>
+</html>

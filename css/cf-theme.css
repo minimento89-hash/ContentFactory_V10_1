@@ -1,0 +1,261 @@
+/*
+  Content Factory V10.1 — Shared Theme
+  Dark glassmorphism + orbs + design tokens
+  Include this in every page with:
+  <link rel="stylesheet" href="css/cf-theme.css">  (or "../css/cf-theme.css" from subfolders)
+*/
+
+/* ── TOKENS ── */
+:root {
+    --bg: #050505;
+    --gold: #ffd700;
+    --glass: rgba(255,255,255,0.04);
+    --glass-hover: rgba(255,255,255,0.07);
+    --glass-border: rgba(255,255,255,0.09);
+    --text: #f0f0f0;
+    --text-mid: #bbb;
+    --text-dim: #888;
+    --text-faint: #555;
+    --radius: 20px;
+    --radius-sm: 12px;
+    --font-serif: 'Instrument Serif', serif;
+    --font-mono: 'Fira Code', monospace;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── BODY ── */
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ── ORBS BACKGROUND ── */
+.cf-orbs {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+.cf-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.1;
+    animation: cf-orb-float linear infinite alternate;
+}
+@keyframes cf-orb-float {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(60px, 40px) scale(1.15); }
+}
+
+/* ── TOPBAR STANDARD ── */
+.cf-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 36px;
+    background: rgba(5,5,5,0.88);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+}
+.cf-topbar-brand {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    color: var(--text);
+    text-decoration: none;
+}
+.cf-topbar-sub {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-top: 2px;
+}
+
+/* ── HUB BUTTON (NOT YELLOW) ── */
+.btn-hub,
+.btn-back,
+.back-hub,
+a.btn-hub,
+a.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 20px;
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.65);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+}
+.btn-hub:hover,
+.btn-back:hover,
+.back-hub:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border-color: rgba(255,255,255,0.3);
+    transform: translateX(-3px);
+}
+
+/* ── GLASS PANEL ── */
+.cf-panel {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+}
+.cf-panel:hover {
+    background: var(--glass-hover);
+    border-color: rgba(255,255,255,0.14);
+}
+
+/* ── GOLD BUTTON (CTA) ── */
+.btn-gold {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 28px;
+    background: var(--gold);
+    color: #000;
+    font-weight: 800;
+    font-size: 0.82rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+}
+.btn-gold:hover {
+    box-shadow: 0 6px 20px rgba(255,215,0,0.35);
+    transform: translateY(-2px);
+}
+
+/* ── GHOST BUTTON ── */
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 20px;
+    border-radius: 28px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-mid);
+    font-weight: 700;
+    font-size: 0.78rem;
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+}
+.btn-ghost:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+    border-color: rgba(255,255,255,0.2);
+}
+
+/* ── STATUS BADGES ── */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.badge .bdot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+}
+.badge-online  { background: rgba(16,185,129,0.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.2); }
+.badge-online .bdot  { background: #10b981; animation: pulse-dot 2s infinite; }
+.badge-offline { background: rgba(255,255,255,0.04); color: #666; border: 1px solid rgba(255,255,255,0.07); }
+.badge-offline .bdot { background: #444; }
+.badge-wip     { background: rgba(6,182,212,0.1); color: #67e8f9; border: 1px solid rgba(6,182,212,0.2); }
+.badge-wip .bdot     { background: #06b6d4; animation: pulse-dot 1.5s infinite; }
+.badge-news    { background: rgba(168,85,247,0.1); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.2); }
+.badge-news .bdot    { background: #a855f7; }
+
+@keyframes pulse-dot {
+    0%,100% { opacity:1; box-shadow: 0 0 0 0 currentColor; }
+    50%      { opacity:0.5; }
+}
+
+/* ── KPI CARD ── */
+.kpi {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+}
+.kpi-val {
+    font-family: var(--font-mono);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.kpi-lbl {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+/* ── TERMINAL ── */
+.cf-terminal {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: #4ade80;
+    overflow-y: auto;
+}
+.cf-terminal .t-err  { color: #fca5a5; }
+.cf-terminal .t-warn { color: #fcd34d; }
+.cf-terminal .t-info { color: #93c5fd; }
+.cf-terminal .t-dim  { color: #666; }
+.cf-terminal .t-gold { color: var(--gold); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+/* ── FROSTED GLASS DARK ── */
+.frosted-glass-dark {
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.07);
+}
+
+/* ── TYPOGRAPHY ── */
+.serif { font-family: var(--font-serif); }
+.mono  { font-family: var(--font-mono); }
+.text-gold { color: var(--gold); }
+.text-dim  { color: var(--text-dim); }
+.text-mid  { color: var(--text-mid); }

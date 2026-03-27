@@ -10,6 +10,18 @@ const AgentCore = (() => {
         lastUpdate: Date.now(),
         isAwaitingFix: false,
         logs: [],
+        user: {
+            name: 'Il Capo',
+            status: 'Owner',
+            avatar: 'AC',
+            bio: 'Master Orchestrator of the Content Factory.'
+        },
+        tasks: [], // Inter-agent task queue
+        sentiment: {
+            hypeScore: 98.4,
+            engagement: 12800,
+            mood: 'optimistic'
+        },
         agents: {
             cipher: {
                 name: 'Cipher',
@@ -51,6 +63,26 @@ const AgentCore = (() => {
                 projects: ['Quantum UI', 'Dify Frontend'],
                 systemPrompt: 'Design high-fidelity interfaces, analyze trends, and generate creative brand assets.',
                 connected: ['Internet', 'AI Video', 'AI Image', 'Canvas']
+            },
+            provola: {
+                name: 'Provola',
+                status: 'EXPERIMENTING',
+                operationalState: 'ONLINE',
+                tag: 'SOCIAL_LAB',
+                color: '#FFB000',
+                icon: 'ph-flask',
+                projects: ['Neural Heuristics', 'Hype Engineering'],
+                systemPrompt: 'Experimental laboratory for advanced creative heuristics.'
+            },
+            disperazione: {
+                name: 'Disperazione',
+                status: 'WAITING_FOR_TASK',
+                operationalState: 'ONLINE',
+                tag: 'RESEARCHER',
+                color: '#06b6d4',
+                icon: 'ph-magnifying-glass',
+                projects: ['Web Scraper', 'Trend Analysis'],
+                systemPrompt: 'Search the internet for data, find resources (API keys, themes), and report to other agents.'
             }
         }
     };
@@ -209,9 +241,46 @@ const AgentCore = (() => {
         auditLayout,
         provisionStudio,
         scheduleEvent,
+        
+        // --- Task Delegation ---
+        delegateTask: (fromId, toId, title, payload) => {
+            const taskId = 'task_' + Date.now();
+            const newTask = {
+                id: taskId, from: fromId, to: toId, title, payload,
+                status: 'PENDING', timestamp: new Date().toISOString()
+            };
+            state.tasks.push(newTask);
+            saveState();
+            broadcast('taskNew', newTask);
+            console.log(`[AgentCore] Task: ${fromId} -> ${toId}: ${title}`);
+            return taskId;
+        },
+
+        completeTask: (taskId, result) => {
+            const idx = state.tasks.findIndex(t => t.id === taskId);
+            if (idx !== -1) {
+                state.tasks[idx].status = 'COMPLETED';
+                state.tasks[idx].result = result;
+                saveState();
+                broadcast('taskCompleted', state.tasks[idx]);
+            }
+        },
+
+        // --- Sentiment Simulation ---
+        generateSentimentUpdate: () => {
+            if(!state.sentiment) state.sentiment = { hypeScore: 98.4, engagement: 12800, mood: 'opt' };
+            state.sentiment.hypeScore += (Math.random() - 0.4) * 0.2;
+            state.sentiment.engagement += Math.floor(Math.random() * 20);
+            saveState();
+            broadcast('sentimentUpdate', state.sentiment);
+        },
+
         getReport: () => JSON.stringify(state.logs, null, 2)
     };
 })();
+
+// Auto-Pulse
+setInterval(() => { if(window.AgentCore) AgentCore.generateSentimentUpdate(); }, 8000);
 
 // Auto-Launch
 if (typeof window !== 'undefined') {

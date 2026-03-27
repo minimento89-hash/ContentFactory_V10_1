@@ -3,131 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V10.1 — The Nexus</title>
+    <title>The Nexus — Content Factory V10.1</title>
     
-    <!-- Icons & Fonts -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     
-    <!-- Design System -->
-    <link rel="stylesheet" href="css/design-system.css">
+    <script src="js/core/agent-core.js"></script>
+    <script src="js/core/ui-engine.js"></script>
     
     <style>
+        :root {
+            --accent: #ffd700;
+            --bg: #050505;
+            --surface: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f0f0;
+            --text-dim: #666;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'DM Sans', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* 20-ORB BACKGROUND */
+        .orb-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background: #000; overflow: hidden;
+        }
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(80px); opacity: 0.12;
+            animation: orbFloat 25s infinite alternate ease-in-out;
+        }
+        @keyframes orbFloat {
+            from { transform: translate(0,0) scale(1); }
+            to { transform: translate(150px, 80px) scale(1.3); }
+        }
+
+        .container {
+            max-width: 1400px; margin: 0 auto; padding: 60px 30px;
+            position: relative; z-index: 10;
+        }
+
+        .header { margin-bottom: 60px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .header-left h1 { font-family: 'Instrument Serif', serif; font-size: 3.5rem; line-height: 0.9; }
+        .header-left p { font-family: 'Fira Code', monospace; font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-top: 12px; }
+
+        .btn-sync {
+            background: var(--accent); color: #000; border: none;
+            padding: 14px 28px; border-radius: 30px; font-weight: 800; font-size: 0.8rem;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px;
+        }
+        .btn-sync:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,215,0,0.3); }
+
         .nexus-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-            padding: 20px 40px 100px 40px;
-            overflow-y: auto;
-            max-height: calc(100vh - var(--header-height));
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
         }
 
         .platform-card {
-            background: var(--glass-heavy);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius);
-            padding: 30px;
-            text-align: center;
-            transition: 0.3s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
+            background: var(--surface); backdrop-filter: blur(40px);
+            border: 1px solid var(--border); border-radius: 32px;
+            padding: 40px; position: relative; transition: 0.4s;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        .platform-card:hover { border-color: var(--accent); transform: translateY(-8px); }
+
+        .platform-icon {
+            width: 70px; height: 70px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; margin-bottom: 25px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .platform-card:hover { border-color: var(--accent); transform: translateY(-5px); }
-
-        .platform-icon { font-size: 2.5rem; color: var(--accent); }
-        .platform-name { font-family: 'Instrument Serif', serif; font-size: 1.8rem; margin-bottom: 0; }
-        .platform-status { font-size: 0.7rem; color: #10b981; text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em; }
-
-        .btn-nexus {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: 0.3s;
-            font-size: 0.8rem;
-            text-transform: uppercase;
+        .platform-name { font-family: 'Instrument Serif', serif; font-size: 2rem; margin-bottom: 8px; }
+        .platform-status { 
+            font-family: 'Fira Code', monospace; font-size: 0.65rem; 
+            color: #10b981; text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 25px; display: flex; align-items: center; gap: 6px;
         }
-        .btn-nexus:hover { background: var(--accent); color: black; border-color: var(--accent); }
+        .platform-status::before { content: ''; width: 6px; height: 6px; background: #10b981; border-radius: 50%; display: inline-block; }
 
-        .page-header-info {
-            padding: 20px 40px 0 40px;
+        .platform-metrics {
+            width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px;
+            padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.05);
         }
-        .page-header-info p { color: var(--text-dim); font-size: 0.9rem; opacity: 0.8; }
+        .metric-box { text-align: left; }
+        .m-label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; }
+        .m-value { font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
+
+        .btn-action {
+            width: 100%; padding: 14px; border-radius: 16px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
+            cursor: pointer; transition: 0.3s;
+        }
+        .btn-action:hover { background: #fff; color: #000; }
+
+        .managed-by {
+            position: absolute; top: 25px; right: 25px; font-size: 0.6rem; color: var(--text-dim);
+            font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
+        }
+
+        .btn-back {
+            position: absolute; top: 0; left: 0;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            padding: 10px 20px; border-radius: 30px; color: #fff; text-decoration: none;
+            font-size: 0.7rem; font-weight: 700; transition: 0.3s;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.3); transform: translateX(-3px); }
     </style>
 </head>
-<body class="theme-flux">
+<body>
 
-    <div class="studio-layout">
-        
-        <!-- SIDEBAR / COMMAND RIBBON -->
-        <aside class="command-ribbon">
-            <a href="studio/index.html" class="ribbon-item"><i class="ph ph-squares-four"></i></a>
-            <a href="agent-lounge.html" class="ribbon-item"><i class="ph ph-users-four"></i></a>
-            <a href="logic-flows.html" class="ribbon-item"><i class="ph ph-graph"></i></a>
-            <div class="ribbon-item active"><i class="ph ph-planet"></i></div>
-            <div class="ribbon-spacer"></div>
-            <div class="ribbon-item"><i class="ph ph-gear"></i></div>
-        </aside>
+<div class="orb-bg" id="orb-container"></div>
 
-        <!-- MAIN AREA -->
-        <main class="main-stage">
-            <header class="app-header">
-                <div class="header-content">
-                    <h1>The Nexus</h1>
-                    <div style="display: flex; gap: 20px; align-items:center;">
-                        <a href="index.html" class="back-nav" style="color: var(--text-dim); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
-                            <i class="ph ph-house-line"></i> Hub
-                        </a>
-                        <div class="user-pill">
-                            <i class="ph-fill ph-user-circle"></i>
-                            <span>Il Capo</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div class="page-header-info">
-                <p>Distribuzione multi-piattaforma e archivio asset inter-studio.</p>
-            </div>
-
-            <div class="nexus-grid" id="nexus-grid">
-                <!-- Platform 1 -->
-                <div class="platform-card" id="nex-insta">
-                    <div class="platform-icon" style="color: #e4405f;"><i class="ph-fill ph-instagram-logo"></i></div>
-                    <div class="platform-name">Instagram</div>
-                    <div class="platform-status">Connesso</div>
-                    <a href="#" class="btn-nexus">Pubblica</a>
-                </div>
-
-                <!-- Platform 2 -->
-                <div class="platform-card" id="nex-tiktok">
-                    <div class="platform-icon" style="color: #00f2ea;"><i class="ph-fill ph-tiktok-logo"></i></div>
-                    <div class="platform-name">TikTok</div>
-                    <div class="platform-status">Connesso</div>
-                    <a href="#" class="btn-nexus">Pubblica</a>
-                </div>
-
-                <!-- Platform 3 -->
-                <div class="platform-card" id="nex-web">
-                    <div class="platform-icon" style="color: #6366f1;"><i class="ph-fill ph-globe"></i></div>
-                    <div class="platform-name">Web Hub</div>
-                    <div class="platform-status">In Sincronia</div>
-                    <a href="#" class="btn-nexus">Aggiorna Sito</a>
-                </div>
-            </div>
-        </main>
-
+<div class="container">
+    <div class="header">
+        <div class="header-left">
+            <a href="index.html" class="btn-back">← Hub Strategico</a>
+            <div style="height: 40px;"></div>
+            <h1>The Nexus</h1>
+            <p>Multi-Platform Distribution — V10.1</p>
+        </div>
+        <button class="btn-sync" onclick="globalSync()">
+            <i class="ph ph-arrows-clockwise"></i> Global Synchronization
+        </button>
     </div>
 
-    <!-- Layout Engine Core -->
-    <script src="js/core/layout-engine.js"></script>
+    <div class="nexus-grid" id="platform-grid">
+        <!-- Platform: Instagram -->
+        <div class="platform-card">
+            <div class="managed-by">Managed by Olivia</div>
+            <div class="platform-icon" style="color: #e4405f;"><i class="ph-fill ph-instagram-logo"></i></div>
+            <h2 class="platform-name">Instagram</h2>
+            <div class="platform-status">Connected · Live</div>
+            <div class="platform-metrics">
+                <div class="metric-box"><div class="m-label">Followers</div><div class="m-value">42.8K</div></div>
+                <div class="metric-box"><div class="m-label">Engagement</div><div class="m-value">4.2%</div></div>
+            </div>
+            <button class="btn-action">Publish Asset</button>
+        </div>
 
+        <!-- Platform: TikTok -->
+        <div class="platform-card">
+            <div class="managed-by">Managed by Olivia</div>
+            <div class="platform-icon" style="color: #00f2ea;"><i class="ph-fill ph-tiktok-logo"></i></div>
+            <h2 class="platform-name">TikTok</h2>
+            <div class="platform-status">Connected · Live</div>
+            <div class="platform-metrics">
+                <div class="metric-box"><div class="m-label">Followers</div><div class="m-value">128.5K</div></div>
+                <div class="metric-box"><div class="m-label">Avg Views</div><div class="m-value">15.2K</div></div>
+            </div>
+            <button class="btn-action">Publish Video</button>
+        </div>
+
+        <!-- Platform: YouTube -->
+        <div class="platform-card">
+            <div class="managed-by">Managed by Disperazione</div>
+            <div class="platform-icon" style="color: #ff0000;"><i class="ph-fill ph-youtube-logo"></i></div>
+            <h2 class="platform-name">YouTube</h2>
+            <div class="platform-status">Connected · Live</div>
+            <div class="platform-metrics">
+                <div class="metric-box"><div class="m-label">Subscribers</div><div class="m-value">5.2K</div></div>
+                <div class="metric-box"><div class="m-label">Watch Time</div><div class="m-value">1.4Kh</div></div>
+            </div>
+            <button class="btn-action">Publish Short</button>
+        </div>
+
+        <!-- Platform: Web Hub -->
+        <div class="platform-card">
+            <div class="managed-by">Managed by Toni</div>
+            <div class="platform-icon" style="color: #6366f1;"><i class="ph-fill ph-browser"></i></div>
+            <h2 class="platform-name">Web Hub</h2>
+            <div class="platform-status">In Sync · Active</div>
+            <div class="platform-metrics">
+                <div class="metric-box"><div class="m-label">Unique Hits</div><div class="m-value">104.2K</div></div>
+                <div class="metric-box"><div class="m-label">Conversion</div><div class="m-value">1.8%</div></div>
+            </div>
+            <button class="btn-action">Deploy Update</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 20-ORB ENGINE
+    const orbContainer = document.getElementById('orb-container');
+    const colors = ['#ffd700', '#ec4899', '#8b5cf6', '#3b82f6'];
+    for (let i = 0; i < 20; i++) {
+        const orb = document.createElement('div');
+        orb.className = 'orb';
+        const size = Math.random() * 400 + 200;
+        orb.style.width = size + 'px';
+        orb.style.height = size + 'px';
+        orb.style.left = Math.random() * 100 + '%';
+        orb.style.top = Math.random() * 100 + '%';
+        orb.style.background = colors[Math.floor(Math.random() * colors.length)];
+        orbContainer.appendChild(orb);
+    }
+
+    function globalSync() {
+        const btn = document.querySelector('.btn-sync');
+        btn.innerHTML = '<i class="ph ph-arrows-clockwise" style="animation: spin 1s linear infinite"></i> Synchronizing...';
+        btn.disabled = true;
+
+        AgentCore.broadcast('nexusSync', { status: 'starting', platforms: 4 });
+
+        setTimeout(() => {
+            btn.innerHTML = '<i class="ph ph-check-circle"></i> Sync Complete';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="ph ph-arrows-clockwise"></i> Global Synchronization';
+                btn.disabled = false;
+            }, 2000);
+        }, 3000);
+    }
+
+    // Add CSS for spin
+    const style = document.createElement('style');
+    style.innerHTML = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+</script>
 </body>
 </html>

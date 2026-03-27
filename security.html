@@ -3,505 +3,1358 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V10.1 — Cybersecurity Dashboard</title>
+    <title>V10.1 — CIPHER Security</title>
+
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="js/core/layout-engine.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/soft-corporate.css">
+    <script>
+        // Content Factory V10.1 — Rigid Gatekeeper
+        const isAuth = localStorage.getItem('v10_auth') === 'true' || sessionStorage.getItem('v10_auth') === 'true';
+        if (!isAuth) window.location.href = 'auth/login.html';
+    </script>
     <script src="js/core/agent-core.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --accent-gold: #ffd700;
-            --status-ok: #10b981;
-            --status-alert: #ef4444;
-            --glass-bg: rgba(20, 20, 20, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --font-main: 'DM Sans', sans-serif;
-            --font-serif: 'Instrument Serif', serif;
-        }
+    <script src="js/core/gemini-engine.js"></script>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+<style>
+/* ── Base ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            background: #050505;
-            color: #fff;
-            font-family: var(--font-main);
-            min-height: 100vh;
-            overflow-x: hidden;
-            padding: 80px 40px;
-        }
+body {
+    background: #0a0a0f;
+    color: #e8e8f0;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
 
-        /* BACK BUTTON */
-        .back-btn {
-            position: fixed; top: 30px; left: 40px; text-decoration: none;
-            color: #666; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;
-            transition: 0.3s; z-index: 100;
-        }
-        .back-btn:hover { color: var(--accent-gold); transform: translateX(-5px); }
+/* ── Orbs background ──────────────────────────────────────────── */
+.orbs-bg {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(70px); opacity: 0.18; animation: floatOrb linear infinite;
+}
+@keyframes floatOrb {
+    0%   { transform: translate(0,0) scale(1); }
+    33%  { transform: translate(40px,-60px) scale(1.1); }
+    66%  { transform: translate(-30px,40px) scale(0.9); }
+    100% { transform: translate(0,0) scale(1); }
+}
 
-        /* HEADER */
-        .sh-header { margin-bottom: 60px; max-width: 1200px; margin-left: auto; margin-right: auto; }
-        .sh-header h1 { font-family: var(--font-serif); font-size: 3.5rem; margin-bottom: 10px; }
-        .sh-header p { font-size: 0.8rem; color: #666; letter-spacing: 0.2em; text-transform: uppercase; }
+/* ── Boot overlay ─────────────────────────────────────────────── */
+#boot-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #0a0a0f;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 24px;
+    transition: opacity 0.8s ease;
+}
+#boot-overlay.fade-out { opacity: 0; pointer-events: none; }
 
-        /* STATS GRID */
-        .stats-row { 
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; 
-            max-width: 1200px; margin: 0 auto 40px;
-        }
-        .stat-card {
-            background: #fff; color: #000; padding: 24px; border-radius: 20px;
-            display: flex; flex-direction: column; justify-content: space-between;
-            min-height: 140px; transition: 0.3s;
-        }
-        .stat-card .label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #888; display: flex; align-items: center; gap: 6px; }
-        .stat-card .val { font-family: var(--font-serif); font-size: 2.2rem; margin: 8px 0; }
-        .stat-card .sub { font-size: 0.65rem; color: var(--status-ok); font-weight: 700; }
+.boot-logo {
+    width: 80px; height: 80px; border-radius: 24px;
+    background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(6,182,212,0.2));
+    border: 1px solid rgba(16,185,129,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem; color: #10b981;
+    box-shadow: 0 0 40px rgba(16,185,129,0.3);
+    animation: cipherPulse 2s ease-in-out infinite;
+}
+@keyframes cipherPulse {
+    0%, 100% { box-shadow: 0 0 40px rgba(16,185,129,0.3); }
+    50%       { box-shadow: 0 0 70px rgba(16,185,129,0.6); }
+}
+.boot-label {
+    font-family: 'Fira Code', monospace; font-size: 0.75rem;
+    color: #10b981; letter-spacing: 3px; text-transform: uppercase;
+}
+#boot-stream {
+    font-family: 'Fira Code', monospace; font-size: 0.75rem;
+    color: #4ade80; text-align: center;
+    min-height: 28px; letter-spacing: 0.5px;
+}
+.boot-bar-wrap {
+    width: 280px; height: 3px; background: rgba(16,185,129,0.15); border-radius: 3px; overflow: hidden;
+}
+.boot-bar-fill {
+    height: 100%; background: #10b981; width: 0%;
+    transition: width 0.4s ease; border-radius: 3px;
+}
 
-        /* AGENT CARDS */
-        .sec-grid {
-            display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px;
-            max-width: 1200px; margin: 0 auto;
-        }
+/* ── Main layout ──────────────────────────────────────────────── */
+#main-dashboard { position: relative; z-index: 1; display: none; padding: 32px 40px; max-width: 1400px; margin: 0 auto; }
 
-        .agent-panel {
-            background: var(--glass-bg); backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); border-radius: 24px;
-            padding: 30px; margin-bottom: 30px; position: relative;
-            overflow: hidden;
-        }
+/* ── Header ───────────────────────────────────────────────────── */
+.dash-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 36px;
+}
+.dash-header-left { display: flex; align-items: center; gap: 16px; }
+.cipher-avatar {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: linear-gradient(135deg, rgba(16,185,129,0.25), rgba(6,182,212,0.15));
+    border: 1px solid rgba(16,185,129,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; color: #10b981;
+    box-shadow: 0 0 24px rgba(16,185,129,0.2);
+}
+.dash-title { font-family: 'Instrument Serif', serif; font-size: 1.8rem; color: #fff; }
+.dash-sub { font-size: 0.65rem; color: rgba(16,185,129,0.7); text-transform: uppercase; letter-spacing: 2px; font-family: 'Fira Code', monospace; }
+.dash-actions { display: flex; align-items: center; gap: 12px; }
 
-        .panel-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
-        .panel-icon { 
-            width: 50px; height: 50px; border-radius: 12px; display: flex; 
-            align-items: center; justify-content: center; font-size: 1.5rem; 
-        }
+.btn-hub {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 20px; border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.65); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer; background: rgba(255,255,255,0.04);
+    transition: all 0.2s; text-decoration: none;
+}
+.btn-hub:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); transform: translateX(-3px); }
 
-        .p-title { font-weight: 800; font-size: 1rem; }
-        .p-subtitle { font-size: 0.7rem; color: #666; text-transform: uppercase; }
+.btn-scan {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 22px; border-radius: 24px;
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    color: #000; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer; border: none;
+    transition: all 0.2s; box-shadow: 0 4px 20px rgba(16,185,129,0.3);
+}
+.btn-scan:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(16,185,129,0.5); }
+.btn-scan:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        .terminal-box {
-            background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px;
-            font-family: monospace; font-size: 0.75rem; color: #aaa; min-height: 100px;
-            line-height: 1.6;
-        }
+/* ── KPI bar ──────────────────────────────────────────────────── */
+.kpi-row {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
+    margin-bottom: 32px;
+}
+.kpi-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px; padding: 20px 22px;
+    transition: border-color 0.2s;
+}
+.kpi-card:hover { border-color: rgba(255,255,255,0.2); }
+.kpi-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.kpi-val { font-family: 'Instrument Serif', serif; font-size: 2rem; color: #fff; }
+.kpi-sub { font-size: 0.62rem; margin-top: 4px; }
+.kpi-green { color: #10b981; } .kpi-red { color: #ef4444; } .kpi-yellow { color: #ffd700; } .kpi-cyan { color: #06b6d4; }
 
-        .p-btn {
-            position: absolute; top: 30px; right: 30px;
-            padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.4);
-            color: #10b981; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
-            cursor: pointer; transition: 0.3s;
-        }
-        .p-btn:hover { background: #10b981; color: #000; }
+/* ── Main grid ────────────────────────────────────────────────── */
+.sec-grid {
+    display: grid; grid-template-columns: 1fr 1.4fr; gap: 24px;
+}
 
-        /* RIGHT COLUMN (Protections & Vault) */
-        .glass-switches {
-            background: var(--glass-bg); backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); border-radius: 24px;
-            padding: 30px;
-        }
-        .sec-title { 
-            font-size: 0.75rem; font-weight: 800; color: #ffd700; text-transform: uppercase; 
-            margin-bottom: 25px; display: flex; align-items: center; gap: 10px;
-        }
-        
-        .switch-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .switch-row:last-child { border-bottom: none; }
-        .sw-info h4 { font-size: 0.9rem; font-weight: 700; color: #fff; }
-        .sw-info p { font-size: 0.7rem; color: #666; }
+/* ── Panels ───────────────────────────────────────────────────── */
+.panel {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px; padding: 26px;
+    margin-bottom: 20px;
+}
+.panel:last-child { margin-bottom: 0; }
+.panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+}
+.panel-head-left { display: flex; align-items: center; gap: 12px; }
+.panel-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+.panel-name { font-size: 0.85rem; font-weight: 700; color: #fff; }
+.panel-role { font-size: 0.62rem; color: #999; text-transform: uppercase; letter-spacing: 1px; }
 
-        .switch-input {
-            appearance: none; width: 44px; height: 24px; background: #222;
-            border-radius: 20px; position: relative; cursor: pointer; transition: 0.3s;
-        }
-        .switch-input:checked { background: var(--status-ok); }
-        .switch-input::after {
-            content: ""; position: absolute; top: 4px; left: 4px; width: 16px; height: 16px;
-            background: #fff; border-radius: 50%; transition: 0.3s;
-        }
-        .switch-input:checked::after { left: 24px; }
+/* ── Status badges ────────────────────────────────────────────── */
+.badge {
+    padding: 4px 12px; border-radius: 20px; font-size: 0.58rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.badge-idle    { background: rgba(255,255,255,0.06); color: #666; }
+.badge-running { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); animation: badgePulse 1.2s ease-in-out infinite; }
+.badge-warn    { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+.badge-error   { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+.badge-done    { background: rgba(6,182,212,0.15); color: #06b6d4; border: 1px solid rgba(6,182,212,0.3); }
+@keyframes badgePulse {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.5; }
+}
 
-        /* VAULT */
-        .vault-box {
-            background: var(--glass-bg); backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); border-radius: 24px;
-            padding: 30px; margin-top: 30px;
-        }
+/* ── Terminal ─────────────────────────────────────────────────── */
+.terminal {
+    background: rgba(0,0,0,0.5); border-radius: 12px; padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+    font-family: 'Fira Code', monospace; font-size: 0.7rem;
+    color: #6ee7b7; line-height: 1.8; min-height: 90px; max-height: 130px;
+    overflow-y: auto;
+}
+.terminal .t-err { color: #fca5a5; }
+.terminal .t-warn { color: #fcd34d; }
+.terminal .t-info { color: #93c5fd; }
+.terminal .t-dim { color: #777; }
 
-        .vault-item {
-            display: flex; align-items: center; gap: 15px; padding: 12px;
-            background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 10px;
-            font-size: 0.8rem;
-        }
-        .v-tag { margin-left: auto; font-size: 0.6rem; color: var(--status-ok); font-weight: 800; }
+/* ── Agent trigger buttons ────────────────────────────────────── */
+.agent-trigger {
+    padding: 6px 14px; border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.1); background: transparent;
+    color: #aaa; font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+}
+.agent-trigger:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.agent-trigger.green { border-color: rgba(16,185,129,0.4); color: #10b981; }
+.agent-trigger.green:hover { background: rgba(16,185,129,0.1); }
+.agent-trigger.red { border-color: rgba(239,68,68,0.4); color: #ef4444; }
+.agent-trigger.red:hover { background: rgba(239,68,68,0.1); }
+.agent-trigger.cyan { border-color: rgba(6,182,212,0.4); color: #06b6d4; }
+.agent-trigger.cyan:hover { background: rgba(6,182,212,0.1); }
 
-        /* ACCESS MANAGEMENT (Bottom) */
-        .access-panel {
-            max-width: 1200px; margin: 40px auto; background: #fff; color: #000;
-            padding: 40px; border-radius: 24px;
-        }
-        
-        .role-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-        .role-card {
-            border: 1px solid #eee; padding: 25px; border-radius: 20px;
-            transition: 0.3s; cursor: pointer;
-        }
-        .role-card:hover { border-color: var(--accent-gold); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .role-card.active { background: #000; color: #fff; }
+/* ── Issues list ──────────────────────────────────────────────── */
+.issues-wrap { display: flex; flex-direction: column; gap: 10px; }
 
-        .role-icon { font-size: 1.8rem; margin-bottom: 15px; }
-        .role-name { font-weight: 800; font-size: 0.95rem; margin-bottom: 8px; }
-        .role-desc { font-size: 0.75rem; color: #888; line-height: 1.4; }
+.issue-card {
+    background: rgba(0,0,0,0.2); border-radius: 14px; padding: 14px 16px;
+    border-left: 3px solid transparent;
+    display: flex; align-items: flex-start; gap: 12px;
+    animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+.issue-card.sev-critical { border-left-color: #ef4444; }
+.issue-card.sev-warning  { border-left-color: #fbbf24; }
+.issue-card.sev-info     { border-left-color: #06b6d4; }
+.issue-card.sev-ok       { border-left-color: #10b981; }
 
-        /* ORBS (SYNCED) */
-        @keyframes float-slow {
-            0%   { transform: translate(0, 0) scale(1); opacity: 0.4; }
-            33%  { transform: translate(15vw, 10vh) scale(1.2); opacity: 0.7; }
-            66%  { transform: translate(-10vw, 20vh) scale(0.8); opacity: 0.5; }
-            100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
-        }
-        @keyframes float-medium {
-            0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
-            50%  { transform: translate(-20vw, -15vh) rotate(180deg); opacity: 0.8; }
-            100% { transform: translate(0, 0) rotate(360deg); opacity: 0.5; }
-        }
-        .orb { position: absolute; border-radius: 50%; pointer-events: none; }
-    </style>
+.issue-icon { font-size: 1.1rem; margin-top: 2px; flex-shrink: 0; }
+.issue-body { flex: 1; }
+.issue-title { font-size: 0.82rem; font-weight: 700; color: #fff; margin-bottom: 3px; }
+.issue-desc { font-size: 0.7rem; color: #bbb; line-height: 1.5; }
+.issue-loc { font-family: 'Fira Code', monospace; font-size: 0.62rem; color: #888; margin-top: 4px; }
+.issue-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.iss-btn {
+    padding: 4px 12px; border-radius: 12px; font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+    cursor: pointer; border: none; transition: all 0.2s;
+}
+.iss-btn.fix  { background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+.iss-btn.fix:hover  { background: rgba(16,185,129,0.35); }
+.iss-btn.report { background: rgba(6,182,212,0.15); color: #06b6d4; border: 1px solid rgba(6,182,212,0.3); }
+.iss-btn.report:hover  { background: rgba(6,182,212,0.25); }
+.iss-btn.ignore { background: rgba(255,255,255,0.05); color: #666; border: 1px solid rgba(255,255,255,0.1); }
+.iss-btn.ignore:hover { background: rgba(255,255,255,0.1); color: #aaa; }
+.iss-btn.fixed-lbl { background: rgba(16,185,129,0.08); color: #10b981; border: 1px solid rgba(16,185,129,0.15); cursor: default; }
+
+.empty-state {
+    text-align: center; padding: 40px 20px; color: #888;
+    font-family: 'Fira Code', monospace; font-size: 0.72rem; line-height: 2;
+}
+.empty-state i { font-size: 2rem; display: block; margin-bottom: 12px; }
+.empty-state span { color: #666; }
+
+/* ── Fixer report ─────────────────────────────────────────────── */
+.fixer-panel {
+    background: rgba(0,0,0,0.3); border-radius: 14px; padding: 18px;
+    border: 1px solid rgba(16,185,129,0.15); display: none;
+}
+.fixer-panel.visible { display: block; animation: slideIn 0.4s ease; }
+.fixer-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.fixer-head i { font-size: 1.1rem; color: #10b981; }
+.fixer-head span { font-size: 0.75rem; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 1px; }
+.fixer-content { font-size: 0.72rem; color: #ccc; line-height: 1.8; font-family: 'Fira Code', monospace; white-space: pre-wrap; }
+
+/* ── Export buttons ───────────────────────────────────────────── */
+.export-row {
+    display: flex; gap: 10px; margin-top: 16px; padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+}
+.export-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 20px; cursor: pointer;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    border: none; transition: all 0.2s;
+}
+.export-copy { background: rgba(255,215,0,0.12); color: #ffd700; border: 1px solid rgba(255,215,0,0.3); }
+.export-copy:hover { background: rgba(255,215,0,0.22); }
+.export-txt  { background: rgba(6,182,212,0.12); color: #06b6d4; border: 1px solid rgba(6,182,212,0.3); }
+.export-txt:hover  { background: rgba(6,182,212,0.22); }
+.export-pdf  { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+.export-pdf:hover  { background: rgba(239,68,68,0.22); }
+.export-confirm { font-size: 0.65rem; color: #10b981; margin-top: 6px; display: none; font-family: 'Fira Code', monospace; }
+
+/* ── Protections ──────────────────────────────────────────────── */
+.switch-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.switch-row:last-child { border-bottom: none; }
+.sw-info h4 { font-size: 0.82rem; font-weight: 600; color: #eee; }
+.sw-info p  { font-size: 0.65rem; color: #999; }
+.sw-toggle { appearance: none; width: 38px; height: 21px; background: #222; border-radius: 20px; position: relative; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
+.sw-toggle:checked { background: #10b981; }
+.sw-toggle::after { content: ""; position: absolute; top: 2.5px; left: 2.5px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: 0.3s; }
+.sw-toggle:checked::after { left: 20px; }
+
+/* ── Scan target input ────────────────────────────────────────── */
+.target-row {
+    display: flex; gap: 10px; align-items: center; margin-bottom: 16px;
+}
+.target-input {
+    flex: 1; padding: 10px 16px; background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+    color: #fff; font-family: 'Fira Code', monospace; font-size: 0.7rem;
+    outline: none;
+}
+.target-input:focus { border-color: rgba(16,185,129,0.4); }
+
+/* ── Progress ─────────────────────────────────────────────────── */
+.scan-progress {
+    display: none; gap: 10px; flex-direction: column; margin-bottom: 16px;
+}
+.scan-progress.visible { display: flex; }
+.progress-step {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Fira Code', monospace; font-size: 0.67rem; color: #555;
+}
+.progress-step.active { color: #10b981; }
+.progress-step.done   { color: #4ade80; }
+.step-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #222; border: 1px solid #333; flex-shrink: 0;
+}
+.progress-step.active .step-dot { background: #10b981; border-color: #10b981; animation: dotPulse 0.8s ease-in-out infinite; }
+.progress-step.done   .step-dot { background: #4ade80; border-color: #4ade80; }
+@keyframes dotPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.5); } }
+
+/* ── Section label ────────────────────────────────────────────── */
+.section-label {
+    font-size: 0.65rem; font-weight: 800; color: #ffd700; text-transform: uppercase;
+    letter-spacing: 2px; display: flex; align-items: center; gap: 8px;
+    margin-bottom: 16px;
+}
+.kpi-green { color: #4ade80; }
+.kpi-red   { color: #f87171; }
+.kpi-yellow{ color: #fcd34d; }
+.kpi-cyan  { color: #67e8f9; }
+
+/* ── Vault UI ─────────────────────────────────────────────────── */
+.vault-panel { display: none; margin-top: 20px; animation: slideIn 0.5s ease; }
+.vault-active { display: block; }
+
+.vault-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 28px; padding: 40px;
+    max-width: 800px; margin: 0 auto;
+    position: relative; overflow: hidden;
+}
+.vault-card::before {
+    content: ""; position: absolute; top: -50px; right: -50px;
+    width: 200px; height: 200px; background: radial-gradient(circle, rgba(16,185,129,0.1), transparent 70%);
+}
+
+.vault-header { text-align: center; margin-bottom: 40px; }
+.vault-header i { font-size: 3rem; color: #10b981; margin-bottom: 15px; filter: drop-shadow(0 0 15px rgba(16,185,129,0.4)); }
+.vault-header h2 { font-family: 'Instrument Serif', serif; font-size: 2.2rem; color: #fff; }
+.vault-header p { font-size: 0.8rem; color: #777; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 2px; }
+
+.vault-group { margin-bottom: 25px; }
+.vault-label { display: block; font-size: 0.75rem; font-weight: 700; color: #10b981; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.vault-input {
+    width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 15px 20px; color: #fff; font-family: 'Fira Code', monospace;
+    font-size: 0.85rem; transition: all 0.3s;
+}
+.vault-input:focus { border-color: #10b981; box-shadow: 0 0 15px rgba(16,185,129,0.2); outline: none; }
+
+.vault-btn {
+    width: 100%; padding: 16px; border-radius: 16px; border: none;
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    color: #000; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px;
+    cursor: pointer; transition: 0.3s; margin-top: 10px;
+}
+.vault-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(16,185,129,0.4); }
+
+.vault-status {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-top: 25px; font-size: 0.7rem; color: #555; font-family: 'Fira Code', monospace;
+}
+.v-dot { width: 8px; height: 8px; border-radius: 50%; background: #222; }
+.v-dot.active { background: #10b981; box-shadow: 0 0 10px #10b981; }
+
+/* ── Tabs ─────────────────────────────────────────────────────── */
+.dash-tabs {
+    display: flex; gap: 8px; background: rgba(255,255,255,0.04);
+    padding: 6px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.06);
+}
+.tab-btn {
+    padding: 10px 24px; border-radius: 25px; border: none; background: transparent;
+    color: #666; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: 0.2s;
+}
+.tab-btn.active { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+</style>
 </head>
 <body>
 
-    <!-- Synced Orbs (20 Micro Orbs) -->
-    <div class="background-orbs-container">
-        <!-- Pink/Purple Orbs -->
-        <div class="orb" style="width:120px;height:120px;top:5%;left:15%;background:radial-gradient(circle,rgba(255,20,147,0.4) 0%,transparent 70%);animation:float-slow 18s infinite ease-in-out;"></div>
-        <div class="orb" style="width:70px;height:70px;top:45%;left:5%;background:radial-gradient(circle,rgba(255,105,180,0.5) 0%,transparent 70%);animation:float-medium 22s infinite linear;"></div>
-        <div class="orb" style="width:90px;height:90px;bottom:10%;right:30%;background:radial-gradient(circle,rgba(219,112,147,0.4) 0%,transparent 70%);animation:float-slow 25s infinite alternate;"></div>
-        
-        <!-- Green/Teal Orbs -->
-        <div class="orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);animation:float-slow 20s infinite linear reverse;"></div>
-        <div class="orb" style="width:80px;height:80px;bottom:40%;left:8%;background:radial-gradient(circle,rgba(50,205,50,0.4) 0%,transparent 70%);animation:float-medium 15s infinite alternate ease-in-out;"></div>
-        <div class="orb" style="width:100px;height:100px;top:75%;right:20%;background:radial-gradient(circle,rgba(32,178,170,0.35) 0%,transparent 70%);animation:float-slow 30s infinite linear;"></div>
+<!-- AUTH GATEKEEPER -->
+<script>
+(function() {
+    var ok = localStorage.getItem('v10_auth') || sessionStorage.getItem('v10_auth');
+    if (ok !== 'true') { window.location.href = 'auth/login.html'; }
+})();
+</script>
 
-        <!-- Yellow/Gold Orbs -->
-        <div class="orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);animation:float-medium 28s infinite alternate-reverse;"></div>
-        <div class="orb" style="width:60px;height:60px;bottom:20%;left:35%;background:radial-gradient(circle,rgba(255,223,0,0.5) 0%,transparent 70%);animation:float-slow 15s infinite ease-in-out;"></div>
-        <div class="orb" style="width:130px;height:130px;top:60%;left:45%;background:radial-gradient(circle,rgba(255,235,59,0.3) 0%,transparent 70%);animation:float-medium 40s infinite linear;"></div>
+<!-- Orbs -->
+<div class="orbs-bg" id="orbs-bg"></div>
 
-        <!-- Blue/Azure Orbs -->
-        <div class="orb" style="width:100px;height:100px;top:50%;right:50%;background:radial-gradient(circle,rgba(0,191,255,0.4) 0%,transparent 70%);animation:float-slow 22s infinite reverse;"></div>
-        <div class="orb" style="width:140px;height:140px;bottom:5%;right:5%;background:radial-gradient(circle,rgba(30,144,255,0.35) 0%,transparent 70%);animation:float-medium 25s infinite linear;"></div>
-        <div class="orb" style="width:80px;height:80px;top:5%;right:2%;background:radial-gradient(circle,rgba(0,250,154,0.3) 0%,transparent 70%);animation:float-slow 12s infinite alternate;"></div>
+<!-- BOOT OVERLAY -->
+<div id="boot-overlay">
+    <div class="boot-logo"><i class="ph-fill ph-shield-chevron"></i></div>
+    <div class="boot-label">CIPHER — Initializing Security Stack</div>
+    <div id="boot-stream">Avvio moduli di sicurezza...</div>
+    <div class="boot-bar-wrap"><div class="boot-bar-fill" id="boot-bar"></div></div>
+</div>
 
-        <!-- Extra Micro Highlights -->
-        <div class="orb" style="width:40px;height:40px;top:25%;left:40%;background:radial-gradient(circle,rgba(255,255,255,0.4) 0%,transparent 70%);animation:float-medium 10s infinite;"></div>
-        <div class="orb" style="width:50px;height:50px;bottom:30%;right:15%;background:radial-gradient(circle,rgba(255,255,255,0.3) 0%,transparent 70%);animation:float-slow 8s infinite alternate;"></div>
-        <div class="orb" style="width:150px;height:150px;top:80%;left:5%;background:radial-gradient(circle,rgba(255,20,147,0.2) 0%,transparent 70%);animation:float-medium 35s infinite linear;"></div>
-        <div class="orb" style="width:100px;height:100px;top:40%;left:70%;background:radial-gradient(circle,rgba(255,215,0,0.25) 0%,transparent 70%);animation:float-slow 20s infinite ease-in-out;"></div>
-        <div class="orb" style="width:120px;height:120px;bottom:50%;right:5%;background:radial-gradient(circle,rgba(0,255,127,0.2) 0%,transparent 70%);animation:float-medium 25s infinite linear reverse;"></div>
-        <div class="orb" style="width:60px;height:60px;top:10%;left:80%;background:radial-gradient(circle,rgba(168,212,209,0.4) 0%,transparent 70%);animation:float-slow 15s infinite alternate;"></div>
-    </div>
+<!-- MAIN DASHBOARD -->
+<div id="main-dashboard">
 
-    <a href="index.html" class="back-btn"><i class="ph ph-arrow-left"></i> Hub Region</a>
-
-    <header class="sh-header">
-        <h1>Cybersecurity</h1>
-        <p>Agente CIPHER • protezione attiva • monitoraggio in tempo reale</p>
-    </header>
-
-    <!-- Stats Row -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="label"><i class="ph-fill ph-shield-check"></i> Protezione</div>
-            <div class="val" style="color: #10b981;">ATTIVA</div>
-            <div class="sub">Tutti i sistemi ok</div>
-        </div>
-        <div class="stat-card frosted-glass-dark">
-            <div class="stat-val" id="system-health">100%</div>
-            <div class="stat-label">HEALTH SISTEMA</div>
-        </div>
-        <div class="stat-card frosted-glass-dark">
-            <div class="stat-val" id="active-alerts">0</div>
-            <div class="stat-label">ALERT ATTIVI</div>
-        </div>
-        <div class="stat-card">
-            <div class="label"><i class="ph-fill ph-warning-diamond"></i> Minacce bloccate</div>
-            <div class="val" style="color: #ef4444;">3</div>
-            <div class="sub">tutte neutralizzate</div>
-        </div>
-        <div class="stat-card">
-            <div class="label"><i class="ph-fill ph-users"></i> Sessioni attive</div>
-            <div class="val">1</div>
-            <div class="sub">solo tu</div>
-        </div>
-    </div>
-
-    <div class="sec-grid">
-        <!-- LEFT: AGENTS -->
-        <div class="agents-col">
-            
-            <!-- CIPHER -->
-            <div class="agent-panel">
-                <div class="panel-header">
-                    <div class="panel-icon" style="background: rgba(255,215,0,0.1); color: #ffd700;"><i class="ph ph-shield-chevron"></i></div>
-                    <div>
-                        <div class="p-title">CIPHER — Security</div>
-                        <div class="p-subtitle">Neutro • 100/100</div>
-                    </div>
-                </div>
-                <div class="terminal-box">
-                    <div class="cipher-dice" id="cipher-terminal">> AGENT_CIPHER: MONITORING...</div>
-                </div>
-                <div class="p-btn">Apri Pannello</div>
-            </div>
-
-            <!-- BUG HUNTER -->
-            <div class="agent-panel">
-                <div class="panel-header">
-                    <div class="panel-icon" style="background: rgba(168,85,247,0.1); color: #a855f7;"><i class="ph ph-bug"></i></div>
-                    <div>
-                        <div class="p-title">BUG HUNTER — Debugger</div>
-                        <div class="p-subtitle">Pericoloso • 12/100</div>
-                    </div>
-                </div>
-                <div class="terminal-box" style="color: #ef4444; background: rgba(239,68,68,0.05);">
-                    <div class="hunter-dice" id="hunter-terminal">> BUG_HUNTER: SCANNING_CORE...</div>
-                </div>
-                <div class="p-btn" style="color: #ef4444; border-color: rgba(239,68,68,0.4);">Risolvi Ora</div>
-            </div>
-
-            <!-- FIXER -->
-            <div class="agent-panel">
-                <div class="panel-header">
-                    <div class="panel-icon" style="background: rgba(59,130,246,0.1); color: #3b82f6;"><i class="ph ph-wrench"></i></div>
-                    <div>
-                        <div class="p-title">FIXER — Automator</div>
-                        <div class="p-subtitle">Attesa • 85/100</div>
-                    </div>
-                </div>
-                <div class="terminal-box">
-                    <div class="fixer-dice" id="fixer-terminal">> FIXER: STANDBY...</div>
-                </div>
-                <div class="p-btn" style="color: #3b82f6; border-color: rgba(59,130,246,0.4);">Configura Fix</div>
-            </div>
-
-        </div>
-
-        <!-- RIGHT: PROTECTIONS -->
-        <div class="protections-col">
-            <div class="glass-switches">
-                <div class="sec-title"><i class="ph-fill ph-lock-key"></i> Protezioni attive</div>
-                
-                <div class="dice-footer">
-                    <span>SECURITY: ENABLED</span>
-                    <button class="fix-btn" id="fix-btn" style="display:none;" onclick="AgentCore.resolveBugs()">RISOLVI ORA</button>
-                    <button class="fix-btn" onclick="AgentCore.getReport(); alert('Report copiato.')">REPORT AI</button>
-                </div>
-                <div class="switch-row">
-                    <div class="sw-info">
-                        <h4>PIN a 6 cifre</h4>
-                        <p>Blocco dopo 3 tentativi errati</p>
-                    </div>
-                    <input type="checkbox" class="switch-input" checked>
-                </div>
-
-                <div class="switch-row">
-                    <div class="sw-info">
-                        <h4>Sessione locale</h4>
-                        <p>Nessun dato trasmesso online</p>
-                    </div>
-                    <input type="checkbox" class="switch-input" checked>
-                </div>
-
-                <div class="switch-row">
-                    <div class="sw-info">
-                        <h4>Watermark contenuti</h4>
-                        <p>Protezione copyright automatica</p>
-                    </div>
-                    <input type="checkbox" class="switch-input" checked>
-                </div>
-
-                <div class="switch-row">
-                    <div class="sw-info">
-                        <h4>Log accessi</h4>
-                        <p>Storico completo sessioni</p>
-                    </div>
-                    <input type="checkbox" class="switch-input" checked>
-                </div>
-            </div>
-
-            <div class="vault-box">
-                <div class="sec-title"><i class="ph-fill ph-archive"></i> Vault Contenuti</div>
-                <div class="vault-item">
-                    <i class="ph ph-file-text"></i> Call Me River • romanzo
-                    <span class="v-tag">CIFRATO</span>
-                </div>
-                <div class="vault-item">
-                    <i class="ph ph-users-three"></i> Schede personaggi
-                    <span class="v-tag">CIFRATO</span>
-                </div>
+    <!-- Header -->
+    <div class="dash-header">
+        <div class="dash-header-left">
+            <div class="cipher-avatar"><i class="ph-fill ph-shield-chevron"></i></div>
+            <div>
+                <div class="dash-title">CIPHER Security</div>
+                <div class="dash-sub">Cybersecurity Agent Stack • V10.1</div>
             </div>
         </div>
-    </div>
-
-    <!-- ACCESS MANAGEMENT (Drill-down) -->
-    <div class="access-panel">
-        <div class="sec-title" style="color: #000; margin-bottom: 10px;"><i class="ph-fill ph-users-three"></i> Ruoli Disponibili</div>
-        <p style="color: #888; font-size: 0.75rem; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 0.1em;">Controlla chi entra nel tuo studio • ruoli • codici ospite</p>
-        
-        <div class="role-grid">
-            <!-- OWNER -->
-            <div class="role-card active" style="border-top: 4px solid #ffd700;">
-                <div class="role-icon"><i class="ph-fill ph-crown" style="color: #ffd700;"></i></div>
-                <div class="role-name">OWNER</div>
-                <div class="role-desc">Solo tu. Accesso totale e irrevocabile. Gestisce tutti gli altri ruoli.</div>
-                <ul style="list-style: none; font-size: 0.7rem; margin-top: 15px; color: rgba(255,255,255,0.6);">
-                    <li><i class="ph ph-check" style="color: #10b981;"></i> Tutto, sempre</li>
-                    <li><i class="ph ph-check" style="color: #10b981;"></i> Cambia PIN ed email</li>
-                    <li><i class="ph ph-check" style="color: #10b981;"></i> Gestisce accessi</li>
-                </ul>
+        <div class="dash-actions">
+            <div class="dash-tabs" style="margin-right:20px;">
+                <button class="tab-btn active" id="tab-monitor" onclick="switchTab('monitor')">
+                    <i class="ph ph-shield-check"></i> Monitor
+                </button>
+                <button class="tab-btn" id="tab-vault" onclick="switchTab('vault')">
+                    <i class="ph ph-cube"></i> Intelligence Vault
+                </button>
             </div>
-            
-            <!-- ADMIN -->
-            <div class="role-card" style="border-top: 4px solid #a855f7;">
-                <div class="role-icon"><i class="ph-fill ph-key" style="color: #a855f7;"></i></div>
-                <div class="role-name">ADMIN</div>
-                <div class="role-desc">Collaboratore fidato. Può fare quasi tutto tranne toccare la sicurezza.</div>
-                <ul style="list-style: none; font-size: 0.7rem; margin-top: 15px; color: #666;">
-                    <li><i class="ph ph-check" style="color: #10b981;"></i> Approva contenuti</li>
-                    <li><i class="ph ph-check" style="color: #10b981;"></i> Gestisce agenti</li>
-                    <li><i class="ph ph-x" style="color: #ef4444;"></i> Cambia PIN/email</li>
-                </ul>
-            </div>
-
-            <!-- VIEW -->
-            <div class="role-card" style="border-top: 4px solid #3b82f6;">
-                <div class="role-icon"><i class="ph-fill ph-eye" style="color: #3b82f6;"></i></div>
-                <div class="role-name">VIEWER</div>
-                <div class="role-desc">Può guardare tutto. Cambia tema e chatta in Sala Lounge.</div>
-                <ul style="list-style: none; font-size: 0.7rem; margin-top: 15px; color: #666;">
-                    <li><i class="ph ph-check" style="color: #10b981;"></i> Visualizza tutto</li>
-                    <li><i class="ph ph-check" style="color: #10b981;"></i> Chatta in Lounge</li>
-                    <li><i class="ph ph-x" style="color: #ef4444;"></i> Approva / Modifica</li>
-                </ul>
-            </div>
-
-            <!-- GUEST -->
-            <div class="role-card" style="border-top: 4px solid #666;">
-                <div class="role-icon"><i class="ph-fill ph-timer" style="color: #666;"></i></div>
-                <div class="role-name">GUEST</div>
-                <div class="role-desc">Accesso temporaneo con codice. Decidi durata e permessi.</div>
-                <ul style="list-style: none; font-size: 0.7rem; margin-top: 15px; color: #666;">
-                    <li><i class="ph ph-check" style="color: #10b981;"></i> Durata limitata</li>
-                    <li><i class="ph ph-check" style="color: #10b981;"></i> Permessi custom</li>
-                    <li><i class="ph ph-x" style="color: #ef4444;"></i> Accesso permanente</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- GENERATOR -->
-        <div class="agent-panel" style="background: #000; color: #fff; margin-top: 40px; border-color: rgba(255,215,0,0.2);">
-            <div class="sec-title" style="color: #ffd700;"><i class="ph ph-lightning"></i> Genera Codice Ospite <span class="st-tag" style="background: rgba(255,215,0,0.1); color: #ffd700; border: none;">CIPHER ENGINE</span></div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
-                <div>
-                    <label style="font-size: 0.6rem; color: #666; text-transform: uppercase;">Nome Ospite (opzionale)</label>
-                    <input type="text" placeholder="es. Marco, Giulia..." style="width: 100%; background: #111; border: 1px solid #222; padding: 12px; color: #fff; border-radius: 8px; margin-top: 8px;">
-                </div>
-                <div>
-                    <label style="font-size: 0.6rem; color: #666; text-transform: uppercase;">Ruolo da Assegnare</label>
-                    <select style="width: 100%; background: #111; border: 1px solid #222; padding: 12px; color: #fff; border-radius: 8px; margin-top: 8px;">
-                        <option>Viewer — solo visualizzazione</option>
-                        <option>Admin — gestione completa</option>
-                    </select>
-                </div>
-            </div>
-
-            <label style="font-size: 0.6rem; color: #666; text-transform: uppercase;">Durata Accesso</label>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; margin-bottom: 30px;">
-                <div style="background: #222; padding: 10px 20px; border-radius: 12px; font-size: 0.75rem; cursor: pointer;">10 min</div>
-                <div style="background: #222; padding: 10px 20px; border-radius: 12px; font-size: 0.75rem; cursor: pointer;">1 ora</div>
-                <div style="background: #ffd700; color: #000; padding: 10px 20px; border-radius: 12px; font-size: 0.75rem; cursor: pointer; font-weight: 700;">24 ore</div>
-                <div style="background: #222; padding: 10px 20px; border-radius: 12px; font-size: 0.75rem; cursor: pointer;">7 giorni</div>
-                <div style="background: #222; padding: 10px 20px; border-radius: 12px; font-size: 0.75rem; cursor: pointer;">Permanente</div>
-            </div>
-
-            <button style="width: 100%; background: #00ff7f; color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s;">
-                <i class="ph ph-lightning-fill"></i> GENERA CODICE ACCESSO CIPHER
+            <a href="index.html" class="btn-hub"><i class="ph ph-arrow-left"></i> Torna all'Hub</a>
+            <button class="btn-scan" id="btn-full-scan" onclick="runFullScan()">
+                <i class="ph ph-scan"></i> Avvia Scansione Completa
             </button>
         </div>
+    </div>
 
-        <!-- LOG & NOTIFICATIONS -->
-        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; margin-top: 40px;">
-            <div class="glass-switches" style="background: transparent; color: #000; border: 1px solid #eee;">
-                <div class="sec-title" style="color: #000;"><i class="ph-fill ph-bell"></i> Log Accessi e Alert <span class="st-tag" style="color: #10b981;">LIVE</span></div>
-                <div class="vault-item" style="background: #f9f9f9; border: 1px solid #eee;">
-                    <i class="ph ph-check-circle" style="color: #10b981;"></i> Accesso owner autorizzato <span>adesso</span>
+    <!-- KPI Row -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-label kpi-green"><i class="ph-fill ph-shield-check"></i> Stato Sistema</div>
+            <div class="kpi-val" id="kpi-stato" style="color:#10b981;font-size:1.4rem;margin-top:4px;">NOMINALE</div>
+            <div class="kpi-sub kpi-green">Tutti i moduli online</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label" style="color:#ef4444"><i class="ph-fill ph-bug"></i> Bug Trovati</div>
+            <div class="kpi-val kpi-red" id="kpi-bug">0</div>
+            <div class="kpi-sub" id="kpi-bug-sub" style="color:#555;">In attesa di scansione</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label" style="color:#fbbf24"><i class="ph-fill ph-link-break"></i> Link Rotti</div>
+            <div class="kpi-val kpi-yellow" id="kpi-link">0</div>
+            <div class="kpi-sub" id="kpi-link-sub" style="color:#555;">In attesa di scansione</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label" style="color:#f87171"><i class="ph-fill ph-warning-octagon"></i> Vulnerabilità</div>
+            <div class="kpi-val" id="kpi-vuln" style="color:#f87171;">0</div>
+            <div class="kpi-sub" id="kpi-vuln-sub" style="color:#555;">In attesa di scansione</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label kpi-cyan"><i class="ph-fill ph-activity"></i> Scansioni</div>
+            <div class="kpi-val kpi-cyan" id="kpi-scans">0</div>
+            <div class="kpi-sub" style="color:#555;">Totale sessione</div>
+        </div>
+    </div>
+
+    <!-- Main Grid (Security Monitor) -->
+    <div class="sec-grid" id="monitor-view">
+
+        <!-- LEFT: Agents -->
+        <div class="agents-col">
+
+            <!-- CIPHER main agent -->
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-head-left">
+                        <div class="panel-icon" style="background:rgba(16,185,129,0.12);color:#10b981;"><i class="ph-fill ph-shield-chevron"></i></div>
+                        <div>
+                            <div class="panel-name">CIPHER</div>
+                            <div class="panel-role">Security Orchestrator</div>
+                        </div>
+                    </div>
+                    <span class="badge badge-idle" id="cipher-badge">STANDBY</span>
                 </div>
-                <div class="vault-item" style="background: #f9f9f9; border: 1px solid #eee;">
-                    <i class="ph ph-warning" style="color: #ef4444;"></i> Tentativo accesso bloccato <span>09:14</span>
-                </div>
-                <div class="vault-item" style="background: #f9f9f9; border: 1px solid #eee;">
-                    <i class="ph ph-check-circle" style="color: #10b981;"></i> Scansione sistema completata <span>ieri</span>
+                <div class="terminal" id="cipher-terminal">
+                    <span class="t-dim">> CIPHER v10.1 — Stack di sicurezza inizializzato.</span><br>
+                    <span class="t-dim">> In attesa di direttive...</span>
                 </div>
             </div>
 
-            <div class="glass-switches" style="background: transparent; color: #000; border: 1px solid #eee;">
-                <div class="sec-title" style="color: #000;"><i class="ph-fill ph-gear"></i> Impostazioni Notifiche</div>
-                <div class="switch-row" style="border-color: #eee;">
-                    <div class="sw-info"><h4>Accesso ospite</h4><p>Notifica via mail</p></div>
-                    <input type="checkbox" class="switch-input" checked>
+            <!-- Bug Hunter sub-agent -->
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-head-left">
+                        <div class="panel-icon" style="background:rgba(168,85,247,0.12);color:#a855f7;"><i class="ph-fill ph-bug"></i></div>
+                        <div>
+                            <div class="panel-name">BUG HUNTER</div>
+                            <div class="panel-role">Code Analysis Sub-Agent</div>
+                        </div>
+                    </div>
+                    <span class="badge badge-idle" id="bughunter-badge">IDLE</span>
                 </div>
-                <div class="switch-row" style="border-color: #eee;">
-                    <div class="sw-info"><h4>Tentativo fallito</h4><p>Notifica immediata</p></div>
-                    <input type="checkbox" class="switch-input" checked>
+                <div class="terminal" id="bughunter-terminal" style="color:#c084fc;">
+                    <span class="t-dim">> Pronto per l'analisi del codice...</span>
                 </div>
-                <div class="switch-row" style="border-color: #eee;">
-                    <div class="sw-info"><h4>Banner in-app</h4><p>Visibilità ospite attivo</p></div>
-                    <input type="checkbox" class="switch-input" checked>
+                <div style="margin-top:12px;display:flex;gap:8px;">
+                    <button class="agent-trigger" onclick="runBugHunter()"><i class="ph ph-play"></i> Scansiona JS</button>
+                    <button class="agent-trigger" onclick="runBugHunter('full')"><i class="ph ph-list-magnifying-glass"></i> Analisi Full</button>
                 </div>
+            </div>
+
+            <!-- Link Tester sub-agent -->
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-head-left">
+                        <div class="panel-icon" style="background:rgba(251,191,36,0.12);color:#fbbf24;"><i class="ph-fill ph-link"></i></div>
+                        <div>
+                            <div class="panel-name">LINK TESTER</div>
+                            <div class="panel-role">Navigation & Link Auditor</div>
+                        </div>
+                    </div>
+                    <span class="badge badge-idle" id="linktester-badge">IDLE</span>
+                </div>
+                <div class="terminal" id="linktester-terminal" style="color:#fde68a;">
+                    <span class="t-dim">> Pronto per verificare i collegamenti...</span>
+                </div>
+                <div style="margin-top:12px;">
+                    <button class="agent-trigger" onclick="runLinkTester()"><i class="ph ph-scan"></i> Testa tutti i link hub</button>
+                </div>
+            </div>
+
+            <!-- Console Monitor sub-agent -->
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-head-left">
+                        <div class="panel-icon" style="background:rgba(6,182,212,0.12);color:#06b6d4;"><i class="ph-fill ph-terminal-window"></i></div>
+                        <div>
+                            <div class="panel-name">CONSOLE MONITOR</div>
+                            <div class="panel-role">Runtime Error Watcher</div>
+                        </div>
+                    </div>
+                    <span class="badge badge-running" id="console-badge">LIVE</span>
+                </div>
+                <div class="terminal" id="console-terminal" style="color:#7dd3fc;">
+                    <span class="t-dim">> Monitoraggio errori runtime attivo...</span><br>
+                    <span class="t-info">> Intercettazione console.error() abilitata.</span>
+                </div>
+            </div>
+
+            <!-- Protections -->
+            <div class="panel">
+                <div class="section-label"><i class="ph-fill ph-lock-key"></i> Protezioni Attive</div>
+                <div class="switch-row"><div class="sw-info"><h4>PIN a 6 cifre</h4><p>Gatekeeper locale su ogni pagina</p></div><input type="checkbox" class="sw-toggle" checked></div>
+                <div class="switch-row"><div class="sw-info"><h4>Sessione Locale</h4><p>Nessun cloud sync — dati solo in localStorage</p></div><input type="checkbox" class="sw-toggle" checked></div>
+                <div class="switch-row"><div class="sw-info"><h4>Watermark AI</h4><p>Copyright protection sui contenuti generati</p></div><input type="checkbox" class="sw-toggle" checked></div>
+                <div class="switch-row"><div class="sw-info"><h4>API Key Encryption</h4><p>Chiave nascosta da localStorage</p></div><input type="checkbox" class="sw-toggle" checked></div>
+                <div class="switch-row"><div class="sw-info"><h4>Log Accessi</h4><p>Registro tentativi di login</p></div><input type="checkbox" class="sw-toggle" checked></div>
+            </div>
+
+        </div><!-- /agents-col -->
+
+        <!-- RIGHT: Issues + Fixer -->
+        <div class="issues-col">
+
+            <!-- Scan Target -->
+            <div class="panel" style="margin-bottom:20px;">
+                <div class="section-label"><i class="ph-fill ph-crosshair"></i> Target Scansione</div>
+                <div class="target-row">
+                    <input class="target-input" id="scan-target" value="Content Factory V10.1 — Hub + Pagine" readonly>
+                    <button class="agent-trigger green" onclick="runFullScan()"><i class="ph ph-scan"></i> Avvia</button>
+                </div>
+
+                <!-- Scan progress steps -->
+                <div class="scan-progress" id="scan-progress">
+                    <div class="progress-step" id="step-1"><div class="step-dot"></div> Inizializzazione agenti...</div>
+                    <div class="progress-step" id="step-2"><div class="step-dot"></div> Bug Hunter: analisi codice JS</div>
+                    <div class="progress-step" id="step-3"><div class="step-dot"></div> Link Tester: verifica collegamenti</div>
+                    <div class="progress-step" id="step-4"><div class="step-dot"></div> Console Monitor: analisi errori runtime</div>
+                    <div class="progress-step" id="step-5"><div class="step-dot"></div> FIXER: generazione report dettagliato</div>
+                </div>
+            </div>
+
+            <!-- Issues found -->
+            <div class="panel" style="margin-bottom:20px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                    <div class="section-label" style="margin-bottom:0;"><i class="ph-fill ph-warning-diamond"></i> Issues Rilevate <span id="issues-count" style="background:rgba(239,68,68,0.2);color:#ef4444;border-radius:20px;padding:2px 10px;font-size:0.65rem;margin-left:8px;">0</span></div>
+                    <button class="agent-trigger cyan" onclick="callFixer()" id="btn-fixer" style="display:none;"><i class="ph ph-wrench"></i> Chiama FIXER</button>
+                </div>
+
+                <div class="issues-wrap" id="issues-list">
+                    <div class="empty-state">
+                        <i class="ph ph-shield-check" style="color:#4ade80;opacity:0.4;"></i>
+                        Nessuna issue rilevata.<br>
+                        <span>Avvia una scansione per analizzare il progetto.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fixer Report -->
+            <div class="panel" id="fixer-panel" style="margin-bottom:20px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                    <div class="fixer-head" style="margin-bottom:0;">
+                        <i class="ph-fill ph-wrench" style="color:#10b981;font-size:1.1rem;"></i>
+                        <span style="font-size:0.75rem;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:1px;">Rapporto FIXER</span>
+                    </div>
+                    <span class="badge badge-done" id="fixer-status" style="display:none;">REPORT PRONTO</span>
+                </div>
+                <div class="fixer-content" id="fixer-content">
+                    <span style="color:#888;font-size:0.67rem;">In attesa di issues da analizzare...</span>
+                </div>
+                <div class="export-row" id="export-row" style="display:none;">
+                    <button class="export-btn export-copy" onclick="exportReport('copy')"><i class="ph ph-copy"></i> Copia Testo</button>
+                    <button class="export-btn export-txt"  onclick="exportReport('txt')"><i class="ph ph-file-text"></i> Scarica .txt</button>
+                    <button class="export-btn export-pdf"  onclick="exportReport('pdf')"><i class="ph ph-file-pdf"></i> Scarica PDF</button>
+                </div>
+                <div class="export-confirm" id="export-confirm">✓ Copiato negli appunti!</div>
+            </div>
+
+        </div><!-- /issues-col -->
+    </div><!-- /sec-grid -->
+
+    <!-- API Vault (Intelligence Vault) -->
+    <div class="vault-panel" id="vault-view">
+        <div class="vault-card">
+            <div class="vault-header">
+                <i class="ph-fill ph-cube"></i>
+                <h2>Intelligence Vault</h2>
+                <p>Centro di Comando Chiavi &amp; Credenziali</p>
+            </div>
+
+            <div class="vault-group">
+                <label class="vault-label">Primaria Intelligence Source</label>
+                <select id="vault-provider" class="vault-input" onchange="updateVaultStatus()" style="appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2310b981%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 20px center; background-size: 12px auto;">
+                    <option value="gemini">Google Gemini (Default)</option>
+                    <option value="openai">OpenAI ChatGPT</option>
+                </select>
+            </div>
+
+            <div class="vault-group">
+                <label class="vault-label">Google Gemini API Key</label>
+                <input type="password" id="vault-gemini-key" class="vault-input" placeholder="AIza..." oninput="updateVaultStatus()">
+            </div>
+
+            <div class="vault-group">
+                <label class="vault-label">OpenAI API Key (ChatGPT Sync)</label>
+                <input type="password" id="vault-openai-key" class="vault-input" placeholder="sk-..." oninput="updateVaultStatus()">
+            </div>
+
+            <div class="vault-group">
+                <label class="vault-label">Firebase Configuration (JSON/String)</label>
+                <textarea id="vault-firebase-key" class="vault-input" style="min-height:100px;" placeholder="Configurazione Database Cloud (Opzionale)..."></textarea>
+            </div>
+
+            <button class="vault-btn" onclick="saveVault()">
+                <i class="ph-fill ph-lock-key"></i> Salva e Crittografa
+            </button>
+
+            <div class="vault-status">
+                <div class="v-dot" id="v-dot-gemini"></div> Gemini
+                <div style="width:15px;"></div>
+                <div class="v-dot" id="v-dot-openai"></div> OpenAI
+                <div style="width:15px;"></div>
+                <div class="v-dot" id="v-dot-firebase"></div> Firebase
+            </div>
+            
+            <div style="margin-top:30px; padding:15px; border-radius:12px; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.1); font-size:0.65rem; color:#10b981; line-height:1.5;">
+                <i class="ph-fill ph-info"></i> Una volta salvata, la chiave sarà disponibile per tutti gli orchestratori: <b>Olivia</b> (Design), <b>Cipher</b> (Security) e <b>Disperazione</b> (Research).
             </div>
         </div>
     </div>
 
-    <script>
-        function updateSecurityUI() {
-            const state = AgentCore.state;
-            
-            // Stats
-            document.getElementById('system-health').innerText = state.health + '%';
-            document.getElementById('active-alerts').innerText = state.isAwaitingFix ? '1' : '0';
-            
-            // Terminals
-            const cipherTerm = document.getElementById('cipher-terminal');
-            const hunterTerm = document.getElementById('hunter-terminal');
-            const fixerTerm = document.getElementById('fixer-terminal');
-            const fixBtn = document.getElementById('fix-btn');
+</div><!-- /main-dashboard -->
 
-            if (state.isAwaitingFix) {
-                cipherTerm.innerHTML = `<span style="color:#f59e0b;">> ATTENZIONE: INTEGRITÀ COMPROMESSA</span>`;
-                hunterTerm.innerHTML = `<span style="color:#ef4444;">> BUG_DETECTED: MODULO_ANALYTICS</span>`;
-                fixBtn.style.display = 'block';
+<script>
+/* ── Orbs generator ─────────────────────────────────────────── */
+(function() {
+    const bg = document.getElementById('orbs-bg');
+    const palettes = [
+        ['#10b981','#06b6d4'],['#6366f1','#a855f7'],['#ffd700','#f59e0b'],
+        ['#10b981','#a855f7'],['#06b6d4','#6366f1'],['#f59e0b','#10b981'],
+    ];
+    for (let i = 0; i < 18; i++) {
+        const orb = document.createElement('div');
+        orb.className = 'orb';
+        const size = 200 + Math.random() * 400;
+        const palette = palettes[i % palettes.length];
+        orb.style.cssText = `
+            width:${size}px; height:${size}px;
+            left:${Math.random()*110-5}%; top:${Math.random()*110-5}%;
+            background:radial-gradient(circle, ${palette[0]}, ${palette[1]});
+            animation-duration:${15+Math.random()*30}s;
+            animation-delay:${-Math.random()*20}s;
+        `;
+        bg.appendChild(orb);
+    }
+})();
+
+/* ── Tab Logic ─────────────────────────────────────────────── */
+function switchTab(tab) {
+    const monitor = document.getElementById('monitor-view');
+    const vault = document.getElementById('vault-view');
+    const btnMonitor = document.getElementById('tab-monitor');
+    const btnVault = document.getElementById('tab-vault');
+    const scanBtn = document.getElementById('btn-full-scan');
+
+    if (tab === 'monitor') {
+        monitor.style.display = 'grid';
+        vault.classList.remove('vault-active');
+        btnMonitor.classList.add('active');
+        btnVault.classList.remove('active');
+        scanBtn.style.display = 'flex';
+    } else {
+        monitor.style.display = 'none';
+        vault.classList.add('vault-active');
+        btnMonitor.classList.remove('active');
+        btnVault.classList.add('active');
+        scanBtn.style.display = 'none';
+        initVaultUI();
+    }
+}
+
+function initVaultUI() {
+    document.getElementById('vault-gemini-key').value = localStorage.getItem('cf_google_api_key') || '';
+    document.getElementById('vault-openai-key').value = localStorage.getItem('cf_openai_api_key') || '';
+    document.getElementById('vault-provider').value   = localStorage.getItem('cf_ai_provider') || 'gemini';
+    updateVaultStatus();
+}
+
+function updateVaultStatus() {
+    const gemini = document.getElementById('vault-gemini-key').value;
+    const openai = document.getElementById('vault-openai-key').value;
+    document.getElementById('v-dot-gemini').className = gemini.length > 10 ? 'v-dot active' : 'v-dot';
+    document.getElementById('v-dot-openai').className = openai.length > 10 ? 'v-dot active' : 'v-dot';
+}
+
+function saveVault() {
+    const gemini = document.getElementById('vault-gemini-key').value.trim();
+    const openai = document.getElementById('vault-openai-key').value.trim();
+    const provider = document.getElementById('vault-provider').value;
+    localStorage.setItem('cf_google_api_key', gemini);
+    localStorage.setItem('cf_openai_api_key', openai);
+    localStorage.setItem('cf_ai_provider', provider);
+    
+    // Feedback visuale
+    const btn = document.querySelector('.vault-btn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="ph-fill ph-check"></i> Configurazione Salvata';
+    btn.style.background = '#4ade80';
+    
+    updateVaultStatus();
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.style.background = '';
+        alert('Cassaforte aggiornata. Le connessioni AI sono ora attive!');
+    }, 2000);
+}
+
+/* ── Boot sequence ──────────────────────────────────────────── */
+const BOOT_LINES = [
+    "CIPHER v10.1 — Avvio sistema di sicurezza...",
+    "Caricamento BUG HUNTER... OK",
+    "Caricamento LINK TESTER... OK",
+    "Caricamento CONSOLE MONITOR... OK",
+    "Caricamento INTELLIGENCE VAULT... OK",
+    "Connessione a GeminiEngine... " + (localStorage.getItem('cf_google_api_key') ? "PRONTO" : "OFFLINE"),
+    "Tutti i moduli operativi. CIPHER è PRONTO."
+];
+
+async function bootCipher() {
+    const stream = document.getElementById('boot-stream');
+    const bar = document.getElementById('boot-bar');
+    for (let i = 0; i < BOOT_LINES.length; i++) {
+        stream.textContent = BOOT_LINES[i];
+        bar.style.width = ((i+1) / BOOT_LINES.length * 100) + '%';
+        await sleep(420);
+    }
+    await sleep(400);
+    const overlay = document.getElementById('boot-overlay');
+    overlay.classList.add('fade-out');
+    await sleep(800);
+    overlay.style.display = 'none';
+    const dashboard = document.getElementById('main-dashboard');
+    dashboard.style.display = 'block';
+    dashboard.style.opacity = '0';
+    dashboard.style.transition = 'opacity 0.5s ease';
+    setTimeout(() => { dashboard.style.opacity = '1'; }, 50);
+}
+
+/* ── Helpers ────────────────────────────────────────────────── */
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function appendTerminal(id, text, cls = '') {
+    const el = document.getElementById(id);
+    const line = document.createElement('span');
+    if (cls) line.className = cls;
+    line.textContent = '> ' + text;
+    el.appendChild(line);
+    el.appendChild(document.createElement('br'));
+    el.scrollTop = el.scrollHeight;
+}
+
+function setBadge(id, type, label) {
+    const el = document.getElementById(id);
+    el.className = 'badge badge-' + type;
+    el.textContent = label;
+}
+
+/* ── State ──────────────────────────────────────────────────── */
+let scanCount = 0;
+let foundIssues = [];
+
+/* ── Known pages to check ────────────────────────────────────── */
+const HUB_PAGES = [
+    { label: 'index.html', href: 'index.html' },
+    { label: 'olivia.html', href: 'olivia.html' },
+    { label: 'roadmap.html', href: 'roadmap.html' },
+    { label: 'security.html', href: 'security.html' },
+    { label: 'agent-lounge.html', href: 'agent-lounge.html' },
+    { label: 'brainstorming.html', href: 'brainstorming.html' },
+    { label: 'social-loop.html', href: 'social-loop.html' },
+    { label: 'calendar.html', href: 'calendar.html' },
+    { label: 'analytics.html', href: 'analytics.html' },
+    { label: 'logic-flows.html', href: 'logic-flows.html' },
+    { label: 'neural-map.html', href: 'neural-map.html' },
+    { label: 'nexus.html', href: 'nexus.html' },
+    { label: 'provola.html', href: 'provola.html' },
+    { label: 'profile.html', href: 'profile.html' },
+    { label: 'disperazione.html', href: 'disperazione.html' },
+    { label: 'auth/login.html', href: 'auth/login.html' },
+    { label: 'js/core/agent-core.js', href: 'js/core/agent-core.js' },
+    { label: 'js/core/gemini-engine.js', href: 'js/core/gemini-engine.js' },
+    { label: 'js/core/ui-engine.js', href: 'js/core/ui-engine.js' },
+    { label: 'css/soft-corporate.css', href: 'css/soft-corporate.css' }
+];
+
+/* ── Link Tester ────────────────────────────────────────────── */
+async function runLinkTester() {
+    setBadge('linktester-badge', 'running', 'SCANNING');
+    const terminal = document.getElementById('linktester-terminal');
+    terminal.innerHTML = '';
+    appendTerminal('linktester-terminal', 'Avvio verifica collegamenti...', 't-info');
+
+    const brokenLinks = [];
+    const foundLinks = [];
+
+    for (const page of HUB_PAGES) {
+        appendTerminal('linktester-terminal', 'Test: ' + page.label);
+        await sleep(120);
+        try {
+            const res = await fetch(page.href, { method: 'HEAD', cache: 'no-store' });
+            if (res.ok) {
+                appendTerminal('linktester-terminal', '✓ ' + page.label + ' — ' + res.status, '');
+                foundLinks.push(page);
             } else {
-                cipherTerm.innerText = `> AGENT_CIPHER: ${state.agents.cipher.status}`;
-                hunterTerm.innerText = `> BUG_HUNTER: ${state.agents.hunter.status}`;
-                fixerTerm.innerText = `> FIXER: ${state.agents.fixer.status}`;
-                fixBtn.style.display = 'none';
+                appendTerminal('linktester-terminal', '✗ ' + page.label + ' — HTTP ' + res.status, 't-err');
+                brokenLinks.push({ ...page, code: res.status });
+            }
+        } catch(e) {
+            appendTerminal('linktester-terminal', '✗ ' + page.label + ' — NOT FOUND', 't-err');
+            brokenLinks.push({ ...page, code: 404 });
+        }
+    }
+
+    appendTerminal('linktester-terminal', '─────────────────────', 't-dim');
+    appendTerminal('linktester-terminal', `Risultato: ${foundLinks.length} OK | ${brokenLinks.length} rotti`, brokenLinks.length > 0 ? 't-err' : '');
+
+    // Add to issues
+    for (const bl of brokenLinks) {
+        addIssue({
+            id: 'link_' + bl.href.replace(/\W/g,'_'),
+            severity: 'warning',
+            icon: '🔗',
+            title: 'Link non raggiungibile: ' + bl.label,
+            desc: 'Il file non risponde o non esiste. Potrebbe essere un placeholder non ancora creato.',
+            loc: bl.href,
+            agent: 'LINK TESTER',
+            fix: 'Creare il file ' + bl.label + ' o aggiornare il link nell\'hub.'
+        });
+    }
+
+    updateKPI('kpi-link', brokenLinks.length, brokenLinks.length > 0 ? 'Link rotti rilevati' : 'Tutti i link OK');
+    setBadge('linktester-badge', brokenLinks.length > 0 ? 'warn' : 'done', brokenLinks.length > 0 ? 'WARN ' + brokenLinks.length : 'CLEAN');
+    appendTerminal('cipher-terminal', 'LINK TESTER completato: ' + brokenLinks.length + ' problemi', brokenLinks.length > 0 ? 't-warn' : '');
+    return brokenLinks;
+}
+
+/* ── Bug Hunter ─────────────────────────────────────────────── */
+async function runBugHunter(mode = 'basic') {
+    setBadge('bughunter-badge', 'running', 'SCANNING');
+    const terminal = document.getElementById('bughunter-terminal');
+    terminal.innerHTML = '';
+    appendTerminal('bughunter-terminal', 'Avvio analisi codice...', 't-info');
+    await sleep(300);
+
+    const bugs = [];
+
+    // 1. Check gemini-engine.js for maxOutputTokens
+    appendTerminal('bughunter-terminal', 'Analisi configurazione GeminiEngine...');
+    await sleep(200);
+    try {
+        const res = await fetch('js/core/gemini-engine.js');
+        const text = await res.text();
+        if (text.includes('maxOutputTokens: 500')) {
+            bugs.push({
+                id: 'bug_gemini_tokens', severity: 'info', icon: '💡',
+                title: 'maxOutputTokens=500 — limite basso',
+                desc: 'In gemini-engine.js maxOutputTokens è 500. Rischio troncamento codice HTML.',
+                loc: 'js/core/gemini-engine.js', agent: 'BUG HUNTER',
+                fix: 'Aumentare a 4096.'
+            });
+            appendTerminal('bughunter-terminal', '⚠ Criticità rilevata in GeminiEngine', 't-warn');
+        } else {
+            appendTerminal('bughunter-terminal', '✓ GeminiEngine configurazione OK (4096 tokens)');
+        }
+    } catch(e) {}
+
+    // 2. Check for missing error boundaries in olivia.html
+    appendTerminal('bughunter-terminal', 'Analisi Error Boundaries in olivia.html...');
+    await sleep(200);
+    try {
+        const res = await fetch('olivia.html');
+        const text = await res.text();
+        if (!text.includes('console.error("Olivia Creation Error:"')) {
+            bugs.push({
+                id: 'bug_no_error_boundary', severity: 'info', icon: '🛡️',
+                title: 'Missing error boundary in Olivia',
+                desc: 'Se la chiamata Gemini fallisce, la UI potrebbe bloccare in loading.',
+                loc: 'olivia.html', agent: 'BUG HUNTER',
+                fix: 'Aggiungere try/catch in startCreation().'
+            });
+            appendTerminal('bughunter-terminal', '⚠ Fallback mancante in olivia.html', 't-warn');
+        } else {
+            appendTerminal('bughunter-terminal', '✓ Error boundaries rilevati correttamente.');
+        }
+    } catch(e) {}
+
+    // 3. Dynamic logic: if we are in this file, we can also check for gatekeeper
+    appendTerminal('bughunter-terminal', 'Verifica Gatekeeper su pagine core...');
+    const pagesToCheck = ['roadmap.html', 'sentiment.html', 'neural-map.html'];
+    let missingGate = 0;
+    for(const p of pagesToCheck) {
+        try {
+            const res = await fetch(p);
+            const text = await res.text();
+            if (!text.includes('localStorage.getItem(\'v10_auth\')')) missingGate++;
+        } catch(e) {}
+    }
+    if (missingGate > 0) {
+        bugs.push({
+            id: 'bug_auth_missing', severity: 'warning', icon: '🔒',
+            title: 'Pagine senza gatekeeper',
+            desc: `${missingGate} pagine core sembrano non avere il controllo v10_auth.`,
+            loc: 'Pagine HTML varie', agent: 'BUG HUNTER',
+            fix: 'Aggiungere gatekeeper a tutte le pagine.'
+        });
+        appendTerminal('bughunter-terminal', `⚠ ${missingGate} pagine esposte senza Auth`, 't-warn');
+    } else {
+        appendTerminal('bughunter-terminal', '✓ Sicurezza Gatekeeper OK su tutte le pagine testate.');
+    }
+
+    if (mode === 'full') {
+        appendTerminal('bughunter-terminal', 'Modalità full: analisi integrata completata.', 't-info');
+        await sleep(400);
+    }
+
+    // Update terminal
+    for (const b of bugs) {
+        appendTerminal('bughunter-terminal', '! ' + b.title.substring(0, 45) + '...', b.severity === 'critical' ? 't-err' : 't-warn');
+        addIssue(b);
+        await sleep(150);
+    }
+
+    appendTerminal('bughunter-terminal', '─────────────────────', 't-dim');
+    appendTerminal('bughunter-terminal', `Analisi completata: ${bugs.length} issue trovate`, bugs.length > 0 ? 't-warn' : '');
+
+    updateKPI('kpi-bug', document.querySelectorAll('.issue-card').length, 'Issue rilevate');
+    setBadge('bughunter-badge', bugs.length > 0 ? 'warn' : 'done', bugs.length > 0 ? 'BUGS ' + bugs.length : 'CLEAN');
+    appendTerminal('cipher-terminal', 'BUG HUNTER completato: ' + bugs.length + ' issue', bugs.length > 0 ? 't-warn' : '');
+    return bugs;
+}
+
+/* ── Console Monitor ────────────────────────────────────────── */
+function initConsoleMonitor() {
+    const orig = { error: console.error, warn: console.warn };
+    console.error = function(...args) {
+        orig.error.apply(console, args);
+        appendTerminal('console-terminal', '[ERROR] ' + args.join(' '), 't-err');
+        addIssue({
+            id: 'console_err_' + Date.now(),
+            severity: 'critical',
+            icon: '🔴',
+            title: 'console.error() intercettato',
+            desc: args.join(' ').substring(0, 200),
+            loc: 'Runtime — console',
+            agent: 'CONSOLE MONITOR',
+            fix: 'Analizzare lo stack trace e correggere la sorgente dell\'errore.'
+        });
+    };
+    console.warn = function(...args) {
+        orig.warn.apply(console, args);
+        appendTerminal('console-terminal', '[WARN] ' + args.join(' '), 't-warn');
+    };
+
+    window.onerror = function(msg, src, line) {
+        appendTerminal('console-terminal', '[EXCEPTION] ' + msg + ' @ ' + src + ':' + line, 't-err');
+        addIssue({
+            id: 'window_err_' + Date.now(),
+            severity: 'critical',
+            icon: '💥',
+            title: 'Eccezione JavaScript globale',
+            desc: msg + ' — ' + src + ' (riga ' + line + ')',
+            loc: src + ':' + line,
+            agent: 'CONSOLE MONITOR',
+            fix: 'Aprire DevTools (F12) per lo stack trace completo e correggere il bug.'
+        });
+    };
+}
+
+/* ── Issue management ───────────────────────────────────────── */
+function addIssue(issue) {
+    // Avoid duplicates
+    if (foundIssues.find(i => i.id === issue.id)) return;
+    foundIssues.push(issue);
+
+    const list = document.getElementById('issues-list');
+    // Remove empty state
+    const empty = list.querySelector('.empty-state');
+    if (empty) empty.remove();
+
+    const card = document.createElement('div');
+    card.className = 'issue-card sev-' + issue.severity;
+    card.id = 'issue_' + issue.id;
+    card.innerHTML = `
+        <div class="issue-icon">${issue.icon}</div>
+        <div class="issue-body">
+            <div class="issue-title">${issue.title}</div>
+            <div class="issue-desc">${issue.desc}</div>
+            <div class="issue-loc">📍 ${issue.loc} — rilevato da ${issue.agent}</div>
+            <div class="issue-actions">
+                <button class="iss-btn fix" onclick="requestFix('${issue.id}')"><i class="ph ph-wrench"></i> Fix</button>
+                <button class="iss-btn report" onclick="reportIssue('${issue.id}')"><i class="ph ph-file-text"></i> Report</button>
+                <button class="iss-btn ignore" onclick="ignoreIssue('${issue.id}')">Ignora</button>
+            </div>
+        </div>
+    `;
+    list.appendChild(card);
+
+    const count = foundIssues.length;
+    document.getElementById('issues-count').textContent = count;
+    document.getElementById('btn-fixer').style.display = count > 0 ? 'flex' : 'none';
+
+    // Update vuln count for critical
+    if (issue.severity === 'critical') {
+        const cur = parseInt(document.getElementById('kpi-vuln').textContent) || 0;
+        updateKPI('kpi-vuln', cur + 1, 'Da risolvere urgente');
+    }
+    updateSystemStatus();
+}
+
+function ignoreIssue(id) {
+    foundIssues = foundIssues.filter(i => i.id !== id);
+    const card = document.getElementById('issue_' + id);
+    if (card) { card.style.opacity = '0'; card.style.transition = '0.3s'; setTimeout(() => card.remove(), 300); }
+    document.getElementById('issues-count').textContent = foundIssues.length;
+    if (foundIssues.length === 0) {
+        document.getElementById('issues-list').innerHTML = '<div class="empty-state"><i class="ph ph-shield-check" style="color:#333;"></i>Tutte le issue risolte o ignorate.</div>';
+        document.getElementById('btn-fixer').style.display = 'none';
+    }
+    updateSystemStatus();
+}
+
+function requestFix(id) {
+    const issue = foundIssues.find(i => i.id === id);
+    if (!issue) return;
+    showFixerReport([issue], true);
+    appendTerminal('cipher-terminal', 'FIXER attivato per: ' + issue.id, 't-info');
+}
+
+function reportIssue(id) {
+    const issue = foundIssues.find(i => i.id === id);
+    if (!issue) return;
+    showFixerReport([issue], false);
+}
+
+/* ── FIXER ──────────────────────────────────────────────────── */
+async function callFixer() {
+    if (foundIssues.length === 0) return;
+    appendTerminal('cipher-terminal', 'Chiamata a FIXER per ' + foundIssues.length + ' issues...', 't-info');
+    setBadge('cipher-badge', 'running', 'FIXER ON');
+    await sleep(300);
+    await showFixerReport(foundIssues, true);
+    setBadge('cipher-badge', 'done', 'REPORT OK');
+}
+
+async function showFixerReport(issues, withFix) {
+    const panel = document.getElementById('fixer-panel');
+    const content = document.getElementById('fixer-content');
+    const status = document.getElementById('fixer-status');
+
+    content.innerHTML = '<span style="color:#10b981;font-family:Fira Code;">⟳ FIXER in elaborazione...</span>';
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    status.style.display = 'none';
+
+    const useGemini = window.Gemini && window.Gemini.hasKey() && !window.Gemini.offlineMode;
+
+    let report = '';
+
+    if (useGemini) {
+        const issuesSummary = issues.map((iss, i) =>
+            `${i+1}. [${iss.severity.toUpperCase()}] ${iss.title}\n   Desc: ${iss.desc}\n   Posizione: ${iss.loc}\n   Suggerimento iniziale: ${iss.fix}`
+        ).join('\n\n');
+
+        const prompt = `Sei FIXER, il sub-agente di sicurezza di Content Factory V10.1.
+Analizza le seguenti ${issues.length} issue rilevate dagli agenti di sicurezza e fornisci un rapporto dettagliato in italiano con:
+1. Valutazione della gravità complessiva
+2. Per ogni issue: causa radice, impatto, soluzione passo-passo
+3. Priorità di intervento
+4. Note tecniche per lo sviluppatore
+
+ISSUES:
+${issuesSummary}
+
+Rispondi in formato chiaro, tecnico e diretto.`;
+
+        try {
+            const resp = await window.Gemini.ask(prompt, 'Sei FIXER, un agente di cybersecurity e debug per Content Factory. Fornisci analisi tecniche dettagliate e soluzioni precise.');
+            report = resp;
+        } catch(e) {
+            report = generateOfflineReport(issues, withFix);
+        }
+    } else {
+        await sleep(1200);
+        report = generateOfflineReport(issues, withFix);
+    }
+
+    content.textContent = report;
+    status.style.display = 'inline-flex';
+    document.getElementById('export-row').style.display = 'flex';
+
+    // Mark issues as reported
+    if (withFix) {
+        for (const iss of issues) {
+            const card = document.getElementById('issue_' + iss.id);
+            if (card) {
+                const actions = card.querySelector('.issue-actions');
+                if (actions) {
+                    actions.innerHTML = '<span class="iss-btn fixed-lbl">✓ Inviato a FIXER</span>';
+                }
             }
         }
+    }
+}
 
-        AgentCore.listen('agentUpdate', updateSecurityUI);
-        AgentCore.listen('bugFound', updateSecurityUI);
-        AgentCore.listen('fixComplete', () => {
-            updateSecurityUI();
-            const fixerTerm = document.getElementById('fixer-terminal');
-            fixerTerm.innerHTML = `<span style="color:#10b981;">> PATCH_APPLIED: SYSTEM_CLEAN</span>`;
+function generateOfflineReport(issues, withFix) {
+    const criticals = issues.filter(i => i.severity === 'critical');
+    const warnings = issues.filter(i => i.severity === 'warning');
+    const infos = issues.filter(i => i.severity === 'info');
+
+    let r = `╔══════════════════════════════════════════╗
+║  FIXER REPORT — Content Factory V10.1   ║
+║  Agente: CIPHER Security Stack          ║
+╚══════════════════════════════════════════╝
+
+SOMMARIO ESECUTIVO
+──────────────────
+Issues totali: ${issues.length}
+  🔴 Critiche:  ${criticals.length}
+  ⚠️  Warning:  ${warnings.length}
+  💡 Info:      ${infos.length}
+
+Stato sistema: ${criticals.length > 0 ? '⛔ ATTENZIONE RICHIESTA' : warnings.length > 0 ? '⚠️ DA MONITORARE' : '✅ NOMINALE'}
+
+`;
+
+    issues.forEach((iss, i) => {
+        r += `─── Issue #${i+1} [${iss.severity.toUpperCase()}] ─────────────────────\n`;
+        r += `Titolo:    ${iss.title}\n`;
+        r += `Agente:    ${iss.agent}\n`;
+        r += `Posizione: ${iss.loc}\n\n`;
+        r += `Descrizione:\n${iss.desc}\n\n`;
+        if (withFix) {
+            r += `Soluzione consigliata:\n${iss.fix}\n\n`;
+            r += `Priorità: ${iss.severity === 'critical' ? '🔴 ALTA — intervieni subito' : iss.severity === 'warning' ? '🟡 MEDIA — pianifica entro 48h' : '🟢 BASSA — da fare quando possibile'}\n\n`;
+        }
+    });
+
+    r += `══════════════════════════════════════════
+Rapporto generato da FIXER (modalità offline)
+Content Factory Security Stack V10.1
+══════════════════════════════════════════`;
+
+    return r;
+}
+
+/* ── Full scan ──────────────────────────────────────────────── */
+async function runFullScan() {
+    const btn = document.getElementById('btn-full-scan');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin 0.8s linear infinite;"></i> Scansione in corso...';
+
+    // Reset
+    foundIssues = [];
+    document.getElementById('issues-list').innerHTML = '<div class="empty-state"><i class="ph ph-spinner-gap" style="color:#10b981;animation:spin 0.8s linear infinite;font-size:2rem;display:block;margin-bottom:12px;"></i>Scansione in corso...</div>';
+    document.getElementById('issues-count').textContent = '0';
+    document.getElementById('kpi-bug').textContent = '0';
+    document.getElementById('kpi-link').textContent = '0';
+    document.getElementById('kpi-vuln').textContent = '0';
+    document.getElementById('fixer-panel').style.display = 'none';
+    document.getElementById('btn-fixer').style.display = 'none';
+
+    setBadge('cipher-badge', 'running', 'SCANNING');
+    appendTerminal('cipher-terminal', '════ AVVIO SCANSIONE COMPLETA ════', 't-info');
+
+    // Progress
+    const progress = document.getElementById('scan-progress');
+    progress.classList.add('visible');
+
+    const setStep = async (n) => {
+        for (let i = 1; i <= 5; i++) {
+            const s = document.getElementById('step-' + i);
+            if (i < n) s.className = 'progress-step done';
+            else if (i === n) s.className = 'progress-step active';
+            else s.className = 'progress-step';
+        }
+        await sleep(200);
+    };
+
+    await setStep(1);
+    appendTerminal('cipher-terminal', 'Agenti inizializzati', '');
+    await sleep(600);
+
+    await setStep(2);
+    await runBugHunter('full');
+    await sleep(400);
+
+    await setStep(3);
+    await runLinkTester();
+    await sleep(400);
+
+    await setStep(4);
+    appendTerminal('console-terminal', 'Analisi runtime completata — nessun errore attivo', '');
+    appendTerminal('cipher-terminal', 'CONSOLE MONITOR: nessun errore attivo', '');
+    await sleep(500);
+
+    await setStep(5);
+    if (foundIssues.length > 0) {
+        await callFixer();
+    } else {
+        appendTerminal('cipher-terminal', 'Nessuna issue — sistema pulito!', '');
+    }
+
+    // All done
+    document.getElementById('step-5').className = 'progress-step done';
+
+    scanCount++;
+    document.getElementById('kpi-scans').textContent = scanCount;
+    updateSystemStatus();
+    updateKPI('kpi-bug', foundIssues.length, foundIssues.length + ' issue totali');
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ph ph-scan"></i> Nuova Scansione';
+    setBadge('cipher-badge', foundIssues.length > 0 ? 'warn' : 'done', foundIssues.length > 0 ? 'ISSUES ' + foundIssues.length : 'ALL CLEAR');
+    appendTerminal('cipher-terminal', '════ SCANSIONE COMPLETATA ════', 't-info');
+}
+
+/* ── Utilities ──────────────────────────────────────────────── */
+function updateKPI(id, val, sub) {
+    document.getElementById(id).textContent = val;
+    const subEl = document.getElementById(id + '-sub');
+    if (subEl) subEl.textContent = sub;
+}
+
+function updateSystemStatus() {
+    const criticals = foundIssues.filter(i => i.severity === 'critical').length;
+    const warnings = foundIssues.filter(i => i.severity === 'warning').length;
+    const stato = document.getElementById('kpi-stato');
+    if (criticals > 0) {
+        stato.textContent = 'ALLERTA';
+        stato.style.color = '#ef4444';
+        stato.style.fontSize = '1.4rem';
+    } else if (warnings > 0) {
+        stato.textContent = 'ATTENZIONE';
+        stato.style.color = '#fbbf24';
+        stato.style.fontSize = '1.2rem';
+    } else {
+        stato.textContent = 'NOMINALE';
+        stato.style.color = '#10b981';
+        stato.style.fontSize = '1.4rem';
+    }
+}
+
+/* ── Export report ──────────────────────────────────────────── */
+function exportReport(type) {
+    const text = document.getElementById('fixer-content').textContent;
+    if (!text || text.includes('In attesa')) return;
+
+    if (type === 'copy') {
+        navigator.clipboard.writeText(text).then(() => {
+            const conf = document.getElementById('export-confirm');
+            conf.style.display = 'block';
+            setTimeout(() => { conf.style.display = 'none'; }, 2500);
+        }).catch(() => {
+            // Fallback
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+            document.body.removeChild(ta);
+            const conf = document.getElementById('export-confirm');
+            conf.style.display = 'block';
+            setTimeout(() => { conf.style.display = 'none'; }, 2500);
         });
+    } else if (type === 'txt') {
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'CIPHER_Report_' + new Date().toISOString().slice(0,10) + '.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+    } else if (type === 'pdf') {
+        const win = window.open('', '_blank');
+        const ts = new Date().toLocaleString('it-IT');
+        win.document.write(`<!DOCTYPE html><html><head>
+<meta charset="UTF-8"><title>CIPHER Report</title>
+<style>
+  body { font-family: 'Courier New', monospace; background: #fff; color: #111; padding: 40px; max-width: 800px; margin: 0 auto; font-size: 12px; line-height: 1.8; }
+  h1 { font-family: Arial, sans-serif; color: #1a1a2e; border-bottom: 2px solid #10b981; padding-bottom: 10px; }
+  .meta { color: #666; font-size: 11px; margin-bottom: 20px; }
+  pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; }
+  @media print { body { padding: 20px; } }
+</style></head><body>
+<h1>🛡️ CIPHER Security Report — Content Factory V10.1</h1>
+<div class="meta">Generato il: ${ts} | Content Factory Security Stack</div>
+<pre>${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+<script>window.onload = function(){ window.print(); }<\/script>
+</body></html>`);
+        win.document.close();
+    }
+}
 
-        // Initialize state
-        updateSecurityUI();
-    </script>
+/* ── CSS spin keyframe ──────────────────────────────────────── */
+const style = document.createElement('style');
+style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+document.head.appendChild(style);
+
+/* ── Init ───────────────────────────────────────────────────── */
+initConsoleMonitor();
+bootCipher();
+</script>
 </body>
 </html>

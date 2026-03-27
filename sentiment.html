@@ -3,149 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V10.1 — Sentiment Analysis</title>
+    <title>Sentiment Engine — Content Factory V10.1</title>
     
-    <!-- Icons & Fonts -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     
-    <!-- Design System -->
-    <link rel="stylesheet" href="css/design-system.css">
+    <script src="js/core/agent-core.js"></script>
+    <script src="js/core/ui-engine.js"></script>
     
     <style>
+        :root {
+            --accent: #ffd700;
+            --accent-dim: rgba(255, 215, 0, 0.1);
+            --bg: #050505;
+            --surface: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f0f0;
+            --text-dim: #666;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'DM Sans', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* 20-ORB BACKGROUND */
+        .orb-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background: #000; overflow: hidden;
+        }
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(80px); opacity: 0.15;
+            animation: orbFloat 20s infinite alternate ease-in-out;
+        }
+        @keyframes orbFloat {
+            from { transform: translate(0,0) scale(1); }
+            to { transform: translate(100px, 50px) scale(1.2); }
+        }
+
+        /* LAYOUT */
+        .container {
+            max-width: 1300px; margin: 0 auto; padding: 40px 30px;
+            position: relative; z-index: 10;
+        }
+
+        .header { margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .header-left h1 { font-family: 'Instrument Serif', serif; font-size: 3.5rem; line-height: 0.9; }
+        .header-left p { font-family: 'Fira Code', monospace; font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-top: 10px; }
+
+        /* GRID */
         .sentiment-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 20px;
-            padding: 20px 40px 100px 40px;
-            overflow-y: auto;
-            max-height: calc(100vh - var(--header-height));
+            display: grid; grid-template-columns: 2fr 1fr; gap: 20px;
         }
 
-        .widget-card {
-            background: var(--glass-heavy);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            transition: 0.3s;
+        /* MAIN RADAR */
+        .radar-card {
+            background: var(--surface); backdrop-filter: blur(30px);
+            border: 1px solid var(--border); border-radius: 32px;
+            padding: 40px; position: relative; overflow: hidden;
+            min-height: 500px; display: flex; flex-direction: column;
         }
-        .widget-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+        .radar-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+        .radar-title { font-size: 1.1rem; font-weight: 800; }
+        .radar-subtitle { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
 
-        .widget-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .mood-wave-container {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            position: relative;
         }
-        .widget-title { font-weight: 700; font-size: 0.9rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; }
-
-        .mood-display {
-            height: 180px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px dashed var(--glass-border);
+        #mood-svg { width: 100%; height: 250px; stroke-linecap: round; }
+        .pulse-dot {
+            width: 12px; height: 12px; border-radius: 50%; background: var(--accent);
+            box-shadow: 0 0 20px var(--accent); position: absolute;
+            animation: pulseFade 1s infinite;
         }
+        @keyframes pulseFade { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
 
-        .mood-placeholder { text-align: center; opacity: 0.5; color: var(--text-dim); }
-        .mood-placeholder i { font-size: 2.5rem; margin-bottom: 10px; }
-        .mood-placeholder p { font-size: 0.8rem; }
-
-        .page-header-info {
-            padding: 20px 40px 0 40px;
+        /* SIDE WIDGETS */
+        .side-col { display: flex; flex-direction: column; gap: 20px; }
+        .widget {
+            background: var(--surface); backdrop-filter: blur(30px);
+            border: 1px solid var(--border); border-radius: 24px;
+            padding: 24px; transition: 0.3s cubic-bezier(0.16,1,0.3,1);
         }
-        .page-header-info p { color: var(--text-dim); font-size: 0.9rem; opacity: 0.8; }
+        .widget:hover { border-color: var(--accent); transform: translateY(-5px); }
+        .widget-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.15em; font-weight: 800; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        .widget-val { font-family: 'Instrument Serif', serif; font-size: 2.2rem; line-height: 1; }
+        .widget-trend { font-size: 0.7rem; color: #10b981; font-family: 'Fira Code', monospace; }
+
+        /* LISTS */
+        .pulse-feed {
+            margin-top: 20px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .feed-item {
+            display: flex; gap: 15px; padding: 15px; background: rgba(255,255,255,0.02);
+            border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); align-items: center;
+        }
+        .feed-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); font-size: 0.9rem; }
+        .feed-text { font-size: 0.8rem; color: #bbb; flex: 1; }
+        .feed-time { font-size: 0.6rem; color: var(--text-dim); font-family: 'Fira Code', monospace; }
+        .feed-mood { font-size: 0.55rem; padding: 3px 8px; border-radius: 10px; font-weight: 800; text-transform: uppercase; }
+        .mood-pos { background: rgba(16,185,129,0.15); color: #10b981; }
+        .mood-neu { background: rgba(255,255,255,0.05); color: #888; }
+
+        .btn-back {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; padding: 10px 20px; border-radius: 30px; text-decoration: none;
+            font-size: 0.75rem; font-weight: 700; transition: 0.3s;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.3); transform: translateX(-3px); }
     </style>
 </head>
-<body class="theme-flux">
+<body>
 
-    <div class="studio-layout">
-        
-        <!-- SIDEBAR / COMMAND RIBBON -->
-        <aside class="command-ribbon">
-            <a href="studio/index.html" class="ribbon-item"><i class="ph ph-squares-four"></i></a>
-            <a href="agent-lounge.html" class="ribbon-item"><i class="ph ph-users-four"></i></a>
-            <a href="logic-flows.html" class="ribbon-item"><i class="ph ph-graph"></i></a>
-            <div class="ribbon-spacer"></div>
-            <div class="ribbon-item active"><i class="ph ph-heartbeat"></i></div>
-            <div class="ribbon-item"><i class="ph ph-gear"></i></div>
-        </aside>
+<div class="orb-bg" id="orb-container"></div>
 
-        <!-- MAIN AREA -->
-        <main class="main-stage">
-            <header class="app-header">
-                <div class="header-content">
-                    <h1>Sentiment Evolution</h1>
-                    <div style="display: flex; gap: 20px; align-items:center;">
-                        <a href="index.html" class="back-nav" style="color: var(--text-dim); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
-                            <i class="ph ph-house-line"></i> Hub
-                        </a>
-                        <div class="user-pill">
-                            <i class="ph-fill ph-user-circle"></i>
-                            <span>Il Capo</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div class="page-header-info">
-                <p>Monitora l'impatto emotivo dei tuoi contenuti sulla community in tempo reale.</p>
-            </div>
-
-            <div class="sentiment-grid" id="sentiment-grid">
-                <!-- Widget 1: General Mood -->
-                <div class="widget-card" id="sent-mood">
-                    <div class="widget-header">
-                        <span class="widget-title">Pulsazioni Community</span>
-                        <i class="ph ph-activity" style="color: var(--text-dim)"></i>
-                    </div>
-                    <div class="mood-display">
-                        <div class="mood-placeholder">
-                            <i class="ph ph-smiley"></i>
-                            <p>Analisi in tempo reale...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Widget 2: Comment Mapping -->
-                <div class="widget-card" id="sent-comments">
-                    <div class="widget-header">
-                        <span class="widget-title">Mappatura Commenti</span>
-                        <i class="ph ph-chat-circle-dots" style="color: var(--text-dim)"></i>
-                    </div>
-                    <div class="mood-display">
-                        <div class="mood-placeholder">
-                            <i class="ph ph-map-pin"></i>
-                            <p>In attesa di dati dal Social Loop</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Widget 3: Fan Growth -->
-                <div class="widget-card" id="sent-growth">
-                    <div class="widget-header">
-                        <span class="widget-title">Crescita Fan Base</span>
-                        <i class="ph ph-trend-up" style="color: var(--text-dim)"></i>
-                    </div>
-                    <div class="mood-display">
-                        <div class="mood-placeholder">
-                            <i class="ph ph-users"></i>
-                            <p>Proiezione algoritmica</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
+<div class="container">
+    <div class="header">
+        <div class="header-left">
+            <h1>Sentiment Evolution</h1>
+            <p>Community Pulse Engine — V10.1</p>
+        </div>
+        <a href="index.html" class="btn-back">← Hub Strategico</a>
     </div>
 
-    <!-- Layout Engine Core -->
-    <script src="js/core/layout-engine.js"></script>
+    <div class="sentiment-grid">
+        <!-- Main Analysis -->
+        <div class="radar-card">
+            <div class="radar-header">
+                <div>
+                    <div class="radar-title">Mood Vibrations</div>
+                    <div class="radar-subtitle">Sentiment Analysis Real-time</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-family: 'Fira Code', monospace; font-size: 1.2rem; color: var(--accent);" id="hype-val">98.4</div>
+                    <div style="font-size: 0.55rem; color: var(--text-dim);">HYPE SCORE</div>
+                </div>
+            </div>
 
+            <div class="mood-wave-container">
+                <svg id="mood-svg" viewBox="0 0 1000 250">
+                    <defs>
+                        <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:rgba(255,215,0,0)" />
+                            <stop offset="50%" style="stop-color:rgba(255,215,0,0.5)" />
+                            <stop offset="100%" style="stop-color:rgba(255,215,0,0)" />
+                        </linearGradient>
+                    </defs>
+                    <path id="wave-path" d="" fill="none" stroke="url(#waveGrad)" stroke-width="4" />
+                </svg>
+                <div class="pulse-dot" id="pulse-dot"></div>
+            </div>
+
+            <div class="pulse-feed" id="pulse-feed">
+                <!-- Data injected via JS -->
+            </div>
+        </div>
+
+        <!-- Stats Column -->
+        <div class="side-col">
+            <div class="widget">
+                <div class="widget-label">Engagement Velocity <i class="ph ph-lightning"></i></div>
+                <div class="widget-val" id="eng-val">12.8k</div>
+                <div class="widget-trend">+14% vs ieri</div>
+            </div>
+            <div class="widget">
+                <div class="widget-label">Brand Affinity <i class="ph ph-heart"></i></div>
+                <div class="widget-val">84%</div>
+                <div style="margin-top:10px; height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;">
+                    <div style="width:84%; height:100%; background:var(--accent);"></div>
+                </div>
+            </div>
+            <div class="widget">
+                <div class="widget-label">Topic Hotness <i class="ph ph-fire"></i></div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+                    <span style="font-size:0.6rem; padding:4px 10px; border-radius:10px; background:rgba(255,215,0,0.1); color:var(--accent); border:1px solid rgba(255,215,0,0.2);">#NeuralArt</span>
+                    <span style="font-size:0.6rem; padding:4px 10px; border-radius:10px; background:rgba(255,255,255,0.05); color:#888;">#V10_1</span>
+                    <span style="font-size:0.6rem; padding:4px 10px; border-radius:10px; background:rgba(255,255,255,0.05); color:#888;">#AgentCreative</span>
+                </div>
+            </div>
+            <div class="widget" style="flex:1;">
+                <div class="widget-label">Fan Base Growth <i class="ph ph-users-three"></i></div>
+                <div style="font-size: 0.8rem; color: #bbb; line-height: 1.6;">
+                    Proiezione prossima settimana: <span style="color:var(--accent); font-weight:800;">+2,400</span> nuovi sostenitori basata sui trend attuali.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 20-ORB ENGINE
+    const orbContainer = document.getElementById('orb-container');
+    const colors = ['#ffd700', '#ec4899', '#8b5cf6', '#3b82f6'];
+    for (let i = 0; i < 20; i++) {
+        const orb = document.createElement('div');
+        orb.className = 'orb';
+        const size = Math.random() * 300 + 100;
+        orb.style.width = size + 'px';
+        orb.style.height = size + 'px';
+        orb.style.left = Math.random() * 100 + '%';
+        orb.style.top = Math.random() * 100 + '%';
+        orb.style.background = colors[Math.floor(Math.random() * colors.length)];
+        orb.style.animationDelay = (Math.random() * 10) + 's';
+        orbContainer.appendChild(orb);
+    }
+
+    // WAVE ENGINE
+    const wavePath = document.getElementById('wave-path');
+    const pulseDot = document.getElementById('pulse-dot');
+    let points = [];
+    const numPoints = 60;
+    for(let i=0; i<numPoints; i++) points.push({x: i * (1000/(numPoints-1)), y: 125});
+
+    // REACTIVE SYNC WITH AGENT CORE
+    window.addEventListener('agent:sentimentUpdate', e => {
+        const s = e.detail;
+        if(s.hypeScore) document.getElementById('hype-val').textContent = s.hypeScore.toFixed(1);
+        if(s.engagement) document.getElementById('eng-val').textContent = (s.engagement/1000).toFixed(1) + 'k';
+    });
+
+    function updateWave() {
+        let d = `M ${points[0].x} ${points[0].y}`;
+        points.forEach((p, i) => {
+            p.y = 125 + Math.sin(Date.now()*0.002 + i*0.2) * 40 * Math.sin(Date.now()*0.001);
+            if(i > 0) d += ` L ${p.x} ${p.y}`;
+        });
+        wavePath.setAttribute('d', d);
+        
+        // Pulse dot following the wave
+        const lastP = points[points.length - 1];
+        pulseDot.style.right = '40px';
+        pulseDot.style.top = (lastP.y + 40) + 'px'; // Offset for padding
+
+        requestAnimationFrame(updateWave);
+    }
+    updateWave();
+
+    // FEED ENGINE
+    const FEED_DATA = [
+        { icon: '🌸', text: 'Nuova pubblicazione di Olivia sta generando alto engagement su Instagram.', time: '2m fa', mood: 'pos' },
+        { icon: '🛡️', text: 'CIPHER ha rilevato un incremento di interesse per la sicurezza del vault.', time: '10m fa', mood: 'neu' },
+        { icon: '📊', text: 'Hype score globale aumentato del 2.1% negli ultimi 30 minuti.', time: '15m fa', mood: 'pos' },
+        { icon: '🔍', text: 'Disperazione ha individuato un nuovo trend virale nella nicchia AI.', time: '22m fa', mood: 'pos' }
+    ];
+
+    function renderFeed() {
+        const feed = document.getElementById('pulse-feed');
+        feed.innerHTML = FEED_DATA.map(item => `
+            <div class="feed-item">
+                <div class="feed-icon">${item.icon}</div>
+                <div class="feed-text">${item.text}</div>
+                <div class="feed-time">${item.time}</div>
+                <div class="feed-mood ${item.mood === 'pos' ? 'mood-pos' : 'mood-neu'}">${item.mood}</div>
+            </div>
+        `).join('');
+    }
+    renderFeed();
+</script>
 </body>
 </html>

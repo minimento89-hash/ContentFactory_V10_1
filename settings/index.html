@@ -136,7 +136,7 @@
     <script>
         // Carica impostazioni esistenti
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('gemini-key').value = localStorage.getItem('v10_gemini_key') || '';
+            document.getElementById('gemini-key').value = localStorage.getItem('cf_google_api_key') || '';
             document.getElementById('firebase-config').value = localStorage.getItem('v10_firebase_config') || '';
         });
 
@@ -145,7 +145,7 @@
             const firebaseConfig = document.getElementById('firebase-config').value.trim();
             const status = document.getElementById('status');
 
-            localStorage.setItem('v10_gemini_key', geminiKey);
+            localStorage.setItem('cf_google_api_key', geminiKey);
             localStorage.setItem('v10_firebase_config', firebaseConfig);
 
             status.textContent = "✓ Configurazione salvata con successo";

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Factory V10.1 — Provola Lab</title>
+    
+    <!-- Icons & Fonts -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="css/soft-corporate.css">
+    <script>
+        // Content Factory V10.1 — Rigid Gatekeeper
+        const isAuth = localStorage.getItem('v10_auth') === 'true' || sessionStorage.getItem('v10_auth') === 'true';
+        if (!isAuth) window.location.href = 'auth/login.html';
+    </script>
+    
+    <!-- Master Template Engines -->
+    <script src="js/core/agent-core.js"></script>
+    <script src="js/core/ui-engine.js"></script>
+
+    <style>
+        .neural-viz {
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+        .viz-bar {
+            width: 8px;
+            height: 40px;
+            background: #FFB000;
+            border-radius: 10px;
+            animation: viz-grow 1s infinite alternate ease-in-out;
+            box-shadow: 0 0 15px rgba(255, 176, 0, 0.3);
+        }
+        @keyframes viz-grow {
+            0% { height: 20px; opacity: 0.3; }
+            100% { height: 80px; opacity: 1; }
+        }
+    </style>
+</head>
+<body class="dark-factory">
+
+    <!-- DATA-MASTER-TEMPLATE: Auto-injects background and layout -->
+    <div data-master-template>
+        <div class="master-card">
+            
+            <div class="master-icon-box">
+                <i class="ph-fill ph-flask"></i>
+            </div>
+            
+            <h1 class="master-title">Provola Lab</h1>
+            <p class="master-subtitle">Neural Creative Heuristics — V10.1</p>
+            
+            <div class="neural-viz" id="viz">
+                <!-- Bars dynamic via script below -->
+            </div>
+
+            <p style="color: #888; margin-bottom: 20px; line-height: 1.6; font-size: 0.95rem;">
+                Benvenuti nel laboratorio segreto. Qui l'agente <strong>Provola</strong> analizza flussi di dati atipici per generare insight creativi fuori dagli schemi.
+            </p>
+            
+            <div style="background: rgba(255,176,0,0.05); border: 1px solid rgba(255,176,0,0.1); padding: 15px; border-radius: 20px;">
+                <span style="color: #FFB000; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em;">
+                    Status: Calibrazione Euristiche in Corso...
+                </span>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Local Viz logic
+        const viz = document.getElementById('viz');
+        for (let i = 0; i < 15; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'viz-bar';
+            bar.style.animationDelay = `${i * 0.1}s`;
+            bar.style.background = i % 2 === 0 ? '#FFB000' : '#FFD700';
+            viz.appendChild(bar);
+        }
+    </script>
+</body>
+</html>

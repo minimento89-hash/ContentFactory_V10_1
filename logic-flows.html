@@ -3,382 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Factory V10.1 — Logic Flows</title>
-    <link rel="stylesheet" href="css/soft-corporate.css">
+    <title>Logic Flows — Content Factory V10.1</title>
+    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
-    <script src="js/core/sync-engine.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    
     <script src="js/core/agent-core.js"></script>
+    <script src="js/core/ui-engine.js"></script>
+    
     <style>
+        :root {
+            --accent: #ffd700;
+            --bg: #050505;
+            --surface: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f0f0;
+            --text-dim: #555;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            background: #000;
-            color: #fff;
+            background: var(--bg);
+            color: var(--text-main);
             font-family: 'DM Sans', sans-serif;
-            margin: 0;
+            overflow: hidden;
             height: 100vh;
-            overflow: hidden;
             display: flex;
         }
 
-        /* SIDEBAR PALETTE */
+        /* 20-ORB BACKGROUND */
+        .orb-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background: #000; overflow: hidden;
+        }
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(100px); opacity: 0.1;
+            animation: orbFloat 35s infinite alternate ease-in-out;
+        }
+        @keyframes orbFloat { from { transform: translate(0,0) scale(1); } to { transform: translate(100px, 80px) scale(1.3); } }
+
+        /* SIDEBAR (PALETTE) */
         .sidebar {
-            width: 320px;
-            background: rgba(10, 10, 10, 0.8);
-            backdrop-filter: blur(40px);
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            flex-direction: column;
-            padding: 40px;
-            z-index: 100;
+            width: 340px; background: rgba(10,10,10,0.6); backdrop-filter: blur(60px);
+            border-right: 1px solid var(--border); display: flex; flex-direction: column;
+            padding: 40px; z-index: 100;
         }
+        .sidebar h1 { font-family: 'Instrument Serif', serif; font-size: 2.2rem; line-height: 1; margin-bottom: 8px; }
+        .sidebar p { font-family: 'Fira Code', monospace; font-size: 0.6rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 40px; }
 
-        .sidebar h2 {
-            font-family: 'Instrument Serif', serif;
-            font-size: 2rem;
-            margin-bottom: 5px;
-            background: linear-gradient(to bottom, #fff, #555);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .sidebar p {
-            font-size: 0.65rem;
-            color: #444;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            margin-bottom: 40px;
-        }
-
-        .palette-group { margin-bottom: 30px; }
-        .palette-group h5 { font-size: 0.7rem; color: #666; text-transform: uppercase; margin-bottom: 15px; }
-
+        .palette-section { margin-bottom: 30px; }
+        .palette-label { font-size: 0.65rem; color: #666; text-transform: uppercase; font-weight: 800; letter-spacing: 0.1em; margin-bottom: 15px; display: block; }
+        
         .palette-item {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: grab;
-            transition: 0.3s;
-            font-size: 0.85rem;
-            color: #aaa;
+            background: var(--surface); border: 1px solid var(--border);
+            padding: 16px 20px; border-radius: 16px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 12px; cursor: grab;
+            transition: 0.3s; font-size: 0.85rem; color: #aaa;
         }
-        .palette-item:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.2); color: #fff; }
-        .palette-item i { font-size: 1.2rem; }
+        .palette-item:hover { background: rgba(255,255,255,0.06); border-color: var(--accent); color: #fff; }
+        .palette-item i { font-size: 1.2rem; color: var(--accent); }
 
-        /* CANVAS AREA */
+        /* CANVAS */
         .canvas-area {
-            flex: 1;
-            position: relative;
-            background: radial-gradient(circle at center, #050505 0%, #000 100%);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            flex: 1; position: relative; overflow: hidden;
+            background: radial-gradient(circle at center, rgba(5,5,5,0.5) 0%, transparent 100%);
+            z-index: 10;
         }
-
-        .grid-bg {
-            position: absolute;
-            inset: 0;
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: 0;
+        .grid-bg { 
+            position: absolute; inset: 0; 
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(255,255,255,0.03) 1.5px, transparent 1.5px); 
+            background-size: 50px 50px; z-index: 0; 
         }
-
-        #flow-svg {
-            position: absolute;
-            inset: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 5;
-        }
+        #flow-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
 
         /* NODES */
-        .flow-node {
-            position: absolute;
-            min-width: 180px;
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            padding: 16px;
-            cursor: grab;
-            z-index: 10;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        .node {
+            position: absolute; min-width: 220px;
+            background: rgba(20,20,20,0.4); backdrop-filter: blur(40px);
+            border: 1px solid var(--border); border-radius: 20px;
+            padding: 24px; cursor: grab; z-index: 20;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .flow-node:active { cursor: grabbing; border-color: #ffd700; }
+        .node:active { cursor: grabbing; border-color: var(--accent); }
+        .node-hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; font-weight: 700; font-size: 0.9rem; }
+        .node-hdr i { font-size: 1.4rem; color: var(--accent); }
+        .node-desc { font-size: 0.75rem; color: #888; line-height: 1.5; }
 
-        .node-header {
-            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-            font-size: 0.8rem; font-weight: 700; color: #fff; text-transform: uppercase;
-        }
-        .node-header i { font-size: 1.1rem; }
-
-        .node-content { font-size: 0.75rem; color: #777; line-height: 1.4; }
-
-        /* ACTIONS */
-        .flow-node.action { background: rgba(139, 92, 246, 0.05); border-color: rgba(139, 92, 246, 0.2); }
-        .flow-node.trigger { border-radius: 4px; border-left: 4px solid #ffd700; }
-
-        .canvas-area {
-            position: relative;
-            z-index: 10;
-        }
-
-        /* INTERNAL ORBS */
-        .card-orbs {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.3;
-        }
-        .c-orb {
-            position: absolute;
-            width: 150px; height: 150px;
+        .node-port {
+            position: absolute; width: 12px; height: 12px;
+            background: var(--bg); border: 2px solid var(--accent);
             border-radius: 50%;
-            filter: blur(60px);
-            animation: card-orb-float 15s infinite alternate;
         }
-        @keyframes card-orb-float {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 30px); }
-        }
+        .port-out { right: -6px; top: 50%; transform: translateY(-50%); }
+        .port-in { left: -6px; top: 50%; transform: translateY(-50%); }
 
-        /* HEADER CONTROLS */
-        .top-controls {
-            position: absolute;
-            top: 40px; right: 40px;
-            display: flex; gap: 15px;
-            z-index: 1000;
+        .btn-save {
+            margin-top: auto; background: var(--surface); border: 1px solid var(--border);
+            color: #fff; padding: 14px; border-radius: 50px; font-size: 0.75rem;
+            font-weight: 800; cursor: pointer; transition: 0.3s;
         }
-
-        .btn-ui {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px 20px;
-            border-radius: 30px;
-            color: #888;
-            text-decoration: none;
-            font-size: 0.7rem;
-            font-weight: 800;
-            transition: 0.3s;
-        }
-        .btn-ui:hover { background: #fff; color: #000; }
-
-        /* CENTERED HEADER (NEW STANDARD) */
-        .module-header {
-            position: fixed;
-            top: 0; left: 0; width: 100%;
-            padding: 40px 20px;
-            text-align: center;
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        .module-header h1 {
-            font-family: 'Instrument Serif', serif;
-            font-size: clamp(2.5rem, 8vw, 3.5rem);
-            margin: 0;
-            background: linear-gradient(to bottom, #fff, #555);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1;
-            letter-spacing: -0.01em;
-            pointer-events: auto;
-        }
-
-        .module-header p {
-            color: #444;
-            font-size: 0.6rem;
-            letter-spacing: 0.4em;
-            text-transform: uppercase;
-            margin-top: 10px;
-            font-weight: 800;
-        }
+        .btn-save:hover { background: #fff; color: #000; }
 
         .back-hub {
-            position: fixed;
-            top: 40px; left: 40px;
-            background: rgba(255,255,255,0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.08);
-            padding: 12px 24px;
-            border-radius: 50px;
-            color: #888;
-            text-decoration: none;
-            font-size: 0.7rem;
-            font-weight: 800;
-            z-index: 2000;
-            transition: 0.3s;
-            display: flex; align-items: center; gap: 8px;
+            position: fixed; top: 30px; right: 40px;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            padding: 8px 18px; border-radius: 30px; color: #fff; text-decoration: none;
+            font-size: 0.7rem; font-weight: 700; z-index: 1000;
         }
-        .back-hub:hover { background: #fff; color: #000; border-color: #fff; }
-
+        .back-hub:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.3); transform: translateX(-3px); }
     </style>
 </head>
-<body class="dark-factory">
+<body>
 
-    <div class="sidebar">
-        <p style="margin-top:60px;">Palette Operativa</p>
+<div class="orb-bg" id="orb-container"></div>
 
-        <div class="palette-group">
-            <h5>Triggers</h5>
-            <div class="palette-item" draggable="true" data-type="trigger" data-title="Bug Found" data-color="#f59e0b">
-                <i class="ph-bold ph-bug"></i> Bug Found
-            </div>
-            <div class="palette-item" draggable="true" data-type="trigger" data-title="Trend Peak" data-color="#ec4899">
-                <i class="ph-bold ph-chart-line-up"></i> Trend Peak
-            </div>
-            <div class="palette-item" draggable="true" data-type="trigger" data-title="Approved" data-color="#10b981">
-                <i class="ph-bold ph-check-square"></i> Approved
-            </div>
+<div class="sidebar">
+    <h1>Logic Flows</h1>
+    <p>Strategic Creative Engine</p>
+
+    <div class="palette-section">
+        <span class="palette-label">Trigger Nodes</span>
+        <div class="palette-item" draggable="true" ondragstart="onDragStart(event, 'trigger', 'Post Published', 'ph-lightning')">
+            <i class="ph ph-lightning"></i> Post Published
         </div>
-
-        <div class="palette-group">
-            <h5>Actions</h5>
-            <div class="palette-item" draggable="true" data-type="action" data-title="Notify Boss" data-color="#fff">
-                <i class="ph-bold ph-bell"></i> Notify Boss
-            </div>
-            <div class="palette-item" draggable="true" data-type="action" data-title="Deploy Patch" data-color="#3b82f6">
-                <i class="ph-bold ph-wrench"></i> Deploy Patch
-            </div>
-            <div class="palette-item" draggable="true" data-type="action" data-title="Gen Archetype" data-color="#8b5cf6">
-                <i class="ph-bold ph-magic-wand"></i> Gen Archetype
-            </div>
+        <div class="palette-item" draggable="true" ondragstart="onDragStart(event, 'trigger', 'Sentiment Spike', 'ph-chart-line-up')">
+            <i class="ph ph-chart-line-up"></i> Sentiment Spike
         </div>
+    </div>
+
+    <div class="palette-section">
+        <span class="palette-label">Action Nodes</span>
+        <div class="palette-item" draggable="true" ondragstart="onDragStart(event, 'action', 'Generate Asset', 'ph-magic-wand')">
+            <i class="ph ph-magic-wand"></i> Generate Asset
+        </div>
+        <div class="palette-item" draggable="true" ondragstart="onDragStart(event, 'action', 'Agent Research', 'ph-magnifying-glass')">
+            <i class="ph ph-magnifying-glass"></i> Agent Research
+        </div>
+    </div>
+
+    <button class="btn-save" onclick="AgentCore.broadcast('flowSaved', { nodes: 2 })">Save Strategic Flow</button>
+</div>
+
+<main class="canvas-area" id="canvas" ondragover="event.preventDefault()" ondrop="onDrop(event)">
+    <div class="grid-bg"></div>
+    <a href="index.html" class="back-hub">← Hub Strategico</a>
+    <svg id="flow-svg"></svg>
+
+    <!-- Initial Node -->
+    <div class="node" style="top: 250px; left: 100px;" id="node-1">
+        <div class="node-hdr"><i class="ph ph-play-circle"></i> Campaign Start</div>
+        <div class="node-desc">Triggered when a new Content Factory roadmap phase is activated.</div>
+        <div class="node-port port-out"></div>
+    </div>
+</main>
+
+<script>
+    // 20-ORB ENGINE
+    const orbContainer = document.getElementById('orb-container');
+    const colors = ['#ffd700', '#ec4899', '#8b5cf6', '#3b82f6'];
+    for (let i = 0; i < 20; i++) {
+        const orb = document.createElement('div');
+        orb.className = 'orb';
+        const size = Math.random() * 400 + 300;
+        orb.style.width = size + 'px'; orb.style.height = size + 'px';
+        orb.style.left = Math.random() * 100 + '%'; orb.style.top = Math.random() * 100 + '%';
+        orb.style.background = colors[Math.floor(Math.random() * colors.length)];
+        orbContainer.appendChild(orb);
+    }
+
+    let draggedEl = null;
+    let offset = { x: 0, y: 0 };
+
+    function onDragStart(e, type, title, icon) {
+        e.dataTransfer.setData('type', type);
+        e.dataTransfer.setData('title', title);
+        e.dataTransfer.setData('icon', icon);
+    }
+
+    function onDrop(e) {
+        const type = e.dataTransfer.getData('type');
+        const title = e.dataTransfer.getData('title');
+        const icon = e.dataTransfer.getData('icon');
         
-        <div style="margin-top:auto;">
-            <button class="btn-ui" style="width:100%; border-color: #ffd70030; color:#ffd700;" onclick="alert('Salvataggio flusso...')">Salva Automazione</button>
-        </div>
-    </div>
+        const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+        const x = e.clientX - canvasRect.left;
+        const y = e.clientY - canvasRect.top;
 
-    <main class="canvas-area" id="canvas">
-        <div class="grid-bg"></div>
-        <svg id="flow-svg"></svg>
+        createNode(title, icon, x, y);
+    }
 
-    <div class="background-orbs-container">
-        <!-- Cluster 1: Gold & Warm -->
-        <div class="bg-orb" style="width:120px;height:120px;top:10%;left:15%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:80px;height:80px;top:25%;left:20%;background:radial-gradient(circle,rgba(255,165,0,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:40px;height:40px;top:15%;left:30%;background:radial-gradient(circle,rgba(255,255,255,0.4) 0%,transparent 70%);"></div>
-        <!-- Cluster 2: Pink & Vibrant -->
-        <div class="bg-orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(255,20,147,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:90px;height:90px;top:45%;right:15%;background:radial-gradient(circle,rgba(255,105,180,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:150px;height:150px;bottom:10%;left:10%;background:radial-gradient(circle,rgba(255,20,147,0.2) 0%,transparent 70%);"></div>
-        <!-- Cluster 3: Green & Fresh -->
-        <div class="bg-orb" style="width:110px;height:110px;top:60%;right:40%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:130px;height:130px;bottom:20%;left:45%;background:radial-gradient(circle,rgba(184,212,168,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:70px;height:70px;top:80%;right:20%;background:radial-gradient(circle,rgba(0,255,0,0.2) 0%,transparent 70%);"></div>
-        <!-- Cluster 4: Blue & Tech -->
-        <div class="bg-orb" style="width:100px;height:100px;top:50%;left:70%;background:radial-gradient(circle,rgba(0,191,255,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:140px;height:140px;bottom:5%;right:5%;background:radial-gradient(circle,rgba(30,144,255,0.35) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:60px;height:60px;top:5%;right:45%;background:radial-gradient(circle,rgba(65,105,225,0.3) 0%,transparent 70%);"></div>
-        <!-- Extra Highlights -->
-        <div class="bg-orb" style="width:40px;height:40px;top:25%;left:40%;background:radial-gradient(circle,rgba(255,255,255,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:50px;height:50px;bottom:30%;right:15%;background:radial-gradient(circle,rgba(255,255,255,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:120px;height:120px;bottom:50%;right:5%;background:radial-gradient(circle,rgba(0,255,127,0.2) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:60px;height:60px;top:10%;left:80%;background:radial-gradient(circle,rgba(168,212,209,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:130px;height:130px;top:60%;left:45%;background:radial-gradient(circle,rgba(255,235,59,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:100px;height:100px;top:40%;left:70%;background:radial-gradient(circle,rgba(255,215,0,0.25) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:150px;height:150px;top:5%;right:5%;background:radial-gradient(circle,rgba(255,20,147,0.3) 0%,transparent 70%);"></div>
-    </div>
+    function createNode(title, icon, x, y) {
+        const node = document.createElement('div');
+        node.className = 'node';
+        node.style.left = x + 'px';
+        node.style.top = y + 'px';
+        const id = 'node-' + Date.now();
+        node.id = id;
 
-        <div class="card-orbs">
-            <div class="c-orb" style="top:20%; left:30%; background: rgba(59, 130, 246, 0.15);"></div>
-            <div class="c-orb" style="bottom:20%; right:30%; background: rgba(139, 92, 246, 0.15);"></div>
-        </div>
+        node.innerHTML = `
+            <div class="node-hdr"><i class="ph ${icon}"></i> ${title}</div>
+            <div class="node-desc">Automated logic handled by the Strategic Creative Engine component.</div>
+            <div class="node-port port-in"></div>
+            <div class="node-port port-out"></div>
+        `;
 
-        <div class="module-header">
-            <h1>Logic Flows</h1>
-            <p>AUTOMATION DESIGNER V10.1</p>
-        </div>
+        node.addEventListener('mousedown', (e) => {
+            draggedEl = node;
+            const rect = node.getBoundingClientRect();
+            offset.x = e.clientX - rect.left;
+            offset.y = e.clientY - rect.top;
+        });
 
-        <a href="index.html" class="back-hub"><i class="ph ph-house"></i> HUB STRATEGICA</a>
+        document.getElementById('canvas').appendChild(node);
+        drawPaths();
+    }
 
-        <!-- Initial Nodes -->
-        <div class="flow-node trigger" id="node-start" style="top: 300px; left: 100px;">
-            <div class="node-header"><i class="ph ph-lightning" style="color:#ffd700;"></i> Event: Startup</div>
-            <div class="node-content">Invia segnale di heartbeat a tutti gli agenti attivi.</div>
-        </div>
+    window.addEventListener('mousemove', (e) => {
+        if (!draggedEl) return;
+        const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+        draggedEl.style.left = (e.clientX - offset.x - canvasRect.left) + 'px';
+        draggedEl.style.top = (e.clientY - offset.y) + 'px';
+        drawPaths();
+    });
 
-        <div class="flow-node action" id="node-end" style="top: 450px; left: 500px;">
-            <div class="node-header"><i class="ph ph-code" style="color:#8b5cf6;"></i> Script: Audit</div>
-            <div class="node-content">Esegue scansione DOM proattiva di BUG HUNTER.</div>
-        </div>
-    </main>
+    window.addEventListener('mouseup', () => { draggedEl = null; });
 
-    <script>
-        const canvas = document.getElementById('canvas');
+    function drawPaths() {
         const svg = document.getElementById('flow-svg');
-        const nodes = document.querySelectorAll('.flow-node');
+        svg.innerHTML = '';
+        const nodes = document.querySelectorAll('.node');
+        const canvasRect = document.getElementById('canvas').getBoundingClientRect();
 
-        let draggedNode = null;
-        let offset = { x: 0, y: 0 };
+        // Simple linear drawing for demonstration
+        for(let i=0; i < nodes.length - 1; i++) {
+            const n1 = nodes[i];
+            const n2 = nodes[i+1];
+            const r1 = n1.getBoundingClientRect();
+            const r2 = n2.getBoundingClientRect();
 
-        function initNodes() {
-            document.querySelectorAll('.flow-node').forEach(node => {
-                node.addEventListener('mousedown', (e) => {
-                    draggedNode = node;
-                    const rect = node.getBoundingClientRect();
-                    offset.x = e.clientX - rect.left;
-                    offset.y = e.clientY - rect.top;
-                    node.style.zIndex = 1000;
-                });
-            });
+            const x1 = r1.left + r1.width - canvasRect.left;
+            const y1 = r1.top + r1.height/2 - canvasRect.top;
+            const x2 = r2.left - canvasRect.left;
+            const y2 = r2.top + r2.height/2 - canvasRect.top;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const cp1x = x1 + (x2 - x1) / 2;
+            const d = `M ${x1} ${y1} C ${cp1x} ${y1}, ${cp1x} ${y2}, ${x2} ${y2}`;
+            path.setAttribute("d", d);
+            path.setAttribute("stroke", "rgba(255,215,0,0.2)");
+            path.setAttribute("stroke-width", "3");
+            path.setAttribute("fill", "none");
+            svg.appendChild(path);
         }
+    }
 
-        window.addEventListener('mousemove', (e) => {
-            if (!draggedNode) return;
-            draggedNode.style.left = (e.clientX - offset.x - canvas.getBoundingClientRect().left) + 'px';
-            draggedNode.style.top = (e.clientY - offset.y) + 'px';
-            drawConnections();
-        });
-
-        window.addEventListener('mouseup', () => {
-            if(draggedNode) draggedNode.style.zIndex = 10;
-            draggedNode = null;
-        });
-
-        function drawConnections() {
-            svg.innerHTML = '';
-            const nodeStart = document.getElementById('node-start');
-            const nodeEnd = document.getElementById('node-end');
-
-            if (nodeStart && nodeEnd) {
-                const r1 = nodeStart.getBoundingClientRect();
-                const r2 = nodeEnd.getBoundingClientRect();
-                const cRect = canvas.getBoundingClientRect();
-
-                const x1 = r1.left + r1.width - cRect.left;
-                const y1 = r1.top + r1.height/2 - cRect.top;
-                const x2 = r2.left - cRect.left;
-                const y2 = r2.top + r2.height/2 - cRect.top;
-
-                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                const cp1x = x1 + (x2 - x1) / 2;
-                const d = `M ${x1} ${y1} C ${cp1x} ${y1}, ${cp1x} ${y2}, ${x2} ${y2}`;
-                path.setAttribute("d", d);
-                path.setAttribute("stroke", "rgba(255,255,255,0.1)");
-                path.setAttribute("stroke-width", "2");
-                path.setAttribute("fill", "none");
-                svg.appendChild(path);
-            }
-        }
-
-        initNodes();
-        window.addEventListener('load', drawConnections);
-
-    </script>
+    // Initial Node Setup
+    createNode('Post Distribution', 'ph-share-fat', 400, 300);
+</script>
 </body>
 </html>

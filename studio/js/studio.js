@@ -414,7 +414,7 @@ class StudioManager {
 // Global initialization
 document.addEventListener('DOMContentLoaded', () => {
     // Carichiamo la chiave API se presente
-    const geminiKey = localStorage.getItem('v10_gemini_key');
+    const geminiKey = localStorage.getItem('cf_google_api_key');
     if (geminiKey && window.Gemini) {
         window.Gemini.setApiKey(geminiKey);
     }

@@ -3,504 +3,373 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Factory V10.1 — Mappa Neurale V3</title>
-    <link rel="stylesheet" href="css/soft-corporate.css">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
-    <script src="js/core/sync-engine.js"></script>
+    <title>Mappa Neurale — Content Factory V10.1</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     <script src="js/core/agent-core.js"></script>
     <style>
-        :root {
-            --online-glow: rgba(16, 185, 129, 0.4);
-            --ready-glow: rgba(245, 158, 11, 0.4);
-            --offline-glow: rgba(100, 116, 139, 0.4);
-        }
-
-        body {
-            background: #000;
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* HEADER (PIN STYLE) */
-        .map-header {
-            padding: 60px 20px 40px;
-            text-align: center;
-            z-index: 100;
-            position: relative;
-        }
-
-        .map-header h1 {
-            font-family: 'Instrument Serif', serif;
-            font-size: clamp(3rem, 10vw, 4.5rem);
-            margin: 0;
-            background: linear-gradient(to bottom, #fff, #666);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1;
-            letter-spacing: -0.02em;
-        }
-
-        .map-header p {
-            color: #444;
-            font-size: 0.65rem;
-            letter-spacing: 0.4em;
-            text-transform: uppercase;
-            margin-top: 15px;
-            font-weight: 800;
-        }
-
-        .back-hub {
-            position: fixed;
-            top: 40px; left: 40px;
-            background: rgba(255,255,255,0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.08);
-            padding: 12px 24px;
-            border-radius: 50px;
-            color: #888;
-            text-decoration: none;
-            font-size: 0.7rem;
-            font-weight: 800;
-            z-index: 1000;
-            transition: 0.3s;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .back-hub:hover { background: #fff; color: #000; border-color: #fff; }
-
-        /* VIEWPORT */
-        .viewport {
-            flex: 1;
-            position: relative;
-            background: radial-gradient(circle at center, rgba(236, 72, 153, 0.02) 0%, transparent 80%);
-        }
-
-        .viewport {
-            position: relative;
-            z-index: 10;
-        }
-        canvas { position: absolute; inset:0; z-index: 5; }
-
-        /* INTERNAL ORBS */
-        .card-orbs {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.3;
-        }
-        .c-orb {
-            position: absolute;
-            width: 150px; height: 150px;
-            border-radius: 50%;
-            filter: blur(60px);
-            animation: card-orb-float 15s infinite alternate;
-        }
-        @keyframes card-orb-float {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 30px); }
-        }
-
-        /* CENTRAL CORE */
-        .central-core {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120px; height: 120px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 50;
-            box-shadow: 0 0 60px rgba(255,255,255,0.05);
-        }
-
-        .core-pulse {
-            position: absolute;
-            width: 100%; height: 100%;
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            animation: core-ripple 4s infinite ease-out;
-        }
-
-        @keyframes core-ripple { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(3.5); opacity: 0; } }
-
-        /* AGENT NODE V3 */
-        .agent-node {
-            position: absolute;
-            width: 240px;
-            background: rgba(15, 15, 15, 0.7);
-            backdrop-filter: blur(30px);
-            border: 1.5px solid rgba(255, 255, 255, 0.05);
-            border-radius: 28px;
-            padding: 20px;
-            cursor: grab;
-            z-index: 100;
-            user-select: none;
-            display: flex; flex-direction: column; gap: 14px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-
-        .agent-node:active { cursor: grabbing; border-color: rgba(255,255,255,0.3); }
-
-        .node-top { display: flex; align-items: center; gap: 12px; }
-
-        .n-icon {
-            width: 44px; height: 44px;
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.3rem;
-            position: relative;
-        }
-
-        .n-info h4 { margin: 0; font-size: 0.95rem; font-weight: 700; color: #fff; }
-        .n-info span { font-size: 0.55rem; color: #555; text-transform: uppercase; font-weight: 800; }
-
-        /* PROJECT LIST & PLUS */
-        .node-projects { display: flex; flex-wrap: wrap; gap: 6px; }
-        .p-chip {
-            background: rgba(255,255,255,0.03);
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-size: 0.6rem;
-            color: #fff;
-            font-weight: 700;
-            border: 1px solid rgba(255,255,255,0.05);
-            display: flex; align-items: center; gap: 6px;
-        }
-
-        .p-plus {
-            width: 26px; height: 26px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #666;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 0.8rem;
-        }
-        .p-plus:hover { background: #fff; color: #000; border-color: #fff; }
-
-        /* DYNAMIC CONNECTORS */
-        #connector-svg {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .neural-link {
-            stroke-width: 2;
-            fill: none;
-            stroke-dasharray: 8, 4;
-            animation: linkFlow 15s linear infinite;
-            filter: drop-shadow(0 0 5px currentColor);
-        }
-
-        @keyframes linkFlow { to { stroke-dashoffset: -100; } }
-
-        /* CATEGORIZED TERMINAL */
-        .terminal-toggle {
-            position: fixed;
-            bottom: 30px; right: 30px;
-            width: 54px; height: 54px;
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 50%;
-            color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem;
-            cursor: pointer;
-            z-index: 2000;
-        }
-
-        .terminal-panel {
-            position: fixed;
-            bottom: -100%; left: 0; width: 100%; height: 500px;
-            background: rgba(5, 5, 5, 0.95);
-            backdrop-filter: blur(50px);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            z-index: 1500;
-            transition: bottom 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex; flex-direction: column;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: #050505; font-family: 'DM Sans', sans-serif; color: #f0f0f0; height: 100vh; overflow: hidden; }
         
-        .terminal-panel.active { bottom: 0; }
-
-        .term-header { padding: 30px 60px 10px; display: flex; justify-content: space-between; align-items: center; }
-        .term-header h2 { font-family: 'Instrument Serif', serif; font-size: 1.8rem; margin: 0; }
-
-        .term-body { flex: 1; padding: 20px 60px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; overflow-y: auto; }
-
-        .term-cat h3 { font-size: 0.65rem; color: #444; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
-
-        .agent-row-compact {
-            display: flex; align-items: center; gap: 15px;
-            padding: 12px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 12px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.03);
-            transition: 0.3s;
+        .topbar {
+            position: fixed; top:0; left:0; right:0; z-index:200; height: 56px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px; background: rgba(5,5,5,0.95); border-bottom: 1px solid rgba(255,255,255,0.07);
         }
-        .agent-row-compact:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); }
+        .topbar-title { font-size: 1rem; font-weight: 800; color: #ffd700; }
+        .topbar-hint { font-family: 'Fira Code', monospace; font-size: 0.58rem; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
+        .btn-row { display: flex; gap: 8px; }
+        .btn { padding: 7px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: .2s; }
+        .btn-gold { background: #ffd700; color: #000; }
+        .btn-gold:hover { box-shadow: 0 4px 16px rgba(255,215,0,0.4); transform: translateY(-1px); }
+        .btn-ghost { background: rgba(255,255,255,0.07); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.12); color: #fff; }
 
-        .a-status-dot { width: 8px; height: 8px; border-radius: 50%; margin-left: auto; }
-        .dot-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
-        .dot-ready { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
-        .dot-offline { background: #64748b; }
+        #mapCanvas { position: fixed; top: 56px; left: 0; right: 0; bottom: 0; cursor: grab; }
+        #mapCanvas:active { cursor: grabbing; }
 
-        .prompt-txt { font-size: 0.6rem; color: #555; font-family: 'Fira Code', monospace; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .legend {
+            position: fixed; bottom: 20px; left: 20px; z-index: 200;
+            background: rgba(8,8,8,0.92); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px; padding: 14px 18px; backdrop-filter: blur(20px);
+        }
+        .leg-title { font-family: 'Fira Code', monospace; font-size: 0.55rem; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+        .leg-item { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: #aaa; margin-bottom: 7px; }
+        .leg-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+        .leg-line { width: 22px; height: 0; border-top: 2px solid; flex-shrink: 0; }
 
+        /* INFO PANEL */
+        .panel {
+            position: fixed; right: 20px; top: 70px; z-index: 200; width: 310px;
+            background: rgba(8,8,8,0.96); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px; padding: 25px; backdrop-filter: blur(30px);
+            transform: translateX(360px); transition: transform .4s cubic-bezier(0.16,1,0.3,1); box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+        }
+        .panel.open { transform: translateX(0); }
+        .panel-close { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.06); border: none; color: #888; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .panel-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
+        
+        .panel-emoji { font-size: 2.2rem; margin-bottom: 10px; }
+        .panel-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 2px; }
+        .panel-role { font-family: 'Fira Code', monospace; font-size: 0.6rem; color: #777; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+        .panel-desc { font-size: 0.8rem; color: #bbb; line-height: 1.6; margin-bottom: 20px; }
+        
+        .panel-section { font-family: 'Fira Code', monospace; font-size: 0.58rem; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px; }
+        .panel-learn { font-size: 0.75rem; color: #ccc; margin-bottom: 8px; line-height: 1.5; display: flex; gap: 8px; }
+        .panel-learn::before { content: '↻'; color: #ffd700; flex-shrink: 0; }
+
+        .panel-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; }
+        .panel-tag { font-family: 'Fira Code', monospace; font-size: 0.55rem; padding: 3px 10px; border-radius: 12px; background: rgba(255,255,255,0.05); color: #888; border: 1px solid rgba(255,255,255,0.08); }
+
+        .tt { position: fixed; z-index: 300; background: rgba(8,8,8,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 6px 12px; font-size: 0.75rem; color: #ddd; pointer-events: none; display: none; backdrop-filter: blur(12px); }
     </style>
 </head>
-<body class="dark-factory">
+<body>
 
-    <svg id="connector-svg"></svg>
-
-    <div class="background-orbs-container">
-        <!-- Sync with Hub/Roadmap Orb System -->
-        <div class="bg-orb" style="width:120px;height:120px;top:5%;left:15%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:130px;height:130px;top:60%;left:45%;background:radial-gradient(circle,rgba(255,235,59,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:150px;height:150px;top:80%;left:5%;background:radial-gradient(circle,rgba(255,20,147,0.2) 0%,transparent 70%);"></div>
+<div class="topbar">
+    <div>
+        <div class="topbar-title">🧠 Mappa Neurale — Agenti Auto-Apprendenti</div>
+        <div class="topbar-hint">Trascina Agenti · Scroll = zoom · Clicca per dettagli</div>
     </div>
-
-    <div class="background-orbs-container">
-        <!-- Cluster 1: Gold & Warm -->
-        <div class="bg-orb" style="width:120px;height:120px;top:10%;left:15%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:80px;height:80px;top:25%;left:20%;background:radial-gradient(circle,rgba(255,165,0,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:40px;height:40px;top:15%;left:30%;background:radial-gradient(circle,rgba(255,255,255,0.4) 0%,transparent 70%);"></div>
-        <!-- Cluster 2: Pink & Vibrant -->
-        <div class="bg-orb" style="width:140px;height:140px;top:30%;right:10%;background:radial-gradient(circle,rgba(255,20,147,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:90px;height:90px;top:45%;right:15%;background:radial-gradient(circle,rgba(255,105,180,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:150px;height:150px;bottom:10%;left:10%;background:radial-gradient(circle,rgba(255,20,147,0.2) 0%,transparent 70%);"></div>
-        <!-- Cluster 3: Green & Fresh -->
-        <div class="bg-orb" style="width:110px;height:110px;top:60%;right:40%;background:radial-gradient(circle,rgba(0,255,127,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:130px;height:130px;bottom:20%;left:45%;background:radial-gradient(circle,rgba(184,212,168,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:70px;height:70px;top:80%;right:20%;background:radial-gradient(circle,rgba(0,255,0,0.2) 0%,transparent 70%);"></div>
-        <!-- Cluster 4: Blue & Tech -->
-        <div class="bg-orb" style="width:100px;height:100px;top:50%;left:70%;background:radial-gradient(circle,rgba(0,191,255,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:140px;height:140px;bottom:5%;right:5%;background:radial-gradient(circle,rgba(30,144,255,0.35) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:60px;height:60px;top:5%;right:45%;background:radial-gradient(circle,rgba(65,105,225,0.3) 0%,transparent 70%);"></div>
-        <!-- Extra Highlights -->
-        <div class="bg-orb" style="width:40px;height:40px;top:25%;left:40%;background:radial-gradient(circle,rgba(255,255,255,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:50px;height:50px;bottom:30%;right:15%;background:radial-gradient(circle,rgba(255,255,255,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:120px;height:120px;bottom:50%;right:5%;background:radial-gradient(circle,rgba(0,255,127,0.2) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:60px;height:60px;top:10%;left:80%;background:radial-gradient(circle,rgba(168,212,209,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:130px;height:130px;top:60%;left:45%;background:radial-gradient(circle,rgba(255,235,59,0.3) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:100px;height:100px;top:40%;left:70%;background:radial-gradient(circle,rgba(255,215,0,0.25) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:110px;height:110px;top:15%;right:40%;background:radial-gradient(circle,rgba(255,215,0,0.4) 0%,transparent 70%);"></div>
-        <div class="bg-orb" style="width:150px;height:150px;top:5%;right:5%;background:radial-gradient(circle,rgba(255,20,147,0.3) 0%,transparent 70%);"></div>
+    <div class="btn-row">
+        <button class="btn btn-ghost" onclick="resetPositions()">⟲ Reset</button>
+        <button class="btn btn-ghost" id="btnFlow" onclick="toggleFlow()">⚡ Flussi ON</button>
+        <button class="btn btn-gold" onclick="window.location.href='index.html'">← Hub Strategico</button>
     </div>
+</div>
 
-    <header class="map-header">
-        <h1>Mappa Neurale</h1>
-        <p>Dynamic Multi-Agent Orchestrator — V10.1</p>
-    </header>
+<canvas id="mapCanvas"></canvas>
 
-    <main class="viewport" id="viewport">
-        <div class="card-orbs">
-            <div class="c-orb" style="top:30%; left:20%; background: rgba(139, 92, 246, 0.15);"></div>
-            <div class="c-orb" style="bottom:30%; right:20%; background: rgba(59, 130, 246, 0.15);"></div>
-        </div>
-        <div class="central-core" id="core">
-            <div class="core-pulse"></div>
-            <i class="ph-fill ph-brain" style="font-size:3rem; color:#fff;"></i>
-        </div>
+<div class="legend">
+    <div class="leg-title">Legenda</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#ffd700;box-shadow:0 0 8px #ffd700;"></span> Orchestratore Supremo (Toni)</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#10b981;box-shadow:0 0 6px #10b981;"></span> Agente Online</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#06b6d4;"></span> In sviluppo</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#444;"></span> Pianificato</div>
+    <div class="leg-item"><span class="leg-line" style="border-color:#ffd700;"></span> Toni comanda</div>
+    <div class="leg-item"><span class="leg-line" style="border-color:#10b981;"></span> Feedback / impara</div>
+</div>
 
-        <div id="agent-layer"></div>
-    </main>
+<div class="panel" id="panel">
+    <button class="panel-close" onclick="closePanel()">✕</button>
+    <div class="panel-emoji" id="p-emoji">🤖</div>
+    <div class="panel-name" id="p-name">Agent</div>
+    <div class="panel-role" id="p-role">role</div>
+    <div class="panel-desc" id="p-desc">desc</div>
+    <div class="panel-section">Come impara autonomamente</div>
+    <div id="p-learns"></div>
+    <div class="panel-tags" id="p-tags"></div>
+</div>
 
-    <div class="terminal-panel" id="terminal">
-        <div class="term-header">
-            <h2>Registry Neurale</h2>
-            <button onclick="toggleTerminal()" style="background:none; border:none; color:#666; cursor:pointer; font-size:1.5rem;"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="term-body">
-            <div class="term-cat">
-                <h3>Online (Attivi)</h3>
-                <div id="list-online"></div>
-            </div>
-            <div class="term-cat">
-                <h3>Pronti all'uso</h3>
-                <div id="list-ready"></div>
-            </div>
-            <div class="term-cat">
-                <h3>Offline</h3>
-                <div id="list-offline"></div>
-            </div>
-        </div>
-    </div>
+<div class="tt" id="tt"></div>
 
-    <button class="terminal-toggle" onclick="toggleTerminal()"><i class="ph ph-terminal-window"></i></button>
+<script>
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let W, H, CX, CY;
+    let panX=0, panY=0, scale=1;
+    let dragging=false, mx0=0, my0=0, px0=0, py0=0;
+    let draggedNodeId = null;
+    let flowOn=true;
+    let particles=[];
 
-    <script>
-        const agentLayer = document.getElementById('agent-layer');
-        const svg = document.getElementById('connector-svg');
-        const core = document.getElementById('core');
+    // Node state merged from AgentCore + LocalStorage
+    let POS = JSON.parse(localStorage.getItem('neural_map_pos_v10')) || {};
+    let AGENTS = {};
+    let CONNS = [];
 
-        let draggedNode = null;
-        let startX, startY, nodeX, nodeY;
-
-        const NODE_DATA = {
-            cipher: { x: 250, y: 200 },
-            bug_hunter: { x: 1450, y: 200 },
-            fixer: { x: 1450, y: 650 },
-            olivia: { x: 250, y: 650 }
+    function syncAgents() {
+        const state = AgentCore.state.agents;
+        const currentAgents = Object.keys(state);
+        
+        // Add Toni (User)
+        const user = AgentCore.state.user || { name: 'Toni', avatar: 'AC' };
+        AGENTS['toni'] = {
+            emoji: '👑',
+            name: user.name,
+            role: 'Orchestratore Supremo',
+            color: '#ffd700',
+            r: 54,
+            status: 'orchestrator',
+            desc: 'Il Capo. Assegna obiettivi, approva distribuzioni, riceve report da tutti gli agenti e ricalibra la strategia.',
+            learns: ['Analizza report per capire i trend','Osserva pattern di engagement','Definisce priorità operative'],
+            tags: ['Strategia','Owner']
         };
+        if (!POS['toni']) POS['toni'] = { x: 0, y: 0 };
 
-        function renderMap() {
-            const agents = AgentCore.state.agents;
-            agentLayer.innerHTML = '';
+        currentAgents.forEach((id, index) => {
+            const agent = state[id];
             
-            Object.entries(agents).forEach(([id, agent]) => {
-                const pos = NODE_DATA[id] || { x: Math.random() * 1000 + 200, y: Math.random() * 500 + 200 };
-                const node = document.createElement('div');
-                node.className = 'agent-node';
-                node.id = `agent-${id}`;
-                node.style.left = pos.x + 'px';
-                node.style.top = pos.y + 'px';
-                
-                // Ensure operationalState exists
-                const st = agent.operationalState || 'READY';
-                
-                node.innerHTML = `
-                    <div class="node-top">
-                        <div class="n-icon" style="background:${agent.color}20; color:${agent.color}; border:1px solid ${agent.color}40;">
-                            <i class="ph-fill ${agent.icon || 'ph-cpu'}"></i>
-                        </div>
-                        <div class="n-info">
-                            <h4>${agent.name}</h4>
-                            <span>${st}</span>
-                        </div>
-                    </div>
-                    <div class="node-projects">
-                        ${(agent.projects || []).map(p => `
-                            <div class="p-chip">
-                                <i class="ph ph-activity" style="color:${agent.color};"></i>
-                                ${p}
-                            </div>
-                        `).join('')}
-                        <div class="p-plus" onclick="alert('Associazione nuovo progetto per ${agent.name}...')"><i class="ph ph-plus"></i></div>
-                    </div>
-                `;
-
-                node.addEventListener('mousedown', (e) => startDrag(e, node, id));
-                agentLayer.appendChild(node);
-            });
-
-            drawConnections();
-            renderTerminal();
-        }
-
-        function startDrag(e, node, id) {
-            draggedNode = node;
-            startX = e.clientX;
-            startY = e.clientY;
-            nodeX = parseInt(node.style.left);
-            nodeY = parseInt(node.style.top);
-            node.style.zIndex = 1000;
-        }
-
-        window.addEventListener('mousemove', (e) => {
-            if (!draggedNode) return;
-            
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            
-            let targetX = nodeX + dx;
-            let targetY = nodeY + dy;
-
-            // Boundary clamping
-            const rect = draggedNode.getBoundingClientRect();
-            targetX = Math.max(10, Math.min(window.innerWidth - rect.width - 10, targetX));
-            targetY = Math.max(150, Math.min(window.innerHeight - rect.height - 10, targetY));
-
-            draggedNode.style.left = targetX + 'px';
-            draggedNode.style.top = targetY + 'px';
-            
-            // Sync internal data for redraws
-            const id = draggedNode.id.split('-')[1];
-            NODE_DATA[id] = { x: targetX, y: targetY };
-
-            drawConnections();
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (draggedNode) draggedNode.style.zIndex = 100;
-            draggedNode = null;
-        });
-
-        function drawConnections() {
-            svg.innerHTML = '';
-            const corePos = core.getBoundingClientRect();
-            const cx = corePos.left + corePos.width / 2;
-            const cy = corePos.top + corePos.height / 2;
-
-            Object.keys(AgentCore.state.agents).forEach(id => {
-                const node = document.getElementById(`agent-${id}`);
-                if (!node) return;
-                
-                const agent = AgentCore.state.agents[id];
-                const rect = node.getBoundingClientRect();
-                const nx = rect.left + rect.width / 2;
-                const ny = rect.top + rect.height / 2;
-
-                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                const d = `M ${cx} ${cy} L ${nx} ${ny}`;
-                path.setAttribute("d", d);
-                path.setAttribute("class", "neural-link");
-                path.setAttribute("style", `stroke: ${agent.color}; color: ${agent.color};`);
-                svg.appendChild(path);
-            });
-        }
-
-        function renderTerminal() {
-            const sections = {
-                ONLINE: document.getElementById('list-online'),
-                READY: document.getElementById('list-ready'),
-                OFFLINE: document.getElementById('list-offline')
+            AGENTS[id] = {
+                emoji: agent.icon_emoji || (id==='olivia'?'🌸':id==='disperazione'?'🔍':id==='cipher'?'🛡️':'🤖'),
+                name: agent.name,
+                role: agent.status || 'Agent',
+                color: agent.color || '#10b981',
+                r: id === 'olivia' ? 44 : 36,
+                status: 'online',
+                desc: agent.description || 'Orchestratore specializzato nel sistema Content Factory V10.1.',
+                learns: agent.learns || ['Riceve feedback qualitativi','Analizza trend di mercato','Si sincronizza con il Boss'],
+                tags: [agent.tag || 'SYSTEM']
             };
 
-            Object.values(sections).forEach(s => s.innerHTML = '');
+            if (!POS[id]) {
+                const angle = (index / currentAgents.length) * Math.PI * 2;
+                const radius = 280;
+                POS[id] = { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
+            }
+        });
 
-            Object.entries(AgentCore.state.agents).forEach(([id, agent]) => {
-                const row = document.createElement('div');
-                row.className = 'agent-row-compact';
-                row.innerHTML = `
-                    <div class="n-icon" style="background:${agent.color}15; color:${agent.color}; width:32px; height:32px; font-size:1rem;">
-                        <i class="ph-fill ${agent.icon || 'ph-cpu'}"></i>
-                    </div>
-                    <div>
-                        <strong style="font-size:0.8rem;">${agent.name}</strong>
-                        <div class="prompt-txt">${agent.systemPrompt}</div>
-                    </div>
-                    <div class="a-status-dot dot-${agent.operationalState.toLowerCase()}"></div>
-                `;
-                
-                const cat = agent.operationalState.toUpperCase();
-                if (sections[cat]) sections[cat].appendChild(row);
-            });
+        // Hardcoded connections for visual fidelity based on Cloude's version
+        CONNS = [
+            { from:'toni', to:'olivia', type:'command', label:'Assegna brief' },
+            { from:'toni', to:'cipher', type:'command', label:'Richiede audit' },
+            { from:'olivia', to:'disperazione', type:'feedback', label:'Market research' },
+            { from:'disperazione', to:'olivia', type:'feedback', label:'Report ricerca' }
+        ];
+        
+        // Dynamic connections for other agents
+        currentAgents.forEach(id => {
+            if(id !== 'olivia' && id !== 'disperazione' && id !== 'cipher') {
+               CONNS.push({ from:'toni', to:id, type:'command', label:'Comando' });
+            }
+        });
+    }
+
+    function savePositions() { localStorage.setItem('neural_map_pos_v10', JSON.stringify(POS)); }
+    function resetPositions() { if(confirm('Reset layout?')) { POS = {}; syncAgents(); savePositions(); draw(); } }
+
+    function resize() {
+        W = window.innerWidth; H = window.innerHeight - 56;
+        canvas.width = W * devicePixelRatio; canvas.height = H * devicePixelRatio;
+        ctx.scale(devicePixelRatio, devicePixelRatio);
+        CX = W/2; CY = H/2;
+        draw();
+    }
+
+    function world(id) {
+        if(!POS[id]) return { x: CX, y: CY };
+        return { x: CX + panX + POS[id].x * scale, y: CY + panY + POS[id].y * scale };
+    }
+
+    function hexAlpha(hex,a){
+        const r=parseInt(hex.slice(1,3),16);
+        const g=parseInt(hex.slice(3,5),16);
+        const b=parseInt(hex.slice(5,7),16);
+        return `rgba(${r},${g},${b},${a})`;
+    }
+
+    function draw() {
+        ctx.clearRect(0,0,W,H);
+        drawOrbs();
+        CONNS.forEach(c => drawConn(c));
+        if(flowOn) drawParticles();
+        Object.keys(AGENTS).forEach(id => drawNode(id));
+    }
+
+    function drawOrbs() {
+        const orbs = [
+            {x:0.15,y:0.2,r:280,c:'#ffd700'}, {x:0.75,y:0.1,r:220,c:'#3b82f6'},
+            {x:0.6, y:0.8,r:260,c:'#10b981'}, {x:0.2, y:0.7,r:200,c:'#ec4899'}
+        ];
+        orbs.forEach(o => {
+            const g = ctx.createRadialGradient(o.x*W,o.y*H,0,o.x*W,o.y*H,o.r);
+            g.addColorStop(0, hexAlpha(o.c,0.06));
+            g.addColorStop(1, hexAlpha(o.c,0));
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(o.x*W,o.y*H,o.r,0,Math.PI*2); ctx.fill();
+        });
+    }
+
+    function drawConn(c) {
+        const fa = AGENTS[c.from], ta = AGENTS[c.to];
+        if(!fa||!ta) return;
+        const fp = world(c.from), tp = world(c.to);
+        const dx=tp.x-fp.x, dy=tp.y-fp.y;
+        const len=Math.sqrt(dx*dx+dy*dy);
+        if(len < 10) return;
+        
+        // Curved line logic
+        const curveSize = Math.min(80, len * 0.3) * (CONNS.indexOf(c)%2===0?1:-1);
+        const mx=(fp.x+tp.x)/2 - dy/len*curveSize, my=(fp.y+tp.y)/2 + dx/len*curveSize;
+
+        ctx.beginPath(); ctx.moveTo(fp.x, fp.y); ctx.quadraticCurveTo(mx, my, tp.x, tp.y);
+        ctx.strokeStyle = c.type === 'command' ? hexAlpha('#ffd700', 0.25) : hexAlpha('#10b981', 0.2);
+        ctx.lineWidth = 1.5; ctx.stroke();
+        
+        // Label shadow box
+        ctx.font = '500 10px DM Sans';
+        const tw = ctx.measureText(c.label).width;
+        const lx = (fp.x + tp.x) / 2 - dy/len*curveSize*0.5;
+        const ly = (fp.y + tp.y) / 2 + dx/len*curveSize*0.5;
+        ctx.fillStyle = 'rgba(5,5,5,0.7)';
+        ctx.beginPath(); ctx.roundRect(lx-tw/2-5, ly-8, tw+10, 16, 4); ctx.fill();
+        ctx.fillStyle = c.type === 'command' ? '#ffd700' : '#10b981';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(c.label, lx, ly);
+
+        c._mx=mx; c._my=my; c._fp=fp; c._tp=tp;
+    }
+
+    function drawNode(id) {
+        const a = AGENTS[id];
+        const p = world(id);
+        const r = a.r * scale;
+
+        // Pulse glow
+        const pulseR = r + 10 + Math.sin(Date.now()*0.003)*5;
+        const g2 = ctx.createRadialGradient(p.x,p.y,r,p.x,p.y,pulseR+15);
+        g2.addColorStop(0,hexAlpha(a.color,0.3)); g2.addColorStop(1,hexAlpha(a.color,0));
+        ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(p.x,p.y,pulseR+15,0,Math.PI*2); ctx.fill();
+
+        // Node Circle
+        const ng = ctx.createRadialGradient(p.x-r*0.3, p.y-r*0.3, 0, p.x, p.y, r);
+        ng.addColorStop(0, 'rgba(35,35,40,1)'); ng.addColorStop(1, 'rgba(10,10,12,1)');
+        ctx.fillStyle = ng; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.fill();
+        
+        ctx.strokeStyle = hexAlpha(a.color, 0.9); ctx.lineWidth = (a.status==='orchestrator'?3:2) * scale; ctx.stroke();
+        
+        // Inner detail
+        ctx.strokeStyle = hexAlpha(a.color, 0.1); ctx.lineWidth=1; ctx.beginPath(); ctx.arc(p.x,p.y,r-5*scale,0,Math.PI*2); ctx.stroke();
+
+        // Text Content
+        ctx.font = `${Math.max(16,r*0.55)}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillStyle = "#fff"; ctx.fillText(a.emoji, p.x, p.y-r*0.12);
+        
+        ctx.font = `800 ${Math.max(10,r*0.25)}px DM Sans`; ctx.fillText(a.name, p.x, p.y+r*0.25);
+        
+        // Status Pill
+        const st = a.status === 'orchestrator' ? 'boss' : 'live';
+        const sw = 30*scale, sh = 14*scale;
+        ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.strokeStyle=hexAlpha(a.color,0.5); ctx.lineWidth=1;
+        ctx.beginPath(); ctx.roundRect(p.x-sw/2, p.y+r+4*scale, sw, sh, 6); ctx.fill(); ctx.stroke();
+        ctx.font = `700 ${8*scale}px Fira Code`; ctx.fillStyle=a.color; ctx.fillText(st, p.x, p.y+r+sh/2+4*scale);
+    }
+
+    function spawnParticle() {
+        if(!CONNS.length) return;
+        const c = CONNS[Math.floor(Math.random()*CONNS.length)];
+        particles.push({ c, t:0, speed:0.005, color:AGENTS[c.from].color });
+    }
+
+    function drawParticles() {
+        particles = particles.filter(p=>p.t<1);
+        particles.forEach(p=>{
+            p.t += p.speed;
+            const c=p.c; if(!c._fp||!c._tp) return;
+            const t=p.t; const x=(1-t)*(1-t)*c._fp.x+2*(1-t)*t*c._mx+t*t*c._tp.x;
+            const y=(1-t)*(1-t)*c._fp.y+2*(1-t)*t*c._my+t*t*c._tp.y;
+            ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2); ctx.fillStyle=p.color; ctx.shadowBlur=8; ctx.shadowColor=p.color; ctx.fill(); ctx.shadowBlur=0;
+        });
+    }
+
+    function hitNode(mx, my) {
+        const ids = Object.keys(AGENTS);
+        for(let i=ids.length-1; i>=0; i--){
+            const id = ids[i];
+            const p=world(id); const r=AGENTS[id].r*scale+15;
+            const dx=mx-p.x, dy=my-p.y;
+            if(dx*dx+dy*dy <= r*r) return id;
         }
+        return null;
+    }
 
-        function toggleTerminal() {
-            document.getElementById('terminal').classList.toggle('active');
+    canvas.addEventListener('mousedown', e=>{
+        const rect=canvas.getBoundingClientRect();
+        const x=e.clientX-rect.left, y=e.clientY-rect.top;
+        draggedNodeId = hitNode(x,y);
+        if(!draggedNodeId) { dragging=true; mx0=e.clientX; my0=e.clientY; px0=panX; py0=panY; }
+        else { canvas.style.cursor='grabbing'; }
+    });
+
+    window.addEventListener('mousemove', e=>{
+        const rect=canvas.getBoundingClientRect();
+        const x = e.clientX-rect.left; const y = e.clientY-rect.top;
+        if(draggedNodeId) {
+            POS[draggedNodeId].x = (x - CX - panX) / scale;
+            POS[draggedNodeId].y = (y - CY - panY) / scale;
+            return;
         }
+        if(dragging){ panX=px0+(e.clientX-mx0); panY=py0+(e.clientY-my0); return; }
+        const hit=hitNode(x, y); canvas.style.cursor = hit ? 'pointer' : dragging ? 'grabbing' : 'grab';
+        const tt = document.getElementById('tt');
+        tt.style.display = hit ? 'block' : 'none';
+        if(hit) { tt.style.left=(e.clientX+20)+'px'; tt.style.top=(e.clientY-10)+'px'; tt.textContent=AGENTS[hit].name+' — '+AGENTS[hit].role; }
+    });
 
-        // Init
-        window.addEventListener('load', renderMap);
-        window.addEventListener('resize', drawConnections);
-    </script>
+    window.addEventListener('mouseup', ()=>{ if(draggedNodeId) savePositions(); draggedNodeId=null; dragging=false; });
+
+    canvas.addEventListener('click', e=>{
+        const rect=canvas.getBoundingClientRect();
+        const x=e.clientX-rect.left, y=e.clientY-rect.top;
+        const hit=hitNode(x,y);
+        if(hit) openPanel(hit);
+    });
+
+    canvas.addEventListener('wheel', e=>{
+        e.preventDefault(); scale = Math.max(0.2, Math.min(4, scale * (e.deltaY>0?0.9:1.11))); draw();
+    },{passive:false});
+
+    function openPanel(id) {
+        const a=AGENTS[id];
+        document.getElementById('p-emoji').textContent=a.emoji;
+        document.getElementById('p-name').textContent=a.name;
+        document.getElementById('p-role').textContent=a.role;
+        document.getElementById('p-desc').textContent=a.desc;
+        document.getElementById('p-learns').innerHTML=a.learns.map(l=>`<div class="panel-learn">${l}</div>`).join('');
+        document.getElementById('p-tags').innerHTML=a.tags.map(t=>`<span class="panel-tag">${t}</span>`).join('');
+        document.getElementById('panel').classList.add('open');
+    }
+    function closePanel(){ document.getElementById('panel').classList.remove('open'); }
+    function toggleFlow(){ flowOn=!flowOn; draw(); }
+
+    function loop(ts) {
+        if(flowOn && Math.random() < 0.08) spawnParticle();
+        draw(); requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('resize', resize);
+    syncAgents();
+    resize();
+    requestAnimationFrame(loop);
+</script>
 </body>
 </html>

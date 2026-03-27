@@ -360,9 +360,9 @@
     <!-- Strategic Header (Profile, Agents, Security) -->
     <div class="strategic-header">
         <!-- 1. Profile Node -->
-        <div class="header-node profile" id="profile-node">
-            <div class="avatar-mini">AC</div>
-            <div class="node-txt">Il Capo <span>Owner</span></div>
+        <div class="header-node profile" id="profile-node-master" style="cursor: pointer;">
+            <div class="avatar-mini" id="user-avatar-hub">AC</div>
+            <div class="node-txt"><span id="user-name-hub">Il Capo</span> <span id="user-status-hub">Owner</span></div>
         </div>
 
         <!-- NEW: Olivia Designer Node -->
@@ -427,12 +427,48 @@
         <div class="orb" style="width:60px;height:60px;top:10%;left:80%;background:radial-gradient(circle,rgba(168,212,209,0.4) 0%,transparent 70%);animation:float-slow 15s infinite alternate;"></div>
     </div>
 
+    <!-- ── STATUS INDICATOR ── -->
+    <div id="cf-status-bar" style="
+        position:fixed; top:14px; left:20px; z-index:9999;
+        display:flex; align-items:center; gap:8px;
+        background:rgba(8,8,8,0.92); border:1px solid rgba(255,255,255,0.1);
+        border-radius:30px; padding:7px 16px 7px 11px;
+        backdrop-filter:blur(16px); cursor:pointer;
+        transition: border-color .2s, box-shadow .2s;
+        font-family:'Fira Code',monospace;
+    " onclick="document.getElementById('cf-status-popup').classList.toggle('open')">
+        <span id="cf-status-dot" style="width:9px;height:9px;border-radius:50%;background:#444;flex-shrink:0;transition:.3s;"></span>
+        <span id="cf-status-text" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#555;">Checking...</span>
+    </div>
+
+    <!-- STATUS POPUP -->
+    <div id="cf-status-popup" style="
+        position:fixed; top:52px; left:20px; z-index:9998;
+        width:320px; background:rgba(8,8,8,0.97);
+        border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:20px;
+        backdrop-filter:blur(24px); display:none;
+        font-family:'DM Sans',sans-serif;
+    ">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div style="font-family:'Fira Code',monospace;font-size:0.62rem;color:#666;text-transform:uppercase;letter-spacing:2px;">Stato Sistema</div>
+            <button onclick="document.getElementById('cf-status-popup').classList.remove('open')" style="background:rgba(255,255,255,0.07);border:none;color:#888;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:0.75rem;">✕</button>
+        </div>
+        <div id="cf-status-detail" style="font-size:0.82rem;color:#bbb;line-height:1.65;margin-bottom:16px;"></div>
+        <div id="cf-status-actions" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <style>
+        #cf-status-popup.open { display:block !important; animation: fadeInDown .2s ease; }
+        #cf-status-bar.status-online  { border-color:rgba(16,185,129,0.35); }
+        #cf-status-bar.status-offline { border-color:rgba(239,68,68,0.3); }
+        #cf-status-bar.status-warn    { border-color:rgba(251,191,36,0.35); }
+        @keyframes fadeInDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes pulse-online { 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.6)} 50%{box-shadow:0 0 0 5px rgba(16,185,129,0)} }
+    </style>
+
     <header>
         <h1 style="background: linear-gradient(to bottom, #fff, #444); -webkit-background-clip: text; background-clip: text;">Content Factory</h1>
         <p>Strategic Creative Engine — V10.1</p>
-        <button class="reset-session-btn" style="background:#ffd700; color:#000; font-weight:bold; border:none; padding:10px 20px; box-shadow: 0 4px 15px rgba(255,215,0,0.4);" onclick="localStorage.clear(); sessionStorage.clear(); window.location.reload();">
-            <i class="ph ph-arrows-counter-clockwise"></i> Reset Sessione (Test)
-        </button>
     </header>
 
     <div class="launcher-grid" style="background: transparent !important; position: relative; z-index: 5;">
@@ -463,15 +499,15 @@
             </div>
         </a>
 
-        <!-- 3. BRAINSTORMING -->
-        <a href="brainstorming.html" class="hub-card frosted-glass-dark" id="hub-brainstorm">
+        <!-- 3. SENTIMENT ANALYSIS -->
+        <a href="sentiment.html" class="hub-card frosted-glass-dark" id="hub-sentiment">
             <div class="card-orbs">
                 <div class="c-orb" style="top:50%; left:50%; background: rgba(168,212,209,0.2);"></div>
             </div>
             <div class="ci">
-                <div class="hub-icon" style="color: #fff; background: rgba(168,212,209,0.1); border: 1px solid rgba(168,212,209,0.2);"><i class="ph-fill ph-lightbulb-filament"></i></div>
-                <h2 class="hub-title text-yellow-glow">Brainstorming</h2>
-                <p class="hub-desc" style="color: #888;">Genera idee multithread alimentate dall'AI.</p>
+                <div class="hub-icon" style="color: #fff; background: rgba(168,212,209,0.1); border: 1px solid rgba(168,212,209,0.2);"><i class="ph-fill ph-heart-beat"></i></div>
+                <h2 class="hub-title text-yellow-glow">Sentiment</h2>
+                <p class="hub-desc" style="color: #888;">Analisi vibrazioni community e Hype Score in tempo reale.</p>
                 <div class="hub-footer text-yellow-glow"><i class="ph-bold ph-arrow-right"></i></div>
             </div>
         </a>
@@ -503,7 +539,7 @@
         </a>
 
         <!-- 4. ANALYTICS -->
-        <a href="#" class="hub-card frosted-glass-dark" id="hub-analytics">
+        <a href="analytics.html" class="hub-card frosted-glass-dark" id="hub-analytics">
             <div class="card-orbs">
                 <div class="c-orb" style="top:20px; left:20px; background: rgba(162,196,221,0.2);"></div>
             </div>
@@ -527,6 +563,24 @@
                 <div class="hub-footer text-yellow-glow"><i class="ph-bold ph-arrow-right"></i></div>
             </div>
         </a>
+
+        <!-- Sidebar with Global Nav -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="ph-bold ph-factory"></i>
+                <span>V10.1</span>
+            </div>
+            <nav>
+                <a href="index.html" class="nav-item active"><i class="ph-bold ph-house"></i> Hub</a>
+                <a href="olivia.html" class="nav-item"><i class="ph-bold ph-sparkle"></i> Studio</a>
+                <a href="roadmap.html" class="nav-item"><i class="ph-bold ph-map-trifold"></i> Roadmap</a>
+                <a href="security.html" class="nav-item"><i class="ph-bold ph-shield-check"></i> Security</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="status-dot"></div>
+                <span>Sistema Nominale</span>
+            </div>
+        </aside>
 
         <!-- 6. ROADMAP -->
         <a href="roadmap.html" class="hub-card frosted-glass-dark" id="hub-roadmap">
@@ -553,6 +607,114 @@
                 <div class="hub-footer"><i class="ph-bold ph-arrow-right"></i></div>
             </div>
         </a>
+
+        <!-- 8. PROVOLA LAB -->
+        <a href="provola.html" class="hub-card frosted-glass-dark" id="hub-provola">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:-20px; right:-20px; background: rgba(255, 176, 0, 0.25);"></div>
+                <div class="c-orb" style="bottom:-30px; left:-10px; background: rgba(255, 215, 0, 0.15);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #fff; background: rgba(255, 176, 0, 0.15); border: 1px solid rgba(255, 176, 0, 0.4);"><i class="ph-fill ph-flask"></i></div>
+                <h2 class="hub-title" style="color: #ffd700;">Provola Lab</h2>
+                <p class="hub-desc" style="color: #aaa;">Laboratorio sperimentale per euristiche creative e social dynamics.</p>
+                <div class="hub-footer" style="color: #ffd700;"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
+        <!-- 9. NEXUS ORCHESTRATOR -->
+        <a href="nexus.html" class="hub-card frosted-glass-dark" id="hub-nexus">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:50%; right:10px; background: rgba(147,197,253,0.3);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #fff; background: rgba(147,197,253,0.15); border: 1px solid rgba(147,197,253,0.3);"><i class="ph-fill ph-infinity"></i></div>
+                <h2 class="hub-title" style="color: #fff;">Nexus Orchestrator</h2>
+                <p class="hub-desc" style="color: #888;">Il nucleo centrale di sincronizzazione multimodale.</p>
+                <div class="hub-footer"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
+        <!-- 10. DISPERAZIONE — WEB RESEARCHER -->
+        <a href="disperazione.html" class="hub-card frosted-glass-dark" id="hub-disperazione">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:20%; left:10px; background: rgba(249,115,22,0.35);"></div>
+                <div class="c-orb" style="bottom:15%; right:10px; background: rgba(251,191,36,0.25);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #f97316; background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.4);">🔍</div>
+                <h2 class="hub-title" style="color: #f97316;">Disperazione</h2>
+                <p class="hub-desc" style="color: #aaa;">Web Research Orchestrator — cerca, analizza siti e porta report a tutti gli agenti.</p>
+                <div class="hub-footer" style="color: #f97316;"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
+        <!-- 11. TRAINING CENTER -->
+        <a href="training-center.html" class="hub-card frosted-glass-dark" id="hub-training">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:15%; right:15px; background: rgba(255,215,0,0.35);"></div>
+                <div class="c-orb" style="bottom:20%; left:10px; background: rgba(251,146,60,0.2);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #ffd700; background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.4);"><i class="ph-fill ph-graduation-cap"></i></div>
+                <h2 class="hub-title" style="color: #ffd700;">Training Center</h2>
+                <p class="hub-desc" style="color: #aaa;">Knowledge base interattiva e allineamento degli agenti AI.</p>
+                <div class="hub-footer" style="color: #ffd700;"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
+        <!-- 12. PROFILO — TONI -->
+        <a href="profile.html" class="hub-card frosted-glass-dark" id="hub-profile">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:5%; right:20px; background: rgba(16,185,129,0.2);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #10b981; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3);"><i class="ph-fill ph-user-circle"></i></div>
+                <h2 class="hub-title" style="color: #fff;">Mio Profilo</h2>
+                <p class="hub-desc" style="color: #888;">Configura la tua identità master e gestisci le tue chat.</p>
+                <div class="hub-footer"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
+        <!-- 13. CIPHER — SECURITY -->
+        <a href="security.html" class="hub-card frosted-glass-dark" id="hub-cipher-vault">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:-20px; left:50%; background: rgba(59,130,246,0.3);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #93c5fd; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3);"><i class="ph-fill ph-shield-check"></i></div>
+                <h2 class="hub-title" style="color: #93c5fd;">CIPHER</h2>
+                <p class="hub-desc">Security Guardian. Audit del sistema, fix report e protezione anti-tamper.</p>
+                <div class="hub-footer"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
+        <!-- 14. API KEYS -->
+        <a href="apikeys.html" class="hub-card frosted-glass-dark" id="hub-apikeys">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:10%; right:10%; background: rgba(255,215,0,0.25);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #ffd700; background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.25);"><i class="ph-fill ph-key"></i></div>
+                <h2 class="hub-title" style="color: #fff;">API Keys</h2>
+                <p class="hub-desc">Gestione chiavi API. Google Gemini gratuito e tutti i servizi integrati.</p>
+                <div class="hub-footer"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
+        <!-- 15. MAPPA NEURALE -->
+        <a href="neural-map-preview.html" class="hub-card frosted-glass-dark" id="hub-neural-map">
+            <div class="card-orbs">
+                <div class="c-orb" style="top:5%; left:20%; background: rgba(168,85,247,0.3);"></div>
+            </div>
+            <div class="ci">
+                <div class="hub-icon" style="color: #d8b4fe; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25);"><i class="ph-fill ph-graph"></i></div>
+                <h2 class="hub-title" style="color: #fff;">Mappa Neurale</h2>
+                <p class="hub-desc">Visualizza le connessioni tra tutti gli agenti e i flussi di apprendimento.</p>
+                <div class="hub-footer"><i class="ph-bold ph-arrow-right"></i></div>
+            </div>
+        </a>
+
     </div>
 
 
@@ -572,6 +734,15 @@
             if (oliviaName && state.agents.olivia) {
                 oliviaName.innerText = state.agents.olivia.name;
             }
+
+            // Update User Profile (Il Capo Node)
+            const user = state.user || { name: 'Il Capo', status: 'Owner', avatar: 'AC' };
+            const uName = document.getElementById('user-name-hub');
+            const uStatus = document.getElementById('user-status-hub');
+            const uAvatar = document.getElementById('user-avatar-hub');
+            if (uName) uName.innerText = user.name;
+            if (uStatus) uStatus.innerText = user.status;
+            if (uAvatar) uAvatar.innerText = user.avatar;
 
             // Update Pulse & Summary
             const agentCount = Object.keys(state.agents).length;
@@ -623,6 +794,415 @@
         agentsPopover.addEventListener('click', (e) => {
             e.stopPropagation();
         });
+    </script>
+
+    <!-- MASTER CONTROL DRAWER (Telegram Style) Overlay -->
+    <div id="master-control-overlay" class="master-overlay">
+        <div class="master-drawer">
+            <!-- Left: Message List -->
+            <div class="master-sidebar">
+                <div class="ms-header">
+                    <div class="ms-search">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" placeholder="Cerca conversazione...">
+                    </div>
+                </div>
+                
+                <div class="ms-list">
+                    <div class="nav-section-title" style="margin-top:0;">Canali Master</div>
+                    <div class="ms-item active" onclick="switchMasterChat('group')">
+                        <div class="ms-avatar" style="background: linear-gradient(135deg, #ffd700, #ff8c00); color:#000;"><i class="ph-fill ph-users-three"></i></div>
+                        <div class="ms-info">
+                            <div class="ms-name">Canale Globale <span>Now</span></div>
+                            <div class="ms-last">Sincronizzazione attiva...</div>
+                        </div>
+                    </div>
+
+                    <div class="nav-section-title">Agenti Operativi</div>
+                    <div class="ms-item" onclick="switchMasterChat('olivia')">
+                        <div class="ms-avatar" style="background: rgba(236,72,153,0.1); color:#ec4899;"><i class="ph-fill ph-sparkle"></i></div>
+                        <div class="ms-info">
+                            <div class="ms-name">Olivia Studio <span class="st-dot online"></span></div>
+                            <div class="ms-last">Pronta per il design.</div>
+                        </div>
+                    </div>
+                    <div class="ms-item" onclick="switchMasterChat('cipher')">
+                        <div class="ms-avatar" style="background: rgba(16,185,129,0.1); color:#10b981;"><i class="ph-fill ph-shield-check"></i></div>
+                        <div class="ms-info">
+                            <div class="ms-name">Cipher Security <span class="st-dot online"></span></div>
+                            <div class="ms-last">Sistema protetto.</div>
+                        </div>
+                    </div>
+                    <div class="ms-item" onclick="switchMasterChat('disperazione')">
+                        <div class="ms-avatar" style="background: rgba(6,182,212,0.1); color:#06b6d4;"><i class="ph-fill ph-magnifying-glass"></i></div>
+                        <div class="ms-info">
+                            <div class="ms-name">Disperazione <span class="st-dot online"></span></div>
+                            <div class="ms-last">Analizzando report.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom User Prof -->
+                <div class="ms-user-area">
+                    <div class="avatar-mini" id="ms-user-avatar" onclick="toggleSettingsMaster()">AC</div>
+                    <div class="node-txt" onclick="toggleSettingsMaster()">
+                        <span id="ms-user-name">Il Capo</span>
+                        <span id="ms-user-status">Global Owner</span>
+                    </div>
+                    <a href="security.html" style="text-decoration:none; color:inherit; margin-left:auto; display:flex; align-items:center; gap:12px;">
+                        <i class="ph ph-lock-key" title="Vault" style="font-size:1.4rem; color: #10b981;"></i>
+                    </a>
+                    <i class="ph ph-gear ms-gear" onclick="toggleSettingsMaster()"></i>
+                </div>
+            </div>
+
+            <!-- Right: Chat Area -->
+            <div class="master-chat">
+                <header class="mch-header">
+                    <div class="mch-info">
+                        <h3 id="mch-title">Canale Globale</h3>
+                        <p id="mch-status">6 orchestratori, 1 boss online</p>
+                    </div>
+                    <div class="mch-actions">
+                        <i class="ph ph-phone"></i>
+                        <i class="ph ph-dots-three-vertical"></i>
+                        <button onclick="closeMasterDrawer()" class="mch-close"><i class="ph ph-x"></i></button>
+                    </div>
+                </header>
+
+                <div class="mch-messages" id="mch-msgs">
+                    <!-- Dynamic Messages -->
+                </div>
+
+                <div class="mch-input">
+                    <i class="ph ph-paperclip"></i>
+                    <input type="text" id="mch-input-field" placeholder="Scrivi un messaggio..." onkeydown="if(event.key==='Enter') sendMasterMsg()">
+                    <i class="ph ph-smiley"></i>
+                    <div class="mch-send" onclick="sendMasterMsg()"><i class="ph-fill ph-paper-plane-right"></i></div>
+                </div>
+            </div>
+
+            <!-- Settings Overlay -->
+            <div id="ms-settings" class="ms-settings-pane">
+                <button onclick="toggleSettingsMaster()" class="set-back"><i class="ph ph-arrow-left"></i> Impostazioni</button>
+                <div class="set-content">
+                    <div class="ms-avatar large" id="ms-set-avatar">AC</div>
+                    <div class="form-group">
+                        <label>Nome Profilo</label>
+                        <input type="text" id="ms-set-name" value="Il Capo">
+                    </div>
+                    <div class="form-group">
+                        <label>Status / Bio</label>
+                        <input type="text" id="ms-set-status" value="Global Owner">
+                    </div>
+                    <div class="form-group">
+                        <label>Iniziali (2 char)</label>
+                        <input type="text" id="ms-set-init" value="AC" maxlength="2">
+                    </div>
+                    <div class="form-group" style="margin-top:20px;">
+                        <label style="color:#ffd700;">Google Gemini API Key</label>
+                        <input type="password" id="ms-set-api" placeholder="Incolla la tua chiave API...">
+                    </div>
+                    <button class="reset-session-btn" style="width:100%; border:none; background:#ffd700; color:#000; font-weight:bold; height:50px; border-radius:15px; cursor:pointer; margin-top:30px;" onclick="saveMasterProfile()">Salva Modifiche</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .master-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+            z-index: 10000; display: none; align-items: center; justify-content: center;
+            animation: fadeInMaster 0.4s ease;
+        }
+        .master-overlay.active { display: flex; }
+
+        .master-drawer {
+            width: 95vw; height: 90vh; max-width: 1200px;
+            background: rgba(10,10,12,0.98); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px; overflow: hidden; display: flex; box-shadow: 0 50px 120px rgba(0,0,0,0.9);
+            position: relative;
+        }
+
+        .master-sidebar { width: 320px; border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; background: rgba(0,0,0,0.3); }
+        .ms-header { padding: 25px 20px; }
+        .ms-search { background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; padding: 12px 15px; gap: 12px; }
+        .ms-search input { background: transparent; border: none; color: #fff; outline:none; font-size: 0.9rem; width: 100%; }
+        
+        .ms-list { flex:1; overflow-y: auto; padding: 10px; }
+        .ms-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 16px; cursor: pointer; transition: 0.3s; margin-bottom: 4px; border: 1px solid transparent; }
+        .ms-item:hover { background: rgba(255,255,255,0.03); }
+        .ms-item.active { background: #2b5278; border-color: rgba(255,255,255,0.1); }
+        
+        .ms-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; }
+        .ms-info { flex:1; overflow: hidden; }
+        .ms-name { font-size: 0.95rem; font-weight: 700; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .ms-name span { font-size: 0.7rem; color: #666; font-weight: 400; }
+        .ms-last { font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ms-item.active .ms-last { color: #fff; opacity: 0.9; }
+
+        .st-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-left: 6px; border: 2px solid #000; }
+        .st-dot.online { background: #10b981; }
+
+        .ms-user-area { padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 14px; cursor: pointer; transition: 0.3s; }
+        .ms-user-area:hover { background: rgba(255,255,255,0.05); }
+        .ms-gear { margin-left: auto; color: #888; font-size: 1.4rem; }
+
+        .master-chat { flex:1; display: flex; flex-direction: column; background-color: #0c0c0e; }
+        .mch-header { padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(15,15,18,0.7); backdrop-filter: blur(15px); }
+        .mch-info h3 { margin: 0; font-size: 1.1rem; }
+        .mch-info p { margin: 0; font-size: 0.8rem; color: #10b981; }
+        .mch-actions { display: flex; gap: 24px; align-items: center; color: #888; font-size: 1.3rem; }
+        .mch-close { background: transparent; border: none; color: #fff; cursor: pointer; font-size: 1.6rem; padding: 0; display: flex; }
+
+        .mch-messages { flex:1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+        .mmsg { max-width: 75%; padding: 12px 18px; border-radius: 18px; font-size: 0.95rem; line-height: 1.5; position: relative; }
+        .mmsg.agent { align-self: flex-start; background: #212d3b; border-bottom-left-radius: 4px; }
+        .mmsg.user { align-self: flex-end; background: #2b5278; border-bottom-right-radius: 4px; }
+        .mmsg-lbl { font-size: 0.7rem; font-weight: 800; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.8px; }
+
+        .mch-input { padding: 20px 30px 30px; display: flex; align-items: center; gap: 20px; background: rgba(10,10,12,0.9); }
+        .mch-input i { font-size: 1.6rem; color: #777; cursor: pointer; }
+        .mch-input input { flex:1; background: transparent; border: none; color: #fff; outline: none; font-size: 1rem; }
+        .mch-send { color: #3390ec; font-size: 1.8rem; cursor: pointer; transition: 0.2s; }
+        .mch-send:hover { transform: scale(1.1); }
+
+        .ms-settings-pane { position: absolute; inset: 0; background: #0a0a0c; z-index: 1001; transform: translateX(100%); transition: 0.5s cubic-bezier(0.16,1,0.3,1); display: flex; flex-direction: column; }
+        .ms-settings-pane.active { transform: translateX(0); }
+        .set-back { background: transparent; border: none; color: #fff; padding: 30px; display: flex; align-items: center; gap: 30px; font-size: 1.2rem; font-weight: 700; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .set-content { padding: 50px; max-width: 450px; margin: 0 auto; width: 100%; }
+        .ms-avatar.large { width: 140px; height: 140px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ff8c00); margin: 0 auto 40px; font-size: 3.5rem; color: #000; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+
+        @keyframes fadeInMaster { from { opacity: 0; backdrop-filter: blur(0); } to { opacity: 1; backdrop-filter: blur(20px); } }
+    </style>
+
+    <script>
+        // MASTER CONTROL LOGIC (Unified Drawer)
+        (function() {
+            const overlay = document.getElementById('master-control-overlay');
+            const masterTrigger = document.getElementById('profile-node-master');
+            
+            if (masterTrigger) {
+                masterTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log("Master Control Triggered");
+                    overlay.classList.add('active');
+                    initMasterUI();
+                });
+            }
+
+            window.closeMasterDrawer = function() { overlay.classList.remove('active'); };
+            window.toggleSettingsMaster = function() { document.getElementById('ms-settings').classList.toggle('active'); };
+
+            let masterCurrentAgent = 'group';
+
+            const masterAgentMeta = {
+                group: { title: 'Canale Globale', status: '6 orchestratori, 1 boss online', color: '#ffd700' },
+                olivia: { title: 'Olivia Studio', status: 'online', color: '#ec4899' },
+                cipher: { title: 'Cipher Security', status: 'online', color: '#10b981' },
+                disperazione: { title: 'Ricercatore', status: 'online', color: '#06b6d4' }
+            };
+
+            window.switchMasterChat = function(id) {
+                masterCurrentAgent = id;
+                const meta = masterAgentMeta[id];
+                document.getElementById('mch-title').innerText = meta.title;
+                document.getElementById('mch-status').innerText = meta.status;
+                document.querySelectorAll('.ms-item').forEach(el => el.classList.remove('active'));
+                
+                // Set active item visually
+                const items = document.querySelectorAll('.ms-item');
+                items.forEach(item => {
+                    if (item.getAttribute('onclick').includes(id)) item.classList.add('active');
+                });
+
+                renderMasterMsgs();
+            };
+
+            window.renderMasterMsgs = function() {
+                const container = document.getElementById('mch-msgs');
+                container.innerHTML = '';
+                
+                const welcomeMsg = document.createElement('div');
+                welcomeMsg.className = 'mmsg agent';
+                if (masterCurrentAgent === 'group') {
+                    welcomeMsg.innerHTML = `<div class="mmsg-lbl" style="color:#ec4899">Olivia</div>Benvenuto nel Centro di Comando Master. Tutti gli orchestratori sono operativi.`;
+                } else if (masterCurrentAgent === 'disperazione') {
+                    welcomeMsg.innerHTML = `<div class="mmsg-lbl" style="color:#06b6d4">Disperazione</div>Sono il tuo Ricercatore. Chiedimi qualunque cosa dal web, genererò un report per te.`;
+                } else {
+                    welcomeMsg.innerHTML = `Connessione sicura stabilita con ${masterAgentMeta[masterCurrentAgent].title}.`;
+                }
+                container.appendChild(welcomeMsg);
+                container.scrollTop = container.scrollHeight;
+            };
+
+            window.sendMasterMsg = function() {
+                const input = document.getElementById('mch-input-field');
+                if (!input.value.trim()) return;
+                
+                const msgs = document.getElementById('mch-msgs');
+                const userMsg = document.createElement('div');
+                userMsg.className = 'mmsg user';
+                userMsg.innerText = input.value;
+                msgs.appendChild(userMsg);
+                
+                const text = input.value;
+                input.value = '';
+                msgs.scrollTop = msgs.scrollHeight;
+
+                setTimeout(() => {
+                    const reply = document.createElement('div');
+                    reply.className = 'mmsg agent';
+                    if (masterCurrentAgent === 'group') {
+                        reply.innerHTML = `<div class="mmsg-lbl" style="color:#ffd700">Nexus</div>Ricevuto, Capo. Sto sincronizzando la richiesta su tutti i nodi operativi.`;
+                    } else if (masterCurrentAgent === 'disperazione') {
+                        reply.innerHTML = `<div class="mmsg-lbl" style="color:#06b6d4">Disperazione</div>Avvio scansione profonda per "${text}". Ti invierò il report non appena completato.`;
+                    } else {
+                        reply.innerHTML = `Messaggio acquisito. Procedo con l'analisi strategica.`;
+                    }
+                    msgs.appendChild(reply);
+                    msgs.scrollTop = msgs.scrollHeight;
+                }, 1000);
+            };
+
+            window.initMasterUI = function() {
+                const state = JSON.parse(localStorage.getItem('agent_core_state')) || { user: { name: 'Il Capo', status: 'Owner', avatar: 'AC' } };
+                const u = state.user || { name: 'Il Capo', status: 'Owner', avatar: 'AC' };
+                
+                document.getElementById('ms-user-name').innerText = u.name;
+                document.getElementById('ms-user-status').innerText = u.status;
+                document.getElementById('ms-user-avatar').innerText = u.avatar;
+                
+                document.getElementById('ms-set-name').value = u.name;
+                document.getElementById('ms-set-status').value = u.status;
+                document.getElementById('ms-set-init').value = u.avatar;
+                document.getElementById('ms-set-avatar').innerText = u.avatar;
+                document.getElementById('ms-set-api').value = localStorage.getItem('cf_google_api_key') || '';
+
+                window.switchMasterChat('group');
+            };
+
+            window.saveMasterProfile = function() {
+                const name = document.getElementById('ms-set-name').value;
+                const status = document.getElementById('ms-set-status').value;
+                const init = document.getElementById('ms-set-init').value;
+                const apiKey = document.getElementById('ms-set-api').value.trim();
+
+                let state = JSON.parse(localStorage.getItem('agent_core_state')) || {};
+                state.user = { name, status, avatar: init };
+                localStorage.setItem('agent_core_state', JSON.stringify(state));
+                localStorage.setItem('cf_google_api_key', apiKey);
+                
+                window.initMasterUI();
+                if (typeof updateAgentUI === 'function') updateAgentUI(); // Hub Sync
+                window.toggleSettingsMaster();
+                alert('Configurazione salvata. Le funzionalità AI sono ora attive!');
+            };
+        })();
+    </script>
+
+    <!-- ── SISTEMA STATUS CHECK ── -->
+    <script>
+    (function(){
+        const bar   = document.getElementById('cf-status-bar');
+        const dot   = document.getElementById('cf-status-dot');
+        const text  = document.getElementById('cf-status-text');
+        const detail = document.getElementById('cf-status-detail');
+        const actions = document.getElementById('cf-status-actions');
+
+        function setStatus(type, label, desc, btns) {
+            bar.className = 'status-' + type;
+            text.textContent = label;
+            text.style.color = type==='online'?'#6ee7b7':type==='offline'?'#fca5a5':'#fcd34d';
+            dot.style.background = type==='online'?'#10b981':type==='offline'?'#ef4444':'#f59e0b';
+            dot.style.boxShadow = type==='online'?'0 0 0 0 rgba(16,185,129,0.6)':'none';
+            if(type==='online') dot.style.animation='pulse-online 2s infinite';
+            else dot.style.animation='none';
+            detail.innerHTML = desc;
+            actions.innerHTML = btns||'';
+        }
+
+        function btnHtml(label, href, color) {
+            return `<a href="${href}" style="display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 14px;border-radius:10px;background:rgba(${color},0.12);color:rgba(${color},1);border:1px solid rgba(${color},0.25);font-size:0.78rem;font-weight:700;text-decoration:none;transition:.2s;">${label}</a>`;
+        }
+
+        async function checkStatus() {
+            // 1. Check API key existence
+            let apiKey = null;
+            try {
+                const keys = JSON.parse(localStorage.getItem('cf_apikeys')||'{}');
+                apiKey = keys.gemini || localStorage.getItem('cf_gemini_key') || localStorage.getItem('cf_google_api_key');
+            } catch(e){}
+
+            if(!apiKey) {
+                setStatus('warn', 'No API Key',
+                    '⚠️ <strong>Nessuna chiave API configurata.</strong><br><br>Il sistema funziona in modalità <em>offline/simulazione</em>. Gli agenti rispondono con dati simulati. Per attivare l\'AI reale, configura una chiave Google Gemini gratuita.',
+                    btnHtml('🔑 Configura API Keys', 'apikeys.html', '255,215,0') +
+                    btnHtml('📖 Come ottenerla gratis', 'guides.html', '99,102,241')
+                );
+                return;
+            }
+
+            // 2. Test actual API call (minimal)
+            setStatus('warn', 'Testing...', '🔄 Verifica connessione API Gemini...', '');
+            try {
+                const resp = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+                    {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body: JSON.stringify({ contents:[{parts:[{text:'ping'}]}], generationConfig:{maxOutputTokens:5} }),
+                        signal: AbortSignal.timeout(8000)
+                    }
+                );
+                if(resp.ok) {
+                    setStatus('online','Online',
+                        '✅ <strong>Sistema Online.</strong><br><br>API Gemini attiva e funzionante. Tutti gli agenti operativi in modalità AI reale.<br><br><span style="color:#555;font-size:0.75rem;">Ultimo check: ' + new Date().toLocaleTimeString('it-IT') + '</span>',
+                        btnHtml('⚡ Vai alle API Keys', 'apikeys.html', '16,185,129') +
+                        btnHtml('🛡️ CIPHER Security', 'security.html', '59,130,246')
+                    );
+                } else {
+                    const err = await resp.json().catch(()=>({}));
+                    const code = err?.error?.code || resp.status;
+                    const msg  = err?.error?.message || 'Errore sconosciuto';
+                    let hint = '';
+                    if(code===400) hint = 'La chiave API non è valida o malformata.';
+                    else if(code===403) hint = 'Chiave API non autorizzata. Verifica che sia attiva su Google AI Studio.';
+                    else if(code===429) hint = 'Quota giornaliera raggiunta (15 req/min free tier). Riprova tra un minuto.';
+                    else if(code===503) hint = 'Servizio Google temporaneamente non disponibile.';
+                    else hint = `Errore HTTP ${code}.`;
+                    setStatus('offline','API Error',
+                        `❌ <strong>Errore API Gemini.</strong><br><br><code style="font-family:'Fira Code',monospace;font-size:0.72rem;color:#fca5a5;">${msg}</code><br><br>${hint}`,
+                        btnHtml('🔑 Cambia API Key', 'apikeys.html', '239,68,68') +
+                        btnHtml('🛡️ CIPHER Diagnosi', 'security.html', '59,130,246')
+                    );
+                }
+            } catch(e) {
+                if(e.name==='TimeoutError' || e.name==='AbortError') {
+                    setStatus('offline','Timeout',
+                        '⏱️ <strong>Timeout connessione.</strong><br><br>Il server Google non risponde entro 8 secondi. Possibili cause:<br>• Connessione internet assente o lenta<br>• VPN o proxy che blocca le richieste<br>• Problema temporaneo di Google',
+                        btnHtml('🔄 Riprova', '#', '251,191,36') +
+                        btnHtml('🔑 Verifica API Key', 'apikeys.html', '239,68,68')
+                    );
+                } else {
+                    setStatus('offline','Offline',
+                        '📡 <strong>Nessuna connessione.</strong><br><br>Il dispositivo non riesce a raggiungere i server Google. Il sistema funziona in modalità simulazione offline.',
+                        btnHtml('🔑 Verifica API Key', 'apikeys.html', '239,68,68') +
+                        btnHtml('🛡️ CIPHER Security', 'security.html', '59,130,246')
+                    );
+                }
+            }
+        }
+
+        // Run on load
+        checkStatus();
+        // Re-check every 5 minutes
+        setInterval(checkStatus, 5*60*1000);
+        // Also re-check when API keys change
+        window.addEventListener('storage', (e) => {
+            if(e.key==='cf_apikeys'||e.key==='cf_gemini_key'||e.key==='cf_google_api_key') checkStatus();
+        });
+    })();
     </script>
 </body>
 </html>

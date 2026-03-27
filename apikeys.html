@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Factory V10.1 — API Keys</title>
+    <script>
+        const isAuth = localStorage.getItem('v10_auth') === 'true' || sessionStorage.getItem('v10_auth') === 'true';
+        if (!isAuth) window.location.href = 'auth/login.html';
+    </script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/cf-theme.css">
+    <style>
+        body { background:#050505; min-height:100vh; }
+
+        /* TOPBAR */
+        .topbar {
+            position:sticky; top:0; z-index:100;
+            display:flex; align-items:center; justify-content:space-between;
+            padding:14px 36px;
+            background:rgba(5,5,5,0.9); backdrop-filter:blur(20px);
+            border-bottom:1px solid rgba(255,255,255,0.07);
+        }
+        .topbar-left { display:flex; align-items:center; gap:14px; }
+        .topbar-icon { width:38px; height:38px; border-radius:10px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.2); display:flex; align-items:center; justify-content:center; color:#ffd700; font-size:1.1rem; }
+        .topbar-title { font-family:'Instrument Serif',serif; font-size:1.1rem; color:#fff; }
+        .topbar-sub { font-family:'Fira Code',monospace; font-size:0.57rem; color:#555; text-transform:uppercase; letter-spacing:2px; margin-top:1px; }
+
+        .main { max-width:1100px; margin:0 auto; padding:50px 30px 120px; position:relative; z-index:10; }
+
+        /* HERO */
+        .hero-label { font-family:'Fira Code',monospace; font-size:0.65rem; color:#ffd700; text-transform:uppercase; letter-spacing:4px; margin-bottom:12px; }
+        .hero h1 { font-family:'Instrument Serif',serif; font-size:3rem; font-weight:400; margin-bottom:10px; line-height:1.1; }
+        .hero h1 em { font-style:italic; color:#ffd700; }
+        .hero p { color:#888; font-size:0.9rem; line-height:1.7; max-width:520px; margin-bottom:40px; }
+
+        /* ACTIVE KEY CARD */
+        .active-key {
+            background:rgba(255,215,0,0.05);
+            border:1px solid rgba(255,215,0,0.2);
+            border-radius:20px; padding:24px 28px; margin-bottom:50px;
+            display:flex; align-items:center; gap:20px;
+        }
+        .active-key-icon { width:48px; height:48px; border-radius:12px; background:rgba(255,215,0,0.1); display:flex; align-items:center; justify-content:center; color:#ffd700; font-size:1.4rem; flex-shrink:0; }
+        .active-key-info { flex:1; }
+        .active-key-label { font-family:'Fira Code',monospace; font-size:0.6rem; color:#888; text-transform:uppercase; letter-spacing:2px; margin-bottom:4px; }
+        .active-key-value { font-family:'Fira Code',monospace; font-size:0.9rem; color:#fff; word-break:break-all; }
+        .active-key-status { display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#6ee7b7; margin-top:6px; }
+        .status-dot { width:7px; height:7px; border-radius:50%; background:#10b981; animation:pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        /* SECTION */
+        .section-hdr { font-family:'Fira Code',monospace; font-size:0.65rem; color:#555; text-transform:uppercase; letter-spacing:3px; margin:0 0 20px; display:flex; align-items:center; gap:12px; }
+        .section-hdr::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.06); }
+
+        /* PROVIDERS GRID */
+        .providers-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; margin-bottom:50px; }
+
+        .provider-card {
+            background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+            border-radius:18px; padding:22px; transition:.3s;
+            cursor:pointer; position:relative; overflow:hidden;
+        }
+        .provider-card::before { content:''; position:absolute; inset:0; border-radius:18px; background:radial-gradient(circle at 80% 20%,var(--card-color,rgba(255,215,0,0.05)) 0%,transparent 60%); opacity:0; transition:.3s; }
+        .provider-card:hover { border-color:rgba(255,255,255,0.18); background:rgba(255,255,255,0.06); transform:translateY(-4px); }
+        .provider-card:hover::before { opacity:1; }
+        .provider-card.active-provider { border-color:rgba(16,185,129,0.4); background:rgba(16,185,129,0.04); }
+
+        .provider-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
+        .provider-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; }
+        .provider-badges { display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end; }
+        .p-badge { font-family:'Fira Code',monospace; font-size:0.55rem; padding:2px 8px; border-radius:8px; font-weight:600; text-transform:uppercase; letter-spacing:1px; }
+        .p-free { background:rgba(16,185,129,0.15); color:#6ee7b7; border:1px solid rgba(16,185,129,0.2); }
+        .p-recommended { background:rgba(255,215,0,0.12); color:#fcd34d; border:1px solid rgba(255,215,0,0.2); }
+        .p-active { background:rgba(16,185,129,0.2); color:#34d399; border:1px solid rgba(16,185,129,0.3); }
+        .p-paid { background:rgba(255,255,255,0.06); color:#888; border:1px solid rgba(255,255,255,0.08); }
+
+        .provider-name { font-size:1rem; font-weight:800; margin-bottom:4px; }
+        .provider-model { font-family:'Fira Code',monospace; font-size:0.68rem; color:#888; margin-bottom:8px; }
+        .provider-desc { font-size:0.8rem; color:#999; line-height:1.55; margin-bottom:14px; }
+
+        /* Limits */
+        .limits-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+        .limit-pill { font-family:'Fira Code',monospace; font-size:0.6rem; padding:3px 9px; border-radius:8px; background:rgba(255,255,255,0.04); color:#777; border:1px solid rgba(255,255,255,0.07); }
+
+        /* Key input row */
+        .key-row { display:flex; gap:8px; }
+        .key-input {
+            flex:1; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1);
+            border-radius:10px; padding:9px 13px;
+            font-family:'Fira Code',monospace; font-size:0.75rem; color:#ccc;
+            outline:none; transition:.2s;
+        }
+        .key-input:focus { border-color:rgba(255,215,0,0.4); color:#fff; }
+        .key-input::placeholder { color:#444; }
+        .key-save { padding:9px 16px; border-radius:10px; border:none; cursor:pointer; font-weight:700; font-size:0.75rem; font-family:'DM Sans',sans-serif; transition:.2s; flex-shrink:0; }
+        .key-save-green { background:rgba(16,185,129,0.2); color:#6ee7b7; border:1px solid rgba(16,185,129,0.3); }
+        .key-save-green:hover { background:rgba(16,185,129,0.3); color:#fff; }
+        .key-btn-group { display:flex; gap:6px; }
+        .key-link { display:flex; align-items:center; gap:5px; font-size:0.72rem; color:#666; text-decoration:none; transition:.2s; padding:9px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.03); }
+        .key-link:hover { color:#fff; border-color:rgba(255,255,255,0.2); background:rgba(255,255,255,0.07); }
+
+        /* SAVED CONFIRM */
+        .save-confirm { display:none; align-items:center; gap:6px; font-size:0.75rem; color:#6ee7b7; margin-top:8px; font-family:'Fira Code',monospace; }
+        .save-confirm.show { display:flex; }
+
+        /* FREE SERVICES SECTION */
+        .free-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; margin-bottom:50px; }
+        .free-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.07); border-radius:14px; padding:16px 18px; }
+        .free-card h4 { font-size:0.88rem; font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+        .free-card p { font-size:0.78rem; color:#777; line-height:1.5; margin-bottom:10px; }
+        .free-card a { display:inline-flex; align-items:center; gap:5px; font-size:0.72rem; color:#aaa; text-decoration:none; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:5px 11px; transition:.2s; }
+        .free-card a:hover { color:#fff; border-color:rgba(255,255,255,0.2); background:rgba(255,255,255,0.06); }
+
+        /* HOSTING SECTION */
+        .hosting-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; margin-bottom:50px; }
+        .hosting-card {
+            background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+            border-radius:16px; padding:20px 22px; transition:.3s; position:relative; overflow:hidden;
+        }
+        .hosting-card:hover { border-color:rgba(255,255,255,0.18); background:rgba(255,255,255,0.05); transform:translateY(-3px); }
+        .hosting-card-top { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+        .hosting-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+        .hosting-name { font-size:0.95rem; font-weight:800; }
+        .hosting-tag { font-family:'Fira Code',monospace; font-size:0.55rem; padding:2px 7px; border-radius:6px; background:rgba(16,185,129,0.15); color:#6ee7b7; border:1px solid rgba(16,185,129,0.2); margin-left:6px; }
+        .hosting-desc { font-size:0.8rem; color:#888; line-height:1.55; margin-bottom:12px; }
+        .hosting-specs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+        .spec-pill { font-family:'Fira Code',monospace; font-size:0.58rem; padding:3px 8px; border-radius:7px; background:rgba(255,255,255,0.04); color:#666; border:1px solid rgba(255,255,255,0.06); }
+        .hosting-link { display:inline-flex; align-items:center; gap:5px; font-size:0.72rem; color:#aaa; text-decoration:none; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:5px 11px; transition:.2s; }
+        .hosting-link:hover { color:#fff; border-color:rgba(255,255,255,0.2); background:rgba(255,255,255,0.06); }
+        .hosting-recommended { border-color:rgba(255,215,0,0.25); }
+        .hosting-recommended::before { content:'★ CONSIGLIATO'; position:absolute; top:12px; right:14px; font-family:'Fira Code',monospace; font-size:0.52rem; color:#ffd700; letter-spacing:1px; opacity:0.7; }
+
+        /* ALT AI SECTION */
+        .alt-ai-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; margin-bottom:50px; }
+        .alt-card {
+            background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+            border-radius:16px; padding:20px 22px; transition:.3s;
+        }
+        .alt-card:hover { border-color:rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); transform:translateY(-2px); }
+        .alt-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; }
+        .alt-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:900; flex-shrink:0; }
+        .alt-name { font-size:0.95rem; font-weight:800; margin-bottom:3px; }
+        .alt-model { font-family:'Fira Code',monospace; font-size:0.63rem; color:#666; }
+        .alt-desc { font-size:0.8rem; color:#888; line-height:1.55; margin-bottom:12px; }
+        .alt-pills { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
+        .alt-pill-speed { background:rgba(255,215,0,0.1); color:#fcd34d; border:1px solid rgba(255,215,0,0.2); font-family:'Fira Code',monospace; font-size:0.58rem; padding:2px 8px; border-radius:7px; }
+        .alt-pill-free { background:rgba(16,185,129,0.12); color:#6ee7b7; border:1px solid rgba(16,185,129,0.2); font-family:'Fira Code',monospace; font-size:0.58rem; padding:2px 8px; border-radius:7px; }
+        .alt-pill-limit { background:rgba(255,255,255,0.04); color:#777; border:1px solid rgba(255,255,255,0.06); font-family:'Fira Code',monospace; font-size:0.58rem; padding:2px 8px; border-radius:7px; }
+        .alt-link { display:inline-flex; align-items:center; gap:5px; font-size:0.72rem; color:#aaa; text-decoration:none; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:5px 11px; transition:.2s; }
+        .alt-link:hover { color:#fff; border-color:rgba(255,255,255,0.2); background:rgba(255,255,255,0.06); }
+
+        /* SECURITY NOTICE */
+        .security-notice {
+            background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.2);
+            border-radius:16px; padding:18px 22px;
+            display:flex; gap:14px; align-items:flex-start; margin-bottom:40px;
+        }
+        .security-notice i { color:#93c5fd; font-size:1.4rem; flex-shrink:0; margin-top:2px; }
+        .security-notice p { font-size:0.82rem; color:#bbb; line-height:1.6; }
+        .security-notice strong { color:#93c5fd; }
+    </style>
+</head>
+<body>
+
+<!-- ORBS -->
+<div class="cf-orbs" id="orbsBg"></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="topbar-left">
+        <div class="topbar-icon"><i class="ph-fill ph-key"></i></div>
+        <div>
+            <div class="topbar-title">API Keys Manager</div>
+            <div class="topbar-sub">Content Factory V10.1 · Gestione Chiavi</div>
+        </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+        <a href="security.html" class="btn-ghost" style="gap:6px;"><i class="ph-fill ph-shield-check"></i> CIPHER</a>
+        <a href="index.html" class="btn-hub"><i class="ph ph-arrow-left"></i> Hub Strategico</a>
+    </div>
+</div>
+
+<div class="main">
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-label">// API Keys</div>
+        <h1>Chiavi <em>API</em><br>del Sistema</h1>
+        <p>Gestisci tutte le chiavi API in un unico posto sicuro. Le chiavi sono salvate nel tuo browser (localStorage) e non vengono mai inviate a server esterni.</p>
+    </div>
+
+    <!-- SECURITY NOTICE -->
+    <div class="security-notice">
+        <i class="ph-fill ph-shield-check"></i>
+        <p><strong>Le chiavi sono salvate localmente</strong> nel tuo browser con localStorage. Non vengono mai inviate a nessun server esterno. CIPHER monitora l'integrità del sistema. Se vai online, usa solo HTTPS per proteggere le tue sessioni.</p>
+    </div>
+
+    <!-- ACTIVE GEMINI KEY -->
+    <div class="active-key" id="activeKeyCard" style="display:none;">
+        <div class="active-key-icon"><i class="ph-fill ph-sparkle"></i></div>
+        <div class="active-key-info">
+            <div class="active-key-label">Chiave Attiva — Google Gemini</div>
+            <div class="active-key-value" id="activeKeyDisplay">—</div>
+            <div class="active-key-status"><span class="status-dot"></span> Configurata e attiva</div>
+        </div>
+        <button class="btn-ghost" onclick="clearKey('gemini')" style="flex-shrink:0;font-size:0.7rem;gap:6px;"><i class="ph ph-trash"></i> Rimuovi</button>
+    </div>
+
+    <!-- PROVIDERS -->
+    <div class="section-hdr">Provider API — Motore Principale</div>
+
+    <div class="providers-grid">
+
+        <!-- GEMINI (RECOMMENDED) -->
+        <div class="provider-card" id="card-gemini" style="--card-color:rgba(66,133,244,0.08);">
+            <div class="provider-top">
+                <div class="provider-icon" style="background:rgba(66,133,244,0.12);color:#93c5fd; font-size:1.5rem;">G</div>
+                <div class="provider-badges">
+                    <span class="p-badge p-recommended">Consigliato</span>
+                    <span class="p-badge p-free">Gratuito</span>
+                    <span class="p-badge p-active" id="gemini-active-badge" style="display:none;">Attivo</span>
+                </div>
+            </div>
+            <div class="provider-name">Google Gemini</div>
+            <div class="provider-model">gemini-1.5-flash · gemini-2.0-flash</div>
+            <div class="provider-desc">Il motore AI principale di Content Factory. Generoso free tier, veloce, multimodale. Usato da tutti gli agenti (Olivia, CIPHER, Disperazione, Nexus...).</div>
+            <div class="limits-row">
+                <span class="limit-pill">15 req/min</span>
+                <span class="limit-pill">1M token/giorno</span>
+                <span class="limit-pill">Free Tier</span>
+            </div>
+            <div class="key-row">
+                <input class="key-input" id="input-gemini" type="password" placeholder="AIza..." />
+                <div class="key-btn-group">
+                    <button class="key-save key-save-green" onclick="saveKey('gemini')">Salva</button>
+                    <a class="key-link" href="https://aistudio.google.com/app/apikey" target="_blank"><i class="ph ph-arrow-square-out"></i> Ottieni</a>
+                </div>
+            </div>
+            <div class="save-confirm" id="confirm-gemini"><i class="ph-fill ph-check-circle"></i> Chiave salvata!</div>
+        </div>
+
+        <!-- GROQ (FREE BACKUP) -->
+        <div class="provider-card" style="--card-color:rgba(249,115,22,0.06);">
+            <div class="provider-top">
+                <div class="provider-icon" style="background:rgba(249,115,22,0.12);color:#fdba74;font-size:1.1rem;font-weight:900;">⚡</div>
+                <div class="provider-badges">
+                    <span class="p-badge p-free">Gratuito</span>
+                    <span class="p-badge" style="background:rgba(249,115,22,0.15);color:#fdba74;border:1px solid rgba(249,115,22,0.3);">Velocissimo</span>
+                </div>
+            </div>
+            <div class="provider-name">Groq</div>
+            <div class="provider-model">llama-3.3-70b · mixtral-8x7b</div>
+            <div class="provider-desc">Backup gratuito ultra-veloce. Se Gemini è sotto rate limit, Groq risponde in millisecondi. ~500 token/secondo. Nessuna carta richiesta.</div>
+            <div class="limits-row">
+                <span class="limit-pill">6000 token/min</span>
+                <span class="limit-pill">~500 tok/s</span>
+                <span class="limit-pill">No carta credito</span>
+            </div>
+            <div class="key-row">
+                <input class="key-input" id="input-groq" type="password" placeholder="gsk_..." />
+                <div class="key-btn-group">
+                    <button class="key-save key-save-green" onclick="saveKey('groq')">Salva</button>
+                    <a class="key-link" href="https://console.groq.com/keys" target="_blank"><i class="ph ph-arrow-square-out"></i> Ottieni</a>
+                </div>
+            </div>
+            <div class="save-confirm" id="confirm-groq"><i class="ph-fill ph-check-circle"></i> Chiave salvata!</div>
+        </div>
+
+        <!-- OPENAI (PAID) -->
+        <div class="provider-card" style="--card-color:rgba(16,185,129,0.05);">
+            <div class="provider-top">
+                <div class="provider-icon" style="background:rgba(16,185,129,0.1);color:#6ee7b7;font-size:1.2rem;font-weight:800;">AI</div>
+                <div class="provider-badges">
+                    <span class="p-badge p-paid">A Pagamento</span>
+                </div>
+            </div>
+            <div class="provider-name">OpenAI</div>
+            <div class="provider-model">gpt-4o · gpt-4o-mini</div>
+            <div class="provider-desc">Alternativa premium. Richiede credito prepagato. Integrazione futura prevista per fasi P3.</div>
+            <div class="limits-row">
+                <span class="limit-pill">Pay-per-use</span>
+                <span class="limit-pill">$5 min credit</span>
+            </div>
+            <div class="key-row">
+                <input class="key-input" id="input-openai" type="password" placeholder="sk-..." />
+                <div class="key-btn-group">
+                    <button class="key-save key-save-green" onclick="saveKey('openai')">Salva</button>
+                    <a class="key-link" href="https://platform.openai.com/api-keys" target="_blank"><i class="ph ph-arrow-square-out"></i> Ottieni</a>
+                </div>
+            </div>
+            <div class="save-confirm" id="confirm-openai"><i class="ph-fill ph-check-circle"></i> Chiave salvata!</div>
+        </div>
+
+    </div>
+
+    <!-- FREE SERVICES -->
+    <div class="section-hdr">Servizi Gratuiti Integrabili</div>
+
+    <div class="free-grid">
+
+        <div class="free-card">
+            <h4><i class="ph-fill ph-image" style="color:#ec4899;"></i> Hugging Face</h4>
+            <p>Generazione immagini AI gratuita. Modelli SDXL, Flux e altri via Inference API.</p>
+            <a href="https://huggingface.co/settings/tokens" target="_blank"><i class="ph ph-arrow-square-out"></i> Token gratuito</a>
+        </div>
+
+        <div class="free-card">
+            <h4><i class="ph-fill ph-music-notes" style="color:#a855f7;"></i> Suno AI</h4>
+            <p>Generazione musicale AI. Piano free: 50 crediti/giorno. Integrazione prevista in AI Resources.</p>
+            <a href="https://suno.com" target="_blank"><i class="ph ph-arrow-square-out"></i> Registrati</a>
+        </div>
+
+        <div class="free-card">
+            <h4><i class="ph-fill ph-video" style="color:#06b6d4;"></i> Luma AI</h4>
+            <p>Generazione video AI. Tier gratuito disponibile. Per Media Factory Suite.</p>
+            <a href="https://lumalabs.ai" target="_blank"><i class="ph ph-arrow-square-out"></i> Prova gratis</a>
+        </div>
+
+        <div class="free-card">
+            <h4><i class="ph-fill ph-database" style="color:#ffd700;"></i> Supabase</h4>
+            <p>Database PostgreSQL + Auth + Storage gratuito. Per sync multi-dispositivo futuro.</p>
+            <a href="https://supabase.com" target="_blank"><i class="ph ph-arrow-square-out"></i> Free tier</a>
+        </div>
+
+        <div class="free-card">
+            <h4><i class="ph-fill ph-broadcast" style="color:#f97316;"></i> ElevenLabs</h4>
+            <p>Text-to-Speech AI ultra-realistico. 10.000 caratteri/mese gratuiti. Per Olivia TTS.</p>
+            <a href="https://elevenlabs.io" target="_blank"><i class="ph ph-arrow-square-out"></i> Free plan</a>
+        </div>
+
+        <div class="free-card">
+            <h4><i class="ph-fill ph-globe" style="color:#3b82f6;"></i> Serper / Brave Search</h4>
+            <p>API ricerca web per Disperazione. Serper: 2.500 query gratis. Brave: 2.000/mese.</p>
+            <a href="https://serper.dev" target="_blank"><i class="ph ph-arrow-square-out"></i> Registrati</a>
+        </div>
+
+    </div>
+
+    <!-- HOW TO GET GEMINI -->
+    <div class="section-hdr">Come ottenere la chiave Gemini (gratis)</div>
+
+    <div style="background:rgba(66,133,244,0.04);border:1px solid rgba(66,133,244,0.15);border-radius:18px;padding:28px 32px;margin-bottom:40px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(66,133,244,0.2);color:#93c5fd;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;flex-shrink:0;">1</div>
+                <div><p style="font-weight:700;margin-bottom:3px;font-size:0.85rem;">Vai su Google AI Studio</p><p style="color:#666;font-size:0.78rem;">aistudio.google.com</p></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(66,133,244,0.2);color:#93c5fd;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;flex-shrink:0;">2</div>
+                <div><p style="font-weight:700;margin-bottom:3px;font-size:0.85rem;">Login con Google</p><p style="color:#666;font-size:0.78rem;">Account Gmail normale</p></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(66,133,244,0.2);color:#93c5fd;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;flex-shrink:0;">3</div>
+                <div><p style="font-weight:700;margin-bottom:3px;font-size:0.85rem;">Clicca "Get API Key"</p><p style="color:#666;font-size:0.78rem;">Menu laterale sinistro</p></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(66,133,244,0.2);color:#93c5fd;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;flex-shrink:0;">4</div>
+                <div><p style="font-weight:700;margin-bottom:3px;font-size:0.85rem;">Crea un nuovo progetto</p><p style="color:#666;font-size:0.78rem;">Nome libero, es. "ContentFactory"</p></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(16,185,129,0.2);color:#6ee7b7;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;flex-shrink:0;">5</div>
+                <div><p style="font-weight:700;margin-bottom:3px;font-size:0.85rem;">Copia la chiave AIza...</p><p style="color:#666;font-size:0.78rem;">Incollala nel campo qui sopra</p></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,215,0,0.15);color:#ffd700;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;"><i class="ph-fill ph-check"></i></div>
+                <div><p style="font-weight:700;margin-bottom:3px;font-size:0.85rem;">Pronto!</p><p style="color:#666;font-size:0.78rem;">Tutti gli agenti la usano automaticamente</p></div>
+            </div>
+        </div>
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="btn-gold" style="display:inline-flex;">
+                <i class="ph-fill ph-sparkle"></i> Vai a Google AI Studio
+            </a>
+        </div>
+    </div>
+
+    <!-- ALTERNATIVE AI GRATUITE -->
+    <div class="section-hdr" style="margin-top:50px;">Alternative AI — Tutte Gratuite al 100%</div>
+
+    <div style="background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.15);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;gap:12px;align-items:center;">
+        <i class="ph-fill ph-info" style="color:#6ee7b7;font-size:1.2rem;flex-shrink:0;"></i>
+        <p style="font-size:0.82rem;color:#bbb;line-height:1.6;margin:0;">Queste API non richiedono carta di credito. Registrazione con email sufficiente. <strong style="color:#6ee7b7;">Groq è il più veloce in assoluto</strong> — ideale come backup quando Gemini è sotto rate limit.</p>
+    </div>
+
+    <div class="alt-ai-grid">
+
+        <div class="alt-card" style="border-color:rgba(249,115,22,0.25);">
+            <div class="alt-top">
+                <div>
+                    <div class="alt-name">⚡ Groq</div>
+                    <div class="alt-model">llama-3.3-70b · mixtral-8x7b · gemma2-9b</div>
+                </div>
+                <div class="alt-icon" style="background:rgba(249,115,22,0.1);color:#fdba74;">G</div>
+            </div>
+            <div class="alt-desc">Il più veloce al mondo (LPU hardware). Ideale per agenti che devono rispondere in tempo reale. Free tier molto generoso, no carta di credito.</div>
+            <div class="alt-pills">
+                <span class="alt-pill-speed">⚡ ~500 token/s</span>
+                <span class="alt-pill-free">100% gratuito</span>
+                <span class="alt-pill-limit">6000 token/min</span>
+                <span class="alt-pill-limit">No carta credito</span>
+            </div>
+            <a class="alt-link" href="https://console.groq.com/keys" target="_blank"><i class="ph ph-arrow-square-out"></i> Ottieni chiave gratuita</a>
+        </div>
+
+        <div class="alt-card">
+            <div class="alt-top">
+                <div>
+                    <div class="alt-name">Mistral AI</div>
+                    <div class="alt-model">mistral-small · open-mistral-nemo</div>
+                </div>
+                <div class="alt-icon" style="background:rgba(255,165,0,0.1);color:#fbbf24;font-size:0.9rem;font-weight:900;">M</div>
+            </div>
+            <div class="alt-desc">Modelli europei (Francia). Free tier con crediti gratuiti per testare. Modelli aperti, ottima qualità su testi italiani.</div>
+            <div class="alt-pills">
+                <span class="alt-pill-free">Crediti gratuiti</span>
+                <span class="alt-pill-limit">Rate limit basso</span>
+                <span class="alt-pill-limit">No carta credito</span>
+            </div>
+            <a class="alt-link" href="https://console.mistral.ai/api-keys/" target="_blank"><i class="ph ph-arrow-square-out"></i> Console Mistral</a>
+        </div>
+
+        <div class="alt-card">
+            <div class="alt-top">
+                <div>
+                    <div class="alt-name">Cohere</div>
+                    <div class="alt-model">command-r · command-r-plus</div>
+                </div>
+                <div class="alt-icon" style="background:rgba(139,92,246,0.1);color:#d8b4fe;font-size:0.9rem;font-weight:900;">C</div>
+            </div>
+            <div class="alt-desc">Ottimo per retrieval, embedding e classificazione. Trial API key gratuita, nessuna carta richiesta. Utile per ricerca semantica in Disperazione.</div>
+            <div class="alt-pills">
+                <span class="alt-pill-free">Trial gratuito</span>
+                <span class="alt-pill-limit">1000 req/mese</span>
+                <span class="alt-pill-limit">No carta credito</span>
+            </div>
+            <a class="alt-link" href="https://dashboard.cohere.com/api-keys" target="_blank"><i class="ph ph-arrow-square-out"></i> Dashboard Cohere</a>
+        </div>
+
+        <div class="alt-card">
+            <div class="alt-top">
+                <div>
+                    <div class="alt-name">Together AI</div>
+                    <div class="alt-model">llama-3.1-8b · qwen2.5-72b</div>
+                </div>
+                <div class="alt-icon" style="background:rgba(6,182,212,0.1);color:#67e8f9;font-size:0.8rem;font-weight:900;">TA</div>
+            </div>
+            <div class="alt-desc">$5 di crediti gratuiti all'iscrizione. Accesso a 100+ modelli open source. Ottimo per test e prototipazione.</div>
+            <div class="alt-pills">
+                <span class="alt-pill-free">$5 free credits</span>
+                <span class="alt-pill-limit">100+ modelli</span>
+                <span class="alt-pill-limit">No carta credito</span>
+            </div>
+            <a class="alt-link" href="https://api.together.ai/settings/api-keys" target="_blank"><i class="ph ph-arrow-square-out"></i> Together API</a>
+        </div>
+
+        <div class="alt-card">
+            <div class="alt-top">
+                <div>
+                    <div class="alt-name">OpenRouter</div>
+                    <div class="alt-model">claude-3-haiku · llama free · gemma free</div>
+                </div>
+                <div class="alt-icon" style="background:rgba(236,72,153,0.1);color:#f9a8d4;font-size:0.75rem;font-weight:900;">OR</div>
+            </div>
+            <div class="alt-desc">Router unificato per 200+ modelli. Alcuni modelli sono <strong style="color:#f9a8d4;">completamente gratuiti</strong> (Llama, Gemma, Mistral free tier). Un'unica API, molti provider.</div>
+            <div class="alt-pills">
+                <span class="alt-pill-free">Modelli free disponibili</span>
+                <span class="alt-pill-limit">Pay-as-you-go altri</span>
+            </div>
+            <a class="alt-link" href="https://openrouter.ai/keys" target="_blank"><i class="ph ph-arrow-square-out"></i> OpenRouter Keys</a>
+        </div>
+
+        <div class="alt-card">
+            <div class="alt-top">
+                <div>
+                    <div class="alt-name">Hugging Face</div>
+                    <div class="alt-model">Inference API · SDXL · Flux</div>
+                </div>
+                <div class="alt-icon" style="background:rgba(255,165,0,0.1);color:#fbbf24;">🤗</div>
+            </div>
+            <div class="alt-desc">Generazione immagini AI gratuita (SDXL, Flux.1), modelli LLM, embeddings. 1000 richieste gratuite al mese per modelli inferenza.</div>
+            <div class="alt-pills">
+                <span class="alt-pill-free">Gratuito</span>
+                <span class="alt-pill-limit">1000 req/mese</span>
+                <span class="alt-pill-limit">Rate limited</span>
+            </div>
+            <a class="alt-link" href="https://huggingface.co/settings/tokens" target="_blank"><i class="ph ph-arrow-square-out"></i> HF Token</a>
+        </div>
+
+    </div>
+
+    <!-- HOSTING GRATUITO -->
+    <div class="section-hdr">Hosting Gratuito — Deploy Zero Costo</div>
+
+    <div style="background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;gap:12px;align-items:center;">
+        <i class="ph-fill ph-rocket" style="color:#ffd700;font-size:1.2rem;flex-shrink:0;"></i>
+        <p style="font-size:0.82rem;color:#bbb;line-height:1.6;margin:0;">Content Factory è <strong style="color:#ffd700;">100% client-side</strong> — zero backend, zero server. Funziona su qualsiasi hosting statico. Tutte le opzioni sotto sono <strong style="color:#ffd700;">gratuite per sempre</strong>.</p>
+    </div>
+
+    <div class="hosting-grid">
+
+        <div class="hosting-card hosting-recommended">
+            <div class="hosting-card-top">
+                <div class="hosting-icon" style="background:rgba(36,41,47,0.8);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:1.2rem;">⬡</div>
+                <div>
+                    <div class="hosting-name">GitHub Pages <span class="hosting-tag">Consigliato</span></div>
+                </div>
+            </div>
+            <div class="hosting-desc">Deploy direttamente dalla repo GitHub. Zero configurazione. URL tipo: <code style="font-family:'Fira Code',monospace;font-size:0.75rem;color:#ffd700;">username.github.io/ContentFactory_V10_1</code></div>
+            <div class="hosting-specs">
+                <span class="spec-pill">Completamente gratuito</span>
+                <span class="spec-pill">HTTPS automatico</span>
+                <span class="spec-pill">Deploy da git push</span>
+                <span class="spec-pill">Custom domain gratis</span>
+            </div>
+            <div style="margin-bottom:10px;">
+                <p style="font-size:0.76rem;color:#888;line-height:1.6;"><strong style="color:#ccc;">Setup:</strong> Su GitHub → repo → Settings → Pages → seleziona branch main → Save. In 2 minuti il sito è online.</p>
+            </div>
+            <a class="hosting-link" href="https://pages.github.com/" target="_blank"><i class="ph ph-arrow-square-out"></i> GitHub Pages</a>
+        </div>
+
+        <div class="hosting-card">
+            <div class="hosting-card-top">
+                <div class="hosting-icon" style="background:rgba(0,189,165,0.1);color:#00bda5;font-weight:900;font-size:0.85rem;">N</div>
+                <div>
+                    <div class="hosting-name">Netlify</div>
+                </div>
+            </div>
+            <div class="hosting-desc">Drag & drop della cartella o collega GitHub. Deploy automatico ad ogni push. Ottimo per form e redirect.</div>
+            <div class="hosting-specs">
+                <span class="spec-pill">100GB bandwidth/mese</span>
+                <span class="spec-pill">HTTPS automatico</span>
+                <span class="spec-pill">Deploy drag&drop</span>
+                <span class="spec-pill">netlify.app domain</span>
+            </div>
+            <div style="margin-bottom:10px;">
+                <p style="font-size:0.76rem;color:#888;line-height:1.6;"><strong style="color:#ccc;">Setup:</strong> Vai su netlify.com → "Add new site" → "Deploy manually" → trascina la cartella. Online in 30 secondi.</p>
+            </div>
+            <a class="hosting-link" href="https://app.netlify.com/drop" target="_blank"><i class="ph ph-arrow-square-out"></i> Netlify Drop</a>
+        </div>
+
+        <div class="hosting-card">
+            <div class="hosting-card-top">
+                <div class="hosting-icon" style="background:rgba(0,0,0,0.5);color:#fff;font-weight:900;font-size:0.9rem;">▲</div>
+                <div>
+                    <div class="hosting-name">Vercel</div>
+                </div>
+            </div>
+            <div class="hosting-desc">Il più veloce per siti statici. Integrazione GitHub nativa. Deploy automatico, preview per ogni branch.</div>
+            <div class="hosting-specs">
+                <span class="spec-pill">100GB bandwidth/mese</span>
+                <span class="spec-pill">HTTPS automatico</span>
+                <span class="spec-pill">Deploy da GitHub</span>
+                <span class="spec-pill">vercel.app domain</span>
+            </div>
+            <div style="margin-bottom:10px;">
+                <p style="font-size:0.76rem;color:#888;line-height:1.6;"><strong style="color:#ccc;">Setup:</strong> vercel.com → New Project → importa repo GitHub → Deploy. Ogni push aggiorna il sito automaticamente.</p>
+            </div>
+            <a class="hosting-link" href="https://vercel.com/new" target="_blank"><i class="ph ph-arrow-square-out"></i> Vercel New</a>
+        </div>
+
+        <div class="hosting-card">
+            <div class="hosting-card-top">
+                <div class="hosting-icon" style="background:rgba(249,115,22,0.1);color:#fdba74;font-weight:900;font-size:0.85rem;">CF</div>
+                <div>
+                    <div class="hosting-name">Cloudflare Pages</div>
+                </div>
+            </div>
+            <div class="hosting-desc">Bandwidth illimitata nel piano free. CDN globale ultra-veloce. Nessun limite di siti. Ideale per contenuto pesante.</div>
+            <div class="hosting-specs">
+                <span class="spec-pill">Bandwidth illimitata</span>
+                <span class="spec-pill">CDN globale</span>
+                <span class="spec-pill">HTTPS automatico</span>
+                <span class="spec-pill">pages.dev domain</span>
+            </div>
+            <a class="hosting-link" href="https://pages.cloudflare.com/" target="_blank"><i class="ph ph-arrow-square-out"></i> Cloudflare Pages</a>
+        </div>
+
+    </div>
+
+    <!-- RIEPILOGO PUSH -->
+    <div style="background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.2);border-radius:18px;padding:24px 28px;margin-bottom:50px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <i class="ph-fill ph-git-commit" style="color:#ffd700;font-size:1.3rem;"></i>
+            <div style="font-family:'Instrument Serif',serif;font-size:1.2rem;">Come mettere online in 5 minuti</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:24px;height:24px;border-radius:50%;background:rgba(255,215,0,0.2);color:#ffd700;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.75rem;flex-shrink:0;">1</div>
+                <div><p style="font-weight:700;font-size:0.83rem;margin-bottom:3px;">Fai il push su GitHub</p><p style="color:#666;font-size:0.76rem;">Vedi istruzioni sopra (GitHub Desktop è il più semplice)</p></div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:24px;height:24px;border-radius:50%;background:rgba(255,215,0,0.2);color:#ffd700;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.75rem;flex-shrink:0;">2</div>
+                <div><p style="font-weight:700;font-size:0.83rem;margin-bottom:3px;">Apri GitHub Pages</p><p style="color:#666;font-size:0.76rem;">Repo → Settings → Pages → branch main → Save</p></div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:24px;height:24px;border-radius:50%;background:rgba(255,215,0,0.2);color:#ffd700;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.75rem;flex-shrink:0;">3</div>
+                <div><p style="font-weight:700;font-size:0.83rem;margin-bottom:3px;">Aspetta 2 minuti</p><p style="color:#666;font-size:0.76rem;">GitHub compila e pubblica automaticamente</p></div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:24px;height:24px;border-radius:50%;background:rgba(16,185,129,0.2);color:#6ee7b7;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;"><i class="ph-fill ph-check"></i></div>
+                <div><p style="font-weight:700;font-size:0.83rem;margin-bottom:3px;">Sito online!</p><p style="color:#666;font-size:0.76rem;">URL: minimento89-hash.github.io/ContentFactory_V10_1</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALL SAVED KEYS -->
+    <div class="section-hdr">Tutte le Chiavi Salvate</div>
+    <div id="savedKeysList" style="display:flex;flex-direction:column;gap:10px;"></div>
+
+</div>
+
+<script>
+// Orbs
+(function(){
+    const bg=document.getElementById('orbsBg');
+    const colors=['#ffd700','#4285f4','#10b981','#8b5cf6','#f97316','#06b6d4'];
+    for(let i=0;i<16;i++){
+        const o=document.createElement('div'); o.className='cf-orb';
+        const s=150+Math.random()*280;
+        o.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*110-5}%;top:${Math.random()*110-5}%;background:radial-gradient(circle,${colors[i%colors.length]}20 0%,transparent 70%);animation-duration:${12+Math.random()*16}s;animation-delay:-${Math.random()*20}s;`;
+        bg.appendChild(o);
+    }
+})();
+
+// ── KEY STORAGE ──
+// All keys stored under 'cf_apikeys' object in localStorage
+function loadKeys() {
+    try { return JSON.parse(localStorage.getItem('cf_apikeys') || '{}'); } catch(e){ return {}; }
+}
+function storeKeys(obj) { localStorage.setItem('cf_apikeys', JSON.stringify(obj)); }
+
+function maskKey(k) {
+    if(!k || k.length < 10) return k;
+    return k.slice(0,6) + '•'.repeat(Math.min(20,k.length-10)) + k.slice(-4);
+}
+
+function saveKey(provider) {
+    const input = document.getElementById('input-'+provider);
+    const val = input.value.trim();
+    if(!val) return;
+    const keys = loadKeys();
+    keys[provider] = val;
+    storeKeys(keys);
+    // For gemini: also save in legacy key for gemini-engine.js compatibility
+    if(provider === 'gemini') localStorage.setItem('cf_gemini_key', val);
+    input.value='';
+    const c = document.getElementById('confirm-'+provider);
+    c.classList.add('show');
+    setTimeout(()=>c.classList.remove('show'), 2500);
+    renderPage();
+}
+
+function clearKey(provider) {
+    if(!confirm('Rimuovere la chiave '+ provider +'?')) return;
+    const keys = loadKeys();
+    delete keys[provider];
+    storeKeys(keys);
+    if(provider==='gemini') localStorage.removeItem('cf_gemini_key');
+    renderPage();
+}
+
+function renderPage() {
+    const keys = loadKeys();
+
+    // Active gemini card
+    const gem = keys['gemini'] || localStorage.getItem('cf_gemini_key');
+    const activeCard = document.getElementById('activeKeyCard');
+    if(gem) {
+        activeCard.style.display='flex';
+        document.getElementById('activeKeyDisplay').textContent = maskKey(gem);
+        document.getElementById('gemini-active-badge').style.display='inline';
+        document.getElementById('card-gemini').classList.add('active-provider');
+    } else {
+        activeCard.style.display='none';
+        document.getElementById('gemini-active-badge').style.display='none';
+        document.getElementById('card-gemini').classList.remove('active-provider');
+    }
+
+    // All saved keys list
+    const list = document.getElementById('savedKeysList');
+    const allKeys = Object.entries(keys);
+    // Also check legacy key
+    if(!keys['gemini'] && localStorage.getItem('cf_gemini_key')) {
+        allKeys.push(['gemini (legacy)', localStorage.getItem('cf_gemini_key')]);
+    }
+    if(allKeys.length === 0) {
+        list.innerHTML = '<p style="color:#555;font-size:0.82rem;font-family:\'Fira Code\',monospace;">Nessuna chiave salvata ancora.</p>';
+        return;
+    }
+    list.innerHTML = allKeys.map(([k,v]) => `
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;">
+            <i class="ph-fill ph-key" style="color:#ffd700;font-size:1rem;flex-shrink:0;"></i>
+            <div style="flex:1;">
+                <div style="font-family:'Fira Code',monospace;font-size:0.62rem;color:#666;text-transform:uppercase;letter-spacing:2px;margin-bottom:3px;">${k}</div>
+                <div style="font-family:'Fira Code',monospace;font-size:0.8rem;color:#aaa;">${maskKey(v)}</div>
+            </div>
+            <button onclick="clearKey('${k}')" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:0.72rem;font-weight:700;font-family:'DM Sans',sans-serif;">Rimuovi</button>
+        </div>
+    `).join('');
+}
+
+renderPage();
+</script>
+
+</body>
+</html>

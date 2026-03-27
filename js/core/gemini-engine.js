@@ -2,10 +2,12 @@
 
 class GeminiEngine {
   constructor() {
-    this.endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+    this.model = "gemini-1.5-flash";
+    this.baseUrl = "https://generativelanguage.googleapis.com/v1beta";
+    this.provider = localStorage.getItem('cf_ai_provider') || 'gemini';
     this.offlineMode = localStorage.getItem('cf_offline_mode') === 'true';
     
-    // Database di risposte simulate (quando i token sono finiti)
+    // Database di risposte simulate...
     this.simulatedResponses = {
       'director': [
         "Ho analizzato i dati. Procediamo con il piano originale, ma tieni d'occhio i margini.",
@@ -80,56 +82,100 @@ class GeminiEngine {
     console.log("GeminiEngine: Modalità Offline " + (active ? "ATTIVATA" : "DISATTIVATA"));
   }
 
-  getApiKey() {
-    return localStorage.getItem('cf_google_api_key') || '';
+  getApiKey(type = 'gemini') {
+    return localStorage.getItem(type === 'gemini' ? 'cf_google_api_key' : 'cf_openai_api_key') || '';
   }
 
-  hasKey() {
-    return this.getApiKey().trim().length > 10;
+  setApiKey(key, type = 'gemini') {
+    localStorage.setItem(type === 'gemini' ? 'cf_google_api_key' : 'cf_openai_api_key', key);
+    console.log(`AIEngine: ${type} API Key aggiornata.`);
+  }
+
+  hasKey(type = 'gemini') {
+    return this.getApiKey(type).trim().length > 10;
   }
 
   async ask(prompt, systemInstruction = "Sei un assistente utile e conciso nel team Content Factory.") {
-    // Se siamo offline, restituiamo una simulazione
-    if (this.offlineMode) {
-      console.warn("GeminiEngine: Utilizzo risposta SIMULATA (Modalità Offline)");
-      return "[SIMULAZIONE] Ti rispondo in modalità offline: La tua richiesta è stata elaborata con successo, ma le risposte reali richiedono una connessione API attiva.";
+    if (this.offlineMode) return "[SIMULAZIONE] Modalità offline attiva.";
+
+    if (this.provider === 'openai' && this.hasKey('openai')) {
+      return await this.askOpenAI(prompt, systemInstruction);
     }
 
-    const key = this.getApiKey().trim();
-    if (!key) {
-      return "⚠️ Errore API Key: Devi prima incollare la tua Google API Key nel pannello Impostazioni.";
-    }
+    const key = this.getApiKey('gemini').trim();
+    if (!key) return "⚠️ Errore API Key: Inserisci la tua chiave nel Vault.";
 
     const payload = {
       contents: [{ parts: [{ text: prompt }] }],
       systemInstruction: { parts: [{ text: systemInstruction }] },
-      generationConfig: { temperature: 0.7, maxOutputTokens: 500 }
+      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
     };
 
+    // Lista ordinata di tentativi (Endpoint + Modello)
+    const attempts = [
+      { ver: 'v1beta', mod: this.model },
+      { ver: 'v1beta', mod: this.model + "-latest" },
+      { ver: 'v1beta', mod: "gemini-1.5-flash-8b" },
+      { ver: 'v1',     mod: this.model },
+      { ver: 'v1beta', mod: "gemini-pro" }
+    ];
+
+    let result = { error: "Nessun tentativo riuscito" };
+    
+    for (const att of attempts) {
+      result = await this._callApi(att.mod, att.ver, key, payload);
+      if (!result.error) break;
+      if (!result.error.includes("not found") && !result.error.includes("404")) break; 
+      console.warn(`AIEngine: [${att.ver}] ${att.mod} fallito, provo il prossimo...`);
+    }
+
+    if (result.error) return "⚠️ Errore Gemini: " + result.error + "\n\nSuggerimento: Verifica la tua chiave su Google AI Studio o prova OpenAI.";
+    return result.text;
+  }
+
+  async _callApi(model, version, key, payload) {
+    const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${key}`;
     try {
-      const response = await fetch(`${this.endpoint}?key=${key}`, {
+      const resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const data = await resp.json();
+      if (data.error) return { error: `[${version}] ${data.error.message || "Errore"}` };
+      if (!data.candidates || !data.candidates[0].content) return { error: "Nessuna risposta" };
+      return { text: data.candidates[0].content.parts[0].text };
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
+  // Utility per listare i modelli (da chiamare in console per debug)
+  async listModels() {
+    const key = this.getApiKey('gemini');
+    try {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+      const data = await resp.json();
+      console.log("Modelli Disponibili:", data);
+      return data;
+    } catch(e) { console.error(e); }
+  }
+
+  async askOpenAI(prompt, system) {
+    const key = this.getApiKey('openai');
+    try {
+      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: prompt }
+          ]
+        })
       });
-      
-      const data = await response.json();
-      
-      if (data.error) {
-        // Gestione automatica esaurimento token (429)
-        if (data.error.code === 429) {
-          console.error("Gemini Error: Quota raggiunta (429)");
-          // Proponiamo il passaggio offline se l'app lo supporta
-          window.dispatchEvent(new CustomEvent('gemini-quota-error'));
-          return "⚠️ Token finiti (429): Hai esaurito la quota gratuita di Gemini. Attiva la 'Modalità Simulazione' nelle Impostazioni per continuare a testare l'app.";
-        }
-        throw new Error(data.error.message || "Errore sconosciuto API Google.");
-      }
-      
-      return data.candidates[0].content.parts[0].text;
-    } catch (err) {
-      console.error("Gemini Error:", err);
-      return "⚠️ Errore di connessione a Gemini: " + err.message;
+      const data = await resp.json();
+      if (data.error) return "⚠️ OpenAI Error: " + data.error.message;
+      return data.choices[0].message.content;
+    } catch (e) {
+      return "⚠️ Errore connessione OpenAI: " + e.message;
     }
   }
 
