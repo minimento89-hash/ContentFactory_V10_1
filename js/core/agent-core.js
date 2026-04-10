@@ -106,6 +106,62 @@ const AgentCore = (() => {
     let state = mergeState(defaultState, savedState);
     localStorage.setItem('agent_core_state', JSON.stringify(state));
 
+    // ── In-Memory Indexes ──────────────────────────────────────────────
+    // Mirror the role of DB indexes: O(1) lookups on fields used in
+    // WHERE-like searches (findIndex, filter), JOIN-like delegation
+    // queries (from/to), and ORDER BY-like groupings (day, event).
+    const _indexes = {
+        tasks:    { byId: {}, byStatus: {}, byFrom: {}, byTo: {} },
+        logs:     { byEvent: {} },
+        calendar: { byDay: {} }
+    };
+
+    /** Add a value to a multi-map index (key → Set of items). */
+    const _addToIndex = (map, key, item) => {
+        if (key === undefined || key === null) return;
+        if (!map[key]) map[key] = new Set();
+        map[key].add(item);
+    };
+
+    /** Remove a value from a multi-map index. */
+    const _removeFromIndex = (map, key, item) => {
+        if (map[key]) {
+            map[key].delete(item);
+            if (map[key].size === 0) delete map[key];
+        }
+    };
+
+    /** Build all task indexes from scratch (used on init & sync). */
+    const _rebuildTaskIndexes = () => {
+        _indexes.tasks = { byId: {}, byStatus: {}, byFrom: {}, byTo: {} };
+        (state.tasks || []).forEach(t => _indexTask(t));
+    };
+
+    /** Index a single task across every task index. */
+    const _indexTask = (task) => {
+        _indexes.tasks.byId[task.id] = task;
+        _addToIndex(_indexes.tasks.byStatus, task.status, task);
+        _addToIndex(_indexes.tasks.byFrom, task.from, task);
+        _addToIndex(_indexes.tasks.byTo, task.to, task);
+    };
+
+    /** Build log indexes from scratch. */
+    const _rebuildLogIndexes = () => {
+        _indexes.logs = { byEvent: {} };
+        (state.logs || []).forEach(l => _addToIndex(_indexes.logs.byEvent, l.event, l));
+    };
+
+    /** Build calendar indexes from scratch. */
+    const _rebuildCalendarIndexes = () => {
+        _indexes.calendar = { byDay: {} };
+        (state.calendar || []).forEach(e => _addToIndex(_indexes.calendar.byDay, e.day, e));
+    };
+
+    // Populate indexes from the loaded state
+    _rebuildTaskIndexes();
+    _rebuildLogIndexes();
+    _rebuildCalendarIndexes();
+
     // 3. Event Bus
     const listeners = {};
 
@@ -120,8 +176,14 @@ const AgentCore = (() => {
         
         // Log significant events
         if (['bugFound', 'fixComplete', 'provisioningComplete'].includes(event)) {
-            state.logs.push({ timestamp: new Date().toISOString(), event, ...data });
-            if (state.logs.length > 50) state.logs.shift();
+            const logEntry = { timestamp: new Date().toISOString(), event, ...data };
+            // Remove oldest log from index when exceeding cap
+            if (state.logs.length >= 50) {
+                const removed = state.logs.shift();
+                _removeFromIndex(_indexes.logs.byEvent, removed.event, removed);
+            }
+            state.logs.push(logEntry);
+            _addToIndex(_indexes.logs.byEvent, event, logEntry);
             saveState();
         }
 
@@ -225,6 +287,7 @@ const AgentCore = (() => {
         const event = { day, title, type, id: Date.now() };
         if (!state.calendar) state.calendar = [];
         state.calendar.push(event);
+        _addToIndex(_indexes.calendar.byDay, day, event);
         broadcast('eventScheduled', { event });
         saveState();
     };
@@ -250,6 +313,7 @@ const AgentCore = (() => {
                 status: 'PENDING', timestamp: new Date().toISOString()
             };
             state.tasks.push(newTask);
+            _indexTask(newTask);
             saveState();
             broadcast('taskNew', newTask);
             console.log(`[AgentCore] Task: ${fromId} -> ${toId}: ${title}`);
@@ -257,12 +321,14 @@ const AgentCore = (() => {
         },
 
         completeTask: (taskId, result) => {
-            const idx = state.tasks.findIndex(t => t.id === taskId);
-            if (idx !== -1) {
-                state.tasks[idx].status = 'COMPLETED';
-                state.tasks[idx].result = result;
+            const task = _indexes.tasks.byId[taskId];
+            if (task) {
+                _removeFromIndex(_indexes.tasks.byStatus, task.status, task);
+                task.status = 'COMPLETED';
+                task.result = result;
+                _addToIndex(_indexes.tasks.byStatus, 'COMPLETED', task);
                 saveState();
-                broadcast('taskCompleted', state.tasks[idx]);
+                broadcast('taskCompleted', task);
             }
         },
 
@@ -275,7 +341,26 @@ const AgentCore = (() => {
             broadcast('sentimentUpdate', state.sentiment);
         },
 
-        getReport: () => JSON.stringify(state.logs, null, 2)
+        getReport: () => JSON.stringify(state.logs, null, 2),
+
+        // --- Indexed Query Helpers ───────────────────────────────────
+        /** O(1) task lookup by id  (equiv. WHERE id = ?) */
+        getTaskById: (taskId) => _indexes.tasks.byId[taskId] || null,
+
+        /** O(1) tasks by status    (equiv. WHERE status = ?) */
+        getTasksByStatus: (status) => [...(_indexes.tasks.byStatus[status] || [])],
+
+        /** O(1) tasks sent by agent (equiv. WHERE from = ? / JOIN) */
+        getTasksFrom: (agentId) => [...(_indexes.tasks.byFrom[agentId] || [])],
+
+        /** O(1) tasks received by agent (equiv. WHERE to = ? / JOIN) */
+        getTasksTo: (agentId) => [...(_indexes.tasks.byTo[agentId] || [])],
+
+        /** O(1) logs filtered by event type (equiv. WHERE event = ?) */
+        getLogsByEvent: (eventName) => [...(_indexes.logs.byEvent[eventName] || [])],
+
+        /** O(1) calendar events by day (equiv. WHERE day = ? / ORDER BY day) */
+        getEventsByDay: (day) => [...(_indexes.calendar.byDay[day] || [])]
     };
 })();
 
@@ -293,7 +378,11 @@ if (typeof window !== 'undefined') {
             console.log(`[AgentCore] External Sync: ${event}`);
             
             // Sync local state copy
-            state = { ...remoteState }; 
+            state = { ...remoteState };
+            // Rebuild indexes after full state replacement
+            _rebuildTaskIndexes();
+            _rebuildLogIndexes();
+            _rebuildCalendarIndexes();
             
             // Re-broadcast internally without re-pushing to sync
             broadcast(event, data, true);
